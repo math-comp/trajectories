@@ -1,6 +1,6 @@
 Require Import (*QArith*) ZArith Zwf Lia.
 From mathcomp Require Import ssreflect eqtype ssrbool ssrnat div fintype seq ssrfun order.
-From mathcomp Require Import bigop fingroup choice ssralg ssrnum rat.
+From mathcomp Require Import bigop fingroup choice ssralg ssrnum rat poly.
 Require Export (*infra*) pol.
 
 Import GroupScope.
@@ -20,30 +20,23 @@ Set Printing Width 50.
 *)
 (******************************************************************************)
 
-(* NB: copied from new_descartes *)
-Fixpoint eval_pol (l:list rat)(x:rat) {struct l} : rat :=
-  match l with
-    nil => 0
-  | a::tl => a + x * (eval_pol tl x)
-  end.
-
 Fixpoint abs_pol (l:list rat) :list rat :=
  match l with nil => nil | a::tl => `|a| :: abs_pol tl end.
 
 (* Theorem binding the slope between two points inside an interval. *)
 Lemma cm2 :
-  forall l b, { c |
+  forall (l : {poly rat}) b, { c |
   forall x, 0 <= x -> x <= b ->
-    `|(eval_pol l x - eval_pol l 0)| <= c * x}.
+    `|(l.[x] - l.[0])| <= c * x}.
 Proof.
-move=> l b; case: l =>[| a l].
+(*move=> l b; case: l =>[| a l].
 - by exists 0; move=> /= x; rewrite mul0r oppr0 addr0 normr0 lexx.
 - exists (eval_pol (abs_pol l) b) => x px xb /=; rewrite mul0r addr0.
   rewrite addrC addKr normrM ger0_norm // mulrC ler_wpmul2r//.
 (* NB(rei): ler_absr_eval_pol? *)
 (*  rewrite (le_trans (ler_absr_eval_pol _ _)) //.
   by rewrite eval_pol_abs_pol_increase // ger0_abs.
-Qed.*) (*TODO*) Admitted.
+Qed.*) (*TODO*)*) Admitted.
 
 (* Cannot be abstracted since not every ordered ring has a floor ring *)
 (*
