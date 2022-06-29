@@ -247,74 +247,87 @@ by rewrite nnegrE ltW.
 by apply: le_trans yz.
 Qed.
 
-(* NB(rei): couldn't find reciprocate_pol
-TODO
-Lemma reciprocate_size :  forall l, size (reciprocate_pol l) = size l.
-by move => l; rewrite /reciprocate_pol size_rev.
+Definition reciprocal_pol {R:ringType} (p: {poly R}):=
+    \poly_(i < size p) p`_(size p - i.+1).
+
+Lemma cut_epsilon : forall eps:rat, (0 < eps)%R ->
+  exists eps1 : rat, exists eps2, (0 < eps1 /\ 0 < eps2 /\ eps1 + eps2 <= eps)%R /\
+      eps1 < eps /\ eps2 < eps.
+move => eps p; exists (eps/(2%:R)); exists (eps/(2%:R)).
+have p1 : (0 < eps/(2%:R))%R.
+  by rewrite divr_gt0.
+split.
+  split => //.
+  split => //.
+  rewrite -mulrDr.
+  by rewrite ger_pmulr//.
+suff cmp : eps/2%:R < eps by [].
+rewrite ltr_pdivr_mulr//.
+by rewrite ltr_pmulr//.
 Qed.
 
-Lemma one_root_reciprocate :
-  forall l, one_root2 (reciprocate_pol l) 1 -> one_root1 l 0 1.
+Lemma one_root_reciprocal :
+  forall l, one_root2 (reciprocal_pol l) 1 -> one_root1 l 0 1.
 Proof.
 move=> l [x1 [k [x1gt1 [kp [neg sl]]]]].
-have x10 : 0 < x1 by apply: lter_trans x1gt1.
-have ux1 : GRing.unit x1 by apply/negP; move/eqP => q; rewrite q lterr in x10.
-have uk: GRing.unit k by apply/negP; move/eqP => q; rewrite q lterr in kp.
-set y' := x1 - eval_pol (reciprocate_pol l) x1 / k.
+have x10 : (0 < x1)%R.
+  by rewrite (lt_trans _ x1gt1).
+(*have ux1 : GRing.unit x1 by apply/negP; move/eqP => q; rewrite q lterr in x10.*)
+(*have uk: GRing.unit k by apply/negP; move/eqP => q; rewrite q lterr in kp.*)
+set y' := x1 - eval_pol (reciprocal_pol l) x1 / k.
 have y'1: x1 < y'.
-  rewrite /y' -(lter_add2r (-x1)) addNr addrA addNr add0r -mulNr.
-  apply: mulr_gte0pp=> /=; last by  rewrite invf_gte0.
-  by rewrite oppr_cp0 /=; apply: neg=> //; rewrite lterr.
-have nx1 : eval_pol (reciprocate_pol l) x1 < 0 by apply: neg; rewrite // lterr.
-have y'pos : 0 <= eval_pol (reciprocate_pol l) y'.
-  rewrite -[_ _ y']addr0 -{2}(addNr (eval_pol (reciprocate_pol l) x1)) addrA
+  rewrite /y' -(ltr_add2l (-x1)) addNr addrA addNr add0r -mulNr.
+  apply: divr_gt0 => //.
+  rewrite oppr_gt0.
+  by apply: neg => //.
+have nx1 : eval_pol (reciprocal_pol l) x1 < 0%Q by apply: neg; rewrite // lterr.
+have y'pos : (0 <= eval_pol (reciprocal_pol l) y')%R.
+  rewrite -[_ _ y']addr0 -{2}(addNr (eval_pol (reciprocal_pol l) x1)) addrA
    -{2}(opprK (_ _ x1)) subr_gte0 /=.
-  apply: lter_trans (_ : k * (y' - x1) <= _)=> /=.
-     by rewrite /y' (addrC x1) addrK mulrN mulrC mulrVK // lterr.
-  by apply sl => //; rewrite lterr.
-have ltr1: 0 < (1:Qcb) by [].
+  apply: le_trans (_ : k * (y' - x1) <= _)=> /=.
+    by rewrite /y' (addrC x1) addrK mulrN mulrC mulrVK // unitfE gt_eqF.
+  by apply sl => //.
+have ltr1: (0 < 1)%Q by [].
 move: (diff_xn_ub (size l - 1) _ ltr1) => {ltr1} [u [u0 up]].
-have [u' [u1 u'u]] : exists u', 1 <= u' /\ u <= u'.
-  case cmp: (1 <= u); first by exists u; rewrite lerr cmp.
-  by exists 1; rewrite lerr; split=> //; rewrite ltrW // -lerNgt cmp.
-have u'0 : 0 < u' by apply: lter_le_trans u1.
-have u'unit : GRing.unit u' by apply/negP; move/eqP=> q; rewrite q lterr in u'0.
-have divu_ltr : forall x, 0 <= x -> x / u' <= x.
-  move => x x0; rewrite ltef_divpl // mulrC /=.
-  by rewrite -{1}(mul1r x) lter_mulp.
-
+have [u' [u1 u'u]] : exists u', (1 <= u' /\ u <= u')%R.
+  case cmp: (1 <= u)%R; first by exists u; rewrite lexx cmp.
+  by exists 1%Q; rewrite lexx; split=> //; rewrite ltW // ltNge cmp.
+have u'0 : (0 < u')%R by apply: lt_le_trans u1.
+(*have u'unit : GRing.unit u' by apply/negP; move/eqP=> q; rewrite q lterr in u'0.*)
+have divu_ltr : forall x : rat, (0 <= x)%R -> (x / u' <= x)%R.
+  move => x x0.
+  rewrite ler_pdivr_mulr//.
+  by rewrite ler_pemulr//.
 (*   rewrite ler_eqVlt in x0; case/orP: x0 => [x0 | x0]. *)
 (*      rewrite /=.  -lter_mulpl. *)
-
-
-
-
-
-
 
 (* -(eqP x0) mulr0 lterr. *)
 (*   rewrite -ltef_divpl // mulrV //. *)
 
 (*   by apply/negP; move/eqP=> q; rewrite q lterr in x0. *)
-have y'0: 0 < y' by apply: lter_trans y'1.
+have y'0 : (0 < y')%R by apply: lt_trans y'1.
 pose y := y' + 1.
-have y'y : y' < y by rewrite /y -{1}(addr0 y') lter_add2r.
-have y1 : x1 < y by apply: lter_trans y'1 _.
-have ypos : 0 < eval_pol (reciprocate_pol l) y.
-  apply: ler_lte_trans y'pos _=> /=.
-  rewrite -subr_gte0 /=; apply: lter_le_trans (_ : k * (y - y') <= _)=> /=.
-    by rewrite mulr_cp0p //= subr_gte0.
-  by apply: sl=> //; apply: ltrW.
-have y0: 0 < y by apply: lter_trans y'y.
+have y'y : y' < y by rewrite /y -{1}(addr0 y') ltr_add2l.
+have y1 : x1 < y by apply: lt_trans y'1 _.
+have ypos : (0 < eval_pol (reciprocal_pol l) y)%R.
+  apply: le_lt_trans y'pos _=> /=.
+  rewrite -subr_gte0 /=; apply: lt_le_trans (_ : k * (y - y') <= _)=> /=.
+    by rewrite mulr_gt0// subr_gt0.
+  by apply: sl=> //; apply: ltW.
+have y0 : (0 < y)%R by apply: lt_trans y'y.
 pose k' :=  ((k * x1 ^+ 2 * y ^- 1 ^+ (size l - 1))/(1+1)).
-have k'p : 0 < k'.
-  rewrite /k'; apply: mulr_gte0pp; last by[].
-  apply: mulr_gte0pp=> /=.
-    by apply: mulr_gte0pp => //; apply: expf_gt0.
-  by apply: expf_gt0; rewrite (invf_gte0 y).
+have k'p : (0 < k')%R.
+  rewrite /k' !mulr_gt0//.
+  rewrite exprn_gt0//.
+  by rewrite invr_gt0//.
 pose e := k'/u'.
-have ep: 0 < e by rewrite /e; apply: mulr_gte0pp => //; rewrite invf_gte0.
-move: (cut_epsilon _ ep) => [e1 [e2 [e1p [e2p [e1e2 [e1e e2e]]]]]].
+have ep: (0 < e)%R by rewrite divr_gt0//.
+move: (cut_epsilon _ ep) => [e1 [e2 [[e1p [e2p e1e2e] [e1e e22]]]]].
+
+move: (@constructive_ivt _ (reciprocal_pol l) _ _ _ y'1 nx1). y'pos _ e1p).
+  [a [b' [cla [nega [posb' [clb' [x1a [ab b'y']]]]]]]].
+
+
 move: (constructive_ivt (reciprocate_pol l) _ _ y'1 nx1 y'pos _ e1p) =>
   [a [b' [cla [nega [posb' [clb' [x1a [ab b'y']]]]]]]].
 move: (cm3 y y0 (reciprocate_pol l)) => [c cp].

@@ -21,11 +21,11 @@ Set Printing Width 50.
 (******************************************************************************)
 
 (* NB: copied from new_descartes *)
-Fixpoint eval_pol (l:list rat)(x:rat) {struct l} : rat :=
+(*Fixpoint eval_pol (l:list rat)(x:rat) {struct l} : rat :=
   match l with
     nil => 0
   | a::tl => a + x * (eval_pol tl x)
-  end.
+  end.*)
 
 Fixpoint abs_pol (l:list rat) :list rat :=
  match l with nil => nil | a::tl => `|a| :: abs_pol tl end.
@@ -34,7 +34,7 @@ Fixpoint abs_pol (l:list rat) :list rat :=
 Lemma cm2 :
   forall l b, { c |
   forall x, 0 <= x -> x <= b ->
-    `|(eval_pol l x - eval_pol l 0)| <= c * x}.
+    `|(l.[x] - eval_pol l 0)| <= c * x}.
 Proof.
 move=> l b; case: l =>[| a l].
 - by exists 0; move=> /= x; rewrite mul0r oppr0 addr0 normr0 lexx.
