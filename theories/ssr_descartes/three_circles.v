@@ -337,8 +337,9 @@ Lemma reciprocal_Xn_root0 (p : {poly R}) :
 Proof.
 rewrite -(addr0 'X) -oppr0.
 have Hmu0 := (root_mu p 0).
-rewrite Pdiv.IdomainMonic.dvdp_eq in Hmu0.
-(*  by rewrite {1}(eqP Hmu0) reciprocalM {2}oppr0 addr0 reciprocal_Xn
+rewrite Pdiv.IdomainMonic.dvdp_eq in Hmu0; last first.
+by rewrite monic_exp// monicXsubC.
+(*rewrite {1}(eqP Hmu0) reciprocalM. {2}oppr0 addr0 reciprocal_Xn
     polyC1 mulr1 polyC0.
 by rewrite polyC0 oppr0 addr0 monicXn.
 Qed.*) Admitted.

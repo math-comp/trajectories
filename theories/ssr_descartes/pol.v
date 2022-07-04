@@ -1,5 +1,5 @@
-From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq  choice fintype order.
-From mathcomp Require Import binomial  bigop ssralg poly ssrnum ssrint rat polyrcf.
+From mathcomp Require Import all_ssreflect.
+From mathcomp Require Import ssralg poly ssrnum ssrint rat polyrcf.
 
 (** * Descartes. 
    polynomials link with the ssr library *)
@@ -15,19 +15,19 @@ Import Prenex Implicits.
 
 (* A technical binomial identity for the proof of de Casteljau *)
 
-Lemma binom_exchange j k q:
-  'C(j+k+q,j+k) * 'C(j+k,j) = 'C(k+q,k) * 'C(j+k+q,j).
+Lemma binom_exchange j k q :
+  'C(j + k + q, j + k) * 'C(j + k, j) = 'C(k + q, k) * 'C(j + k + q, j).
 Proof.
 have bin_fact1: forall n m,  'C(n+m,m) * (m`! * n`!) = (n+m)`!.
   by move => n m; move: (bin_fact (leq_addl n m)); rewrite addnK.
 move: (bin_fact1 (k+q) j) (bin_fact1 q (j+k)).
 rewrite (mulnC j`!) (addnC k)(addnC j)  - (bin_fact1 q k) - (bin_fact1 k j).
 rewrite (mulnAC _ _ j`!) !mulnA - (addnA q) (addnC q) => <-.
-move /eqP; rewrite !eqn_pmul2r ? fact_gt0 //;move /eqP ->; apply: mulnC. 
+move /eqP; rewrite !eqn_pmul2r ? fact_gt0 //;move /eqP ->; apply: mulnC.
 Qed.
 
-Lemma util_C (n i j : nat): (i <= j) -> (j <= n) -> 
-    ('C(n-i, j-i) * 'C(n, i) = 'C(n, j) * 'C(j, i)).
+Lemma util_C (n i j : nat) : (i <= j) -> (j <= n) ->
+  ('C(n-i, j-i) * 'C(n, i) = 'C(n, j) * 'C(j, i)).
 Proof.
 move => ij jn.
 move: (binom_exchange i (j - i) (n - j)).
@@ -39,7 +39,6 @@ Import GRing.Theory.
 Import Num.Theory.
 
 Local Open Scope ring_scope.
-
 
 (** ** Properties of ordered fields  *)
 
@@ -58,16 +57,12 @@ Qed.
 Variable R : realFieldType.
 Implicit Types (x y : R).
 
-Lemma two_pos: 0 < 2 %:R :>R.
-Proof. by exact:  ltr0Sn.  Qed.
-
 Definition half x := (x / 2%:R).
 
 Lemma two_unit: (2%:R \is a @GRing.unit R).
-Proof. by apply: unitf_gt0; apply: two_pos. Qed.
+Proof. by rewrite unitfE// pnatr_eq0. Qed.
 
-
-Lemma half_gt0 x: 0 < x -> 0 < half x.
+Lemma half_gt0 x : 0 < x -> 0 < half x.
 Proof.  by move=> lta; rewrite mulr_gt0 // invr_gt0 ltr0n. Qed.
 
 Lemma half_ltx x: 0 < x -> half x < x.
@@ -75,27 +70,25 @@ Proof.
 by move=>lta; rewrite ltr_pdivr_mulr ?ltr0n // mulr_natr mulr2n ltr_addr.
 Qed.
 
-Lemma double_half x : (half x) + (half x) = x.
-Proof. 
-rewrite -mulrDl-mulr2n - mulr_natr -mulrA divrr ?two_unit ?mulr1 //.
+Lemma double_half x : half x + half x = x.
+Proof.
+by rewrite -mulrDl-mulr2n - mulr_natr -mulrA divrr ?two_unit ?mulr1.
 Qed.
 
-
-Lemma half_inj (x y: R): half x = half y -> x= y.
+Lemma half_inj (x y : R) : half x = half y -> x = y.
 Proof. by move => eq; rewrite - (double_half x) - (double_half y) eq. Qed.
 
-Lemma half_lin (x y: R): (half x) + (half y) = half (x + y).
+Lemma half_lin (x y : R) : (half x) + (half y) = half (x + y).
 Proof. by rewrite /half mulrDl. Qed.
 
-Lemma half_lin1 (x y: R): (half x) - (half y) = half (x - y).
+Lemma half_lin1 (x y : R) : (half x) - (half y) = half (x - y).
 Proof. by rewrite /half mulrBl. Qed.
 
-Lemma mid_between (a b: R): a < b -> a < half (a+b) < b.
+Lemma mid_between (a b: R): a < b -> a < half (a + b) < b.
 Proof.
 move => h. rewrite - half_lin - {1} (double_half a) - {3} (double_half b).
-by rewrite  ltr_add2l  ltr_add2r ltr_pmul2r ?h //invr_gt0 two_pos.
+by rewrite  ltr_add2l  ltr_add2r ltr_pmul2r ?h //invr_gt0 ltr0n.
 Qed.
-
 
 Lemma maxS (x y: R) (z := (Num.max x y) +1) : (x<z) && (y <z).
 Proof.
@@ -104,15 +97,13 @@ have p1 : forall u v:R, u <= v -> u < v + 1.
 by rewrite !p1// ?le_maxr// lexx // orbT.
 Qed.
 
-Lemma pmul2w1 (a b c d:R): 0 <= a -> 0<= d -> a <= b -> c <= d -> 
+Lemma pmul2w1 (a b c d : R) : 0 <= a -> 0 <= d -> a <= b -> c <= d ->
    a * c <= b * d.
 Proof.
-move => a0 d0 ab cd. 
+move => a0 d0 ab cd.
 apply: (le_trans (ler_wpmul2l a0 cd)).
 by apply: (le_trans (ler_wpmul2r d0 ab)).
 Qed.
-
-
 
 Lemma inv_comp x y:  0 < x -> 0 < y -> (x < y^-1) = (y < x^-1).
 Proof.
@@ -121,32 +112,16 @@ rewrite -(ltr_pmul2r yp) - [y < _](ltr_pmul2l xp).
 by rewrite mulVf ?(gt_eqF yp) //  mulfV // (gt_eqF xp).
 Qed.
 
-Lemma inv_compr x y:
-   0 < x -> 0 < y -> (y^-1 < x) = (x^-1 < y).
+Lemma inv_compr x y: 0 < x -> 0 < y -> (y^-1 < x) = (x^-1 < y).
 Proof.
 move=> xp yp.
 rewrite -(ltr_pmul2r yp) - [_ < y](ltr_pmul2l xp).
 by rewrite mulVf ?(gt_eqF yp) //  mulfV // (gt_eqF xp).
 Qed.
 
-Lemma ltpinv (u v: R): 0 <u -> 0 <v -> (u <v) = (v^-1 < u ^-1).
-Proof.
-by move => up vp; rewrite - inv_comp // ? invr_gt0 //invrK. 
-Qed.
-
-Lemma lepinv (x y: R): 0 < x -> 0 < y -> (y <=x) = (x^-1 <= y ^-1).
-Proof.
-move => xp yp.
-move: (unitf_gt0 xp) (unitf_gt0 yp) => xu yu.
-symmetry.
-rewrite -(ler_pmul2r yp) - (ler_pmul2l xp) mulrA.
-by rewrite divrr // mulVr // mul1r mulr1.
-Qed.
-
 End MoreRealField.
 
 (** ** Big Max on ordered structures *)
-
 
 Notation "\max_ ( i <- r | P ) F" :=
   (\big[Num.max/0%R]_(i <- r | P%B) F%R) : ring_scope.
@@ -162,16 +137,15 @@ Variable R : realDomainType.
 
 Implicit Types (F: R -> R) (s: seq R) (f g : nat -> R).
 
-
 Lemma bigmaxr_ge0 s F: 0 <= \max_(i <- s) F i.
 Proof.
 elim: s; first by rewrite big_nil.
-by move=> s IHs  Hri0; rewrite big_cons le_maxr Hri0 orbT. 
+by move=> s IHs  Hri0; rewrite big_cons le_maxr Hri0 orbT.
 Qed.
 
 Lemma bigmaxr_le s F j:
   j \in s -> F j <= \max_(i <- s) F i.
-Proof. 
+Proof.
 elim: s; first by rewrite in_nil.
 move=> i s IHs Hri0; rewrite big_cons.
 case Hi: (j == i); first  by rewrite (eqP Hi) le_maxr lexx.
@@ -181,20 +155,20 @@ Qed.
 
 Lemma bigmaxr_le0 s F:
   \max_(i <- s) F i <= 0 -> forall i, i \in s -> F i <= 0.
-Proof. 
+Proof.
 elim: s; first by move=> _ i;rewrite in_nil.
-move=> k s IHs; rewrite big_cons le_maxl; case /andP => Fk Hr1 i. 
-rewrite in_cons; case /orP; [ move /eqP ->; apply: Fk | by apply: IHs]. 
+move=> k s IHs; rewrite big_cons le_maxl; case /andP => Fk Hr1 i.
+rewrite in_cons; case /orP; [ move /eqP ->; apply: Fk | by apply: IHs].
 Qed.
 
 
 Lemma bigmaxr_gt0 s F:
   \max_(i <- s) F i > 0 -> { i | i \in s & F i > 0}.
-Proof. 
-elim :s => [| a l Hrec]; first by rewrite big_nil ltxx. 
+Proof.
+elim :s => [| a l Hrec]; first by rewrite big_nil ltxx.
 rewrite big_cons lt_maxr.
 case  (ltrP 0 (F a)); first by exists a => //; rewrite in_cons eqxx.
-rewrite leNgt => /negbTE ->; rewrite orFb => /Hrec [b bl fp0]. 
+rewrite leNgt => /negbTE ->; rewrite orFb => /Hrec [b bl fp0].
 by exists b => //;rewrite in_cons bl orbT.
 Qed.
 
@@ -202,17 +176,17 @@ Lemma bigmaxr_arg  s F:
   {j | j \in s & 0 <=  F j} -> {j | j \in s & \max_(i <- s) F i = F j}.
 Proof.
 elim:s; first by case => w ;rewrite in_nil.
-move => a l Hrec ew; rewrite big_cons. 
+move => a l Hrec ew; rewrite big_cons.
 case (lerP (\max_(i <- l) F i)  (F a)) => cmpm.
-  by exists a; [ rewrite in_cons eqxx | apply /eqP; rewrite eq_maxl].  
+  by exists a; [ rewrite in_cons eqxx | apply /eqP; rewrite eq_maxl].
 move: (ltW cmpm); rewrite - eq_maxr; move /eqP => ->.
 suff aux: { w : R | w \in l & 0 <= F w}.
- move: (Hrec aux) => [j jl jm]; exists j =>//;  rewrite in_cons jl orbT//. 
+ move: (Hrec aux) => [j jl jm]; exists j =>//;  rewrite in_cons jl orbT//.
 move: ew => [w]; rewrite in_cons => h1 h2.
 case e: (w == a); last first.
-  exists w  => //; move: h1; case /orP => //; rewrite e //. 
+  exists w  => //; move: h1; case /orP => //; rewrite e //.
 rewrite (eqP e) in h2; move: (le_lt_trans h2 cmpm) => aux.
-by move: (bigmaxr_gt0 aux) =>[j ja jb]; exists j =>//; apply: ltW. 
+by move: (bigmaxr_gt0 aux) =>[j ja jb]; exists j =>//; apply: ltW.
 Qed.
 
 Lemma bigmaxr_lerP s F m:
@@ -236,7 +210,6 @@ Qed.
 Lemma bigmaxf_nil f: \max_(i< 0) (f i) = 0.
 Proof.  by rewrite big_ord0.  Qed.
 
-
 Lemma bigmaxf_rec f n :
    \max_(i < n.+1) f i = Num.max (f n) (\max_(i < n) f i).
 Proof.
@@ -252,30 +225,30 @@ Qed.
 Lemma bigmaxf_ge0  f n: 0 <= \max_(i < n) f i.
 Proof.
 elim: n => [| n IHn]; first by rewrite big_ord0.
-by rewrite bigmaxf_rec le_maxr IHn orbT.  
+by rewrite bigmaxf_rec le_maxr IHn orbT.
 Qed.
 
 Lemma bigmaxf_le f n j: (j < n)%N -> f j <= \max_(i < n) f i.
-Proof. 
+Proof.
 elim: n => [ //| n IHn]; rewrite bigmaxf_rec.
 case Hi: (j == n); first  by rewrite (eqP Hi) le_maxr lexx.
 rewrite ltnS leq_eqVlt Hi orFb => aux;apply: (le_trans (IHn aux)).
 by rewrite le_maxr lexx orbT.
 Qed.
 
-Lemma bigmaxf_le0 f n: \max_(i < n) f i <= 0 -> 
+Lemma bigmaxf_le0 f n: \max_(i < n) f i <= 0 ->
    forall i, (i <n)%N -> f i <= 0.
-Proof. 
+Proof.
 elim: n => [_ i //| n Hr]; rewrite bigmaxf_rec le_maxl; case /andP => Fk H i.
-rewrite ltnS leq_eqVlt; case /orP; [ move /eqP ->; apply: Fk | by apply: Hr]. 
+rewrite ltnS leq_eqVlt; case /orP; [ move /eqP ->; apply: Fk | by apply: Hr].
 Qed.
 
 Lemma bigmaxf_gt0 f n:  \max_(i < n ) f i > 0 -> { i | (i <n)%N  & f i > 0}.
-Proof. 
-elim :n => [| a IH]; first by rewrite big_ord0 ltxx. 
-case  (ltrP 0 (f a)); first by exists a. 
+Proof.
+elim :n => [| a IH]; first by rewrite big_ord0 ltxx.
+case  (ltrP 0 (f a)); first by exists a.
 rewrite bigmaxf_rec lt_maxr leNgt; move /negbTE => ->; rewrite orFb => aux.
-by move: (IH aux) => [b bl fp0]; exists b => //; apply:ltn_trans (ltnSn a). 
+by move: (IH aux) => [b bl fp0]; exists b => //; apply:ltn_trans (ltnSn a).
 Qed.
 
 Lemma bigmaxf_arg f n :
@@ -290,10 +263,10 @@ suff aux: { j | (j < n)%N & 0 <= f j}.
     by rewrite ltnS ltnW.
   rewrite /Num.max/= jm; case: ifPn => //.
   by rewrite -jm cmpm.
-move: Hf => [j]; rewrite ltnS leq_eqVlt.  
-case e: (j == n); last by rewrite orFb; exists j  => //. 
+move: Hf => [j]; rewrite ltnS leq_eqVlt.
+case e: (j == n); last by rewrite orFb; exists j  => //.
 rewrite (eqP e) => _ h2; move: (le_lt_trans h2 cmpm) => aux.
-by move: (bigmaxf_gt0 aux) =>[k ja jb]; exists k =>//; apply: ltW. 
+by move: (bigmaxf_gt0 aux) =>[k ja jb]; exists k =>//; apply: ltW.
 Qed.
 
 Lemma bigmaxf_lerP f n m:
@@ -303,7 +276,7 @@ move=> h; apply: (iffP idP) => leFm => [i ir | ].
   by apply: le_trans leFm; apply: bigmaxf_le.
 rewrite big_seq_cond; elim /big_ind:_ => //.
   by  move=> x y xm ym; rewrite le_maxl; apply /andP.
-by move=> [i hi] _; apply: leFm.  
+by move=> [i hi] _; apply: leFm.
 Qed.
 
 Lemma bigmaxf_arg1 f n j:
@@ -314,7 +287,6 @@ move => js fjp; move / (bigmaxf_lerP f n fjp) => le1.
 by apply /eqP; rewrite eq_le le1  (bigmaxf_le _ js).
 Qed.
 
-
 Lemma normr_sumprod  f g n :
   `| \sum_(i< n) (f i * g i) |
     <= (\max_(i< n)  `|f i|) * \sum_ (i<n) `| g i|.
@@ -324,7 +296,7 @@ apply: le_trans (_: \sum_(i < n) `| f i * g i| <= _).
 have ->:  \sum_(i < n) `|f i * g i|  =  \sum_(i < n) `|f i|  * `|g i|.
   by apply: eq_big => // i; rewrite normrM.
 rewrite  mulr_sumr; apply: ler_sum => i _; apply: ler_wpmul2r.
-   by rewrite normr_ge0.  
+  by rewrite normr_ge0.
 by apply: (bigmaxf_le (fun i => `|f i|)).
 Qed.
 
@@ -332,14 +304,12 @@ Lemma normr_sumprod1 f g n b:
   0 <= b -> (forall i, (i<n)%N ->  `|f i| <= b) ->
   `| \sum_(i< n) (f i * g i) |  <= b * \sum_ (i<n) `| g i|.
 Proof.
-move=> b0 h;  apply: (le_trans (normr_sumprod f g n)). 
+move=> b0 h; apply: (le_trans (normr_sumprod f g n)).
 apply: ler_wpmul2r;  first by rewrite sumr_ge0 // => i _; rewrite absr_ge0.
 exact /(bigmaxf_lerP (fun z => `|f z|)  n b0).
 Qed.
 
-
 End BigMax.
-
 
 (** ** bigops *)
 
@@ -349,7 +319,7 @@ Variables (R : comRingType) (idx : R) (op : Monoid.com_law idx).
 Lemma big_ord_rev (n : nat) (P : nat -> bool) (F : nat -> R):
   \big[op/idx]_(i < n | P i) F i =
   \big[op/idx]_(i < n | P (n - i.+1)%N) F ( n - i.+1)%N.
-Proof. by rewrite - big_mkord big_nat_rev add0n big_mkord. Qed.
+Proof. by rewrite -big_mkord big_rev_mkord subn0. Qed.
 
 Lemma bigop_simpl1  (n m : nat) (F : nat -> R):
    (forall j, (m <= j)%N -> F j = idx) ->
@@ -373,8 +343,7 @@ rewrite  [X in (op _  X)]big1_seq ? Monoid.mulm1 // => i; case /andP => _.
 by rewrite mem_index_iota; apply: fz.
 Qed.
 
-Lemma big_ord1 (F: 'I_1 -> R): 
-   \big[op/idx]_(i < 1) (F i) = F ord0.
+Lemma big_ord1 (F: 'I_1 -> R) : \big[op/idx]_(i < 1) (F i) = F ord0.
 Proof. by rewrite big_ord_recl big_ord0 Monoid.mulm1. Qed.
 
 End BigOps.
@@ -383,17 +352,16 @@ Section  RingPoly.
 Variable R : ringType.
 
 Lemma polyd0 (F: nat -> R): \poly_(i < 0) (F i) = 0.
-Proof. 
-apply /eqP;rewrite - size_poly_eq0; rewrite - leqn0; exact: (size_poly 0 F). 
+Proof.
+apply /eqP;rewrite - size_poly_eq0; rewrite - leqn0; exact: (size_poly 0 F).
 Qed.
-
 
 Lemma sum_powers_of_x (n: nat) (x:R):
   (x-1) * (\sum_(i < n) x^+ i) = x ^+ n - 1.
 Proof.
-elim: n => [| n Ihn]. 
+elim: n => [| n Ihn].
   by rewrite big_ord0 expr0 mulr0 subrr.
-rewrite  (big_ord_recr n) /= mulrDr Ihn  mulrBl mul1r - exprS.  
+rewrite  (big_ord_recr n) /= mulrDr Ihn  mulrBl mul1r - exprS.
 by rewrite addrAC addrCA subrr addr0.
 Qed.
 
@@ -510,7 +478,7 @@ Proof.  by move=> ltis; rewrite shift_polyE coef_poly ltis. Qed.
 Lemma shift_poly_nth1 c p i m: (size p <= m)%N ->
   (shift_poly c p)`_i =
   \sum_(k < m) p`_k * c^+(k - i) *+ 'C(k, i).
-Proof.  
+Proof.
 move=> ltpm; rewrite shift_polyE coef_poly.
 case sip: (i < size p)%N; last first.
   rewrite big1 => // [[j jm]]  _ /=; case (leqP i j) => ij.
@@ -519,18 +487,18 @@ case sip: (i < size p)%N; last first.
   rewrite bin_small //.
 have aux: forall k, (size p <= k < m)%N ->p`_k * c ^+ (k - i) *+ 'C(k, i) = 0.
   move=> k; case /andP => ij js; move: ij  => /(nth_default 0) ->.
-  by rewrite mul0r mul0rn. 
+  by rewrite mul0r mul0rn.
 symmetry;apply: (shorten_sum _ ltpm aux).
 Qed.
 
 (* We give here the coefficients of scale and shift *)
-Lemma scaleX_polyE c p: 
+Lemma scaleX_polyE c p:
  p \scale c = \poly_(i < size p)(p`_i * c ^+i).
 Proof.
 rewrite /scaleX_poly comp_polyE poly_def; apply: eq_bigr => i _.
 by rewrite -scalerA - exprZn - (mul_polyC c) commr_polyX.
 Qed.
-  
+
 Lemma horner_scaleX_poly c p x :  (p \scale c).[x] = p.[c * x].
 Proof. by rewrite horner_comp ! hornerE  mulrC. Qed.
 
@@ -558,13 +526,12 @@ Implicit Type p: {poly R}.
 Lemma size_scaleX c p : c != 0 -> size (p \scale c) = size p.
 Proof. by move=> cu; rewrite size_comp_poly2 // size_XmulC. Qed.
 
-Lemma reciprocal_size p: p`_0 != 0 ->
-  size (reciprocal_pol p) = size p.
+Lemma reciprocal_size p: p`_0 != 0 -> size (reciprocal_pol p) = size p.
 Proof.
 rewrite /reciprocal_pol => td0.
 apply: size_poly_eq; rewrite prednK ?subnn // size_poly_gt0.
 by  apply /eqP => pz; case /eqP:td0; rewrite pz  coefC.
-Qed. 
+Qed.
 
 Lemma reciprocal_idempotent p: p`_0 != 0 ->
   reciprocal_pol (reciprocal_pol p) = p.
@@ -623,8 +590,8 @@ by move: in1; rewrite leq_eqVlt eq_sym dif orFb ltnS.
 Qed.
 *)
 
-Lemma horner_reciprocal p x: 
-  x \is a GRing.unit  ->  (reciprocal_pol p).[x] = x ^+ (size p - 1) * p.[x^-1].
+Lemma horner_reciprocal p x :
+  x \is a GRing.unit -> (reciprocal_pol p).[x] = x ^+ (size p - 1) * p.[x^-1].
 Proof.
 move=> xn0; rewrite /reciprocal_pol horner_poly.
 case sp : (size p) => [| n].
@@ -634,7 +601,7 @@ rewrite horner_coef subn1 /=  big_distrr /=.
 pose  f (j : 'I_n.+1) := Ordinal (leq_subr j n:n - j < n.+1)%N.
 have finv: forall j:'I_n.+1, xpredT j -> f (f j) = j.
   by  move => j _; apply: val_inj => /=; rewrite subKn //; have : (j < n.+1)%N.
-rewrite (reindex_onto f f finv) /=. 
+rewrite (reindex_onto f f finv) /=.
 have tmp :(fun j => f (f j) == j) =1 xpredT.
   by move=> j /=; apply/eqP; apply finv.
 rewrite (eq_bigl _ _ tmp) {tmp} sp; apply: eq_bigr => [[j hj]] _ /=.
@@ -656,31 +623,31 @@ Proof.
 move=> /negbTE h; rewrite /reciprocal_pol.
 have ->: size ('X * a%:P + b%:P) = 2.
   by rewrite - commr_polyX size_MXaddC size_polyC polyC_eq0 h.
-apply/polyP=> i. 
+apply/polyP=> i.
 rewrite coef_poly !coefD !coefMC !coefC !coefX.
 case :i; first by rewrite mul1r mul0r add0r addr0.
 case; first by  rewrite mul1r mul0r add0r addr0.
 by move=> n /=; rewrite mul0r add0r.
 Qed.
 
-Lemma reciprocalC (c:R): reciprocal_pol c%:P = c%:P.
+Lemma reciprocalC (c : R) : reciprocal_pol c%:P = c%:P.
 Proof.
 rewrite /reciprocal_pol  - polyP => i; rewrite coef_poly.
 case cz: (c==0); first by move /eqP in cz; rewrite cz !coef0 if_same.
-rewrite size_polyC cz !coefC; case:i => [| i]//. 
+rewrite size_polyC cz !coefC; case:i => [| i]//.
 Qed.
 
-Lemma reciprocalM p q : 
+Lemma reciprocalM p q :
   reciprocal_pol (p * q) = (reciprocal_pol p) *  (reciprocal_pol q).
 Proof.
 move: (reciprocalC (GRing.zero R)) => aux.
-case (poly0Vpos p); first by move => ->; rewrite mul0r aux mul0r.  
+case (poly0Vpos p); first by move => ->; rewrite mul0r aux mul0r.
 case (poly0Vpos q); first by move => -> _; rewrite mulr0 aux mulr0.
 set m:=  (size p + size q).-1; move=> pa pb.
-have mp: (size p + size q)%N = m .+1. 
-  by symmetry;rewrite  /m prednK // addn_gt0 pa pb.  
-have qa: (size p <= m)%N by rewrite /m - (prednK pa) addnS leq_addr. 
-have qb: (size q <= m)%N by rewrite /m addnC - (prednK pb) addnS leq_addr. 
+have mp: (size p + size q)%N = m .+1.
+  by symmetry;rewrite  /m prednK // addn_gt0 pa pb.
+have qa: (size p <= m)%N by rewrite /m - (prednK pa) addnS leq_addr.
+have qb: (size q <= m)%N by rewrite /m addnC - (prednK pb) addnS leq_addr.
 have pnz: p != 0 by  rewrite - size_poly_eq0 - lt0n.
 have qnz: q != 0 by  rewrite - size_poly_eq0 - lt0n.
 rewrite /reciprocal_pol size_mul //.
@@ -702,34 +669,33 @@ pose g j := g1 j * g2 (i - j)%N.
 have aux2: forall j : nat, (size p <= j)%N -> g j = 0.
   by move => j; rewrite /g/g1 coef_poly ltnNge;  move => ->; rewrite mul0r.
 rewrite (bigop_simpl1 _ i.+1 aux2).
-transitivity (\sum_(j < size p | (j < i.+1)%N) 
+transitivity (\sum_(j < size p | (j < i.+1)%N)
    p`_(size p - j.+1) * g2 (i - j)%N); last first.
   by apply: eq_big => // [[j ji]] _ /=; rewrite /g/g1 coef_poly ji.
 symmetry; rewrite (big_ord_rev _ (size p) (fun j => (j < i.+1)%N)
   (fun j =>  p`_(size p - j.+1) * g2 (i - j)%N)) /=.
-rewrite big_mkcond [X in _ = X] big_mkcond; apply: eq_bigr => [[k kp]] _ /=. 
+rewrite big_mkcond [X in _ = X] big_mkcond; apply: eq_bigr => [[k kp]] _ /=.
 case Ha: ((size p - k.+1) < i.+1)%N; last first.
   case Hb: (k < mi.+1)%N => //; rewrite /f.
   suff:(size q <= (mi - k))%N by move => /(nth_default 0) => ->; rewrite mulr0.
   rewrite ltnS in Hb; rewrite -(leq_add2l k) (subnKC Hb) -(leq_add2l i.+1).
-  rewrite (subnKC ipq) addSn addnA -ltnS mp /= -mp -addSn -addSn leq_add2r. 
+  rewrite (subnKC ipq) addSn addnA -ltnS mp /= -mp -addSn -addSn leq_add2r.
   by rewrite -addnS -(subnK kp) -addSn leq_add2r ltnNge -ltnS Ha.
-rewrite  (subnSK kp) (subKn (ltnW kp))  (subnBA _ kp) - addSnnS. 
+rewrite  (subnSK kp) (subKn (ltnW kp))  (subnBA _ kp) - addSnnS.
 move: Ha; rewrite ltnS leq_subLR addSnnS addnC  => Ha.
 have ->: (k < mi.+1)%N = (i.+1 + k <= m)%N.
-  by rewrite /mi ltnS - (leq_add2l (i.+1)) (subnKC ipq) mp. 
+  by rewrite /mi ltnS - (leq_add2l (i.+1)) (subnKC ipq) mp.
 rewrite /g2 coef_poly; case Hb: (i.+1 + k <= m)%N; last first.
   suff: ~~(i.+1 + k - size p < size q)%N by move /negbTE => ->;rewrite mulr0.
   by rewrite -ltnNge ltnS - (leq_add2l (size p)) (subnKC Ha) mp ltnNge Hb.
 rewrite /f - (ltn_add2l (size p)) (subnKC Ha) mp ltnS Hb; congr (_ * (q`_ _)).
-apply /eqP; rewrite - (eqn_add2r (i.+1 + k)%N)- subnDA (subnK Hb).  
-have m1:  m = (size p + (size q).-1)%N by rewrite /m  -(ltn_predK pa) addnS.  
-rewrite addnC -(ltn_predK pa) subSS - {1} (subnK Ha) (addnC  _ (size p)). 
+apply /eqP; rewrite - (eqn_add2r (i.+1 + k)%N)- subnDA (subnK Hb).
+have m1:  m = (size p + (size q).-1)%N by rewrite /m  -(ltn_predK pa) addnS.
+rewrite addnC -(ltn_predK pa) subSS - {1} (subnK Ha) (addnC  _ (size p)).
 by rewrite - addnA m1 subnKC // leq_subLR - m1.
 Qed.
 
-Lemma reciprocalX p n: 
-  reciprocal_pol (p ^+ n) = (reciprocal_pol p) ^+ n.
+Lemma reciprocalX p n : reciprocal_pol (p ^+ n) = (reciprocal_pol p) ^+ n.
 Proof.
 elim: n=> [| n Hrec]; first rewrite !expr0 reciprocalC //.
 by rewrite ! exprS reciprocalM Hrec.
@@ -743,31 +709,29 @@ Section CauchyBound.
 
 Variable F : realFieldType.
 
-Variables (n : nat)(E : nat -> F) (x: F).
+Variables (n : nat) (E : nat -> F) (x : F).
 Hypothesis pnz : E n != 0.
 Hypothesis xr: root (\poly_(i < n.+1) E i) x.
 
-Lemma CauchyBound_aux:
-   x^+n = - \sum_(i < n) ((E i / E n) * x^+ i).
+Lemma CauchyBound_aux : x^+n = - \sum_(i < n) ((E i / E n) * x^+ i).
 Proof.
 move: xr; move /rootP => xr1.
 have ->: \sum_(i < n) E i / E n * x ^+ i  = \sum_(i < n) (E i * x ^+ i / E n).
   by apply: eq_bigr => i _ ; rewrite mulrAC.
-rewrite -(mulfK pnz (x ^+ n)); apply /eqP;  rewrite -addr_eq0 - mulr_suml.  
+rewrite -(mulfK pnz (x ^+ n)); apply /eqP;  rewrite -addr_eq0 - mulr_suml.
 rewrite  - mulrDl mulf_eq0  -{2} xr1; apply /orP; left.
 by rewrite horner_poly (big_ord_recr n)  //= addrC mulrC.
 Qed.
 
 
-Lemma CauchyBound1 : 
-  `| x | <= 1 + \max_(i < n) (`|E i / E n|).
+Lemma CauchyBound1 : `| x | <= 1 + \max_(i < n) (`|E i / E n|).
 Proof.
 move: (bigmaxf_ge0  (fun i => `|E i / E n|) n) => cp.
 case: (lerP `|x| 1)=> cx1; first by rewrite ler_paddr //.
 rewrite addrC -ler_subl_addr.
 move: (normr_sumprod (fun i => E i / E n) (fun i =>  x ^+ i) n).
 move: CauchyBound_aux => eq; move: (f_equal (fun z => `| z |) eq).
-rewrite normrN; move => <-; 
+rewrite normrN; move => <-;
 have ->:  \sum_(i < n) `|x ^+ i| =  (\sum_(i < n) `|x| ^+ i).
   by apply: eq_big => // i _; rewrite normrX.
 move: cp.
@@ -775,26 +739,25 @@ case:n => [| m]; first by  rewrite  big_ord0 mulr0 expr0 normr1 ler10.
 move: (sum_powers_of_x (m.+1) `|x|); set aux:= (\sum_(i < m.+1) _) => pa.
 set c := \max_(i < m.+1) `|E i / E m.+1| => cp r1.
 have a1p: 0 < `|x| - 1 by rewrite subr_gt0.
-have r2 : c* aux <= c* ( (`|x| ^+ m.+1) /(`|x| - 1)).  
+have r2 : c* aux <= c* ( (`|x| ^+ m.+1) /(`|x| - 1)).
   by rewrite  (ler_wpmul2l cp) // ler_pdivl_mulr // mulrC pa ger_addl lerN10.
 move:  (le_trans r1 r2); rewrite mulrA  ler_pdivl_mulr // mulrC.
-rewrite normrX ler_pmul2r //.  
+rewrite normrX ler_pmul2r //.
 by apply:(lt_trans ltr01); rewrite exprn_egt1.
 Qed.
 
-Lemma CauchyBound2 :
-  `| x | <= \sum_(i < n.+1) `|E i / E n|.
+Lemma CauchyBound2 : `| x | <= \sum_(i < n.+1) `|E i / E n|.
 Proof.
 case: (lerP `|x| 1)=> cx1.
   apply: (le_trans cx1).
   rewrite big_ord_recr /= divff // normr1 ler_addr.
   rewrite sumr_ge0 // => i _; rewrite  absr_ge0 //.
 move: (CauchyBound_aux).
-case e: n=> [| m].  
+case e: n=> [| m].
   by rewrite expr0 big_ord0 oppr0; move /eqP; rewrite oner_eq0.
 case x0 : (x == 0).
   by  move: cx1; rewrite (eqP x0) normr0 ltr10.
-have xmn0 : (x^+m != 0) by rewrite expf_eq0 x0 andbF. 
+have xmn0 : (x^+m != 0) by rewrite expf_eq0 x0 andbF.
 move => h1; have h2 :  x =  - \sum_(i < m.+1) ( x^-(m - i) *(E i / E m.+1)).
   apply: (mulIf xmn0); rewrite mulNr big_distrl /= -exprS h1; congr (- _).
   apply: congr_big; [by [] | by [] |] => [[i hi]] _ /=.
@@ -805,9 +768,9 @@ rewrite (f_equal (fun z => `| z |) h2) normrN.
 apply: le_trans (_: (\sum_(i < m.+1) `|E i / E m.+1|) <= _); last first.
   by rewrite (big_ord_recr m.+1) /= ler_addl normr_ge0.
 have pa:  (forall i, (i<m.+1)%N ->  `| x ^- (m - i) | <= 1).
-  move => i lin.  
+  move => i lin.
   have pa: 0 < `|x ^+ (m - i)| by rewrite normr_gt0  expf_eq0 x0 andbF.
-  rewrite normrV. 
+  rewrite normrV.
    rewrite invr_le1 //; last by apply: unitf_gt0.
    rewrite normrX; apply:exprn_ege1; exact (ltW cx1).
    by apply: unitrX; rewrite unitfE x0.
@@ -815,12 +778,11 @@ rewrite - [\sum_(i < m.+1) `|E i / E m.+1| ] mul1r.
 exact :(normr_sumprod1 (fun i => E i / E m.+1) ler01 pa).
 Qed.
 
-Lemma CauchyBound :
-  `| x | <= `|E n|^-1 * \sum_(i < n.+1) `|E i|.
+Lemma CauchyBound : `| x | <= `|E n|^-1 * \sum_(i < n.+1) `|E i|.
 Proof.
 move: (CauchyBound2). rewrite  big_distrr /=.
 have -> //: \sum_(i < n.+1) `|E i / E n| = \sum_(i < n.+1) (`|E n|^-1 * `|E i|).
-by apply: eq_bigr => i _ ; rewrite normrM normrV ? unitfE // mulrC. 
+by apply: eq_bigr => i _ ; rewrite normrM normrV ? unitfE // mulrC.
 Qed.
 
 End CauchyBound.
@@ -834,28 +796,24 @@ Variable R : realFieldType.
 
 Definition norm_pol (p : {poly R}) := map_poly (fun x => `|x|) p.
 
-
-Lemma pow_monotone n (x y: R): 0 <= x <= y ->  0 <= x ^+n <= y ^+ n.
+Lemma pow_monotone n (x y : R) : 0 <= x <= y ->  0 <= x ^+ n <= y ^+ n.
 Proof.
 move => /andP [xp xy].
-case: n; first by rewrite !expr0 lexx ler01.
-have yp: y \is Num.nneg by apply: le_trans xy.
-move => i; rewrite ler_pexpn2r // exprn_ge0 //.
+by rewrite ler_expn2r// ?andbT ?exprn_ge0// nnegrE (le_trans _ xy).
 Qed.
-
 
 Lemma diff_xn_ub n (z x y: R): -z  <= x -> x <= y -> y <= z ->
      `| y ^+ n - x ^+ n| <=  (z^+(n.-1) *+ n) * (y - x).
 Proof.
 move => zx xy yz.
-rewrite subrXX mulrC normrM [`|_ - _|]ger0_norm ?ler_wpmul2r // ?subr_ge0 //. 
+rewrite subrXX mulrC normrM [`|_ - _|]ger0_norm ?ler_wpmul2r // ?subr_ge0 //.
 apply: (le_trans (ler_norm_sum _ _ _)).
 rewrite - [n in _*+ n] card_ord  - sumr_const ler_sum // => [][i lin] _.
 rewrite normrM !normrX.
 have l1: 0<=`|x| <=z by rewrite normr_ge0 /= ler_norml zx /= (le_trans xy yz).
 have l2: 0<=`|y| <=z by rewrite normr_ge0 /= ler_norml yz /= (le_trans zx xy).
-have /andP [pa pb] := (pow_monotone i l1).
-have /andP [pc pd] := (pow_monotone  (n.-1 - i)%N l2).
+have /andP [pa pb] := pow_monotone i l1.
+have /andP [pc pd] := pow_monotone  (n.-1 - i)%N l2.
 by move: (ler_pmul pc pa pd pb); rewrite - exprD subnK //; move: lin; case n.
 Qed.
 
@@ -868,28 +826,24 @@ apply: (@le_trans _ _ (\sum_(i<size p) `|(p`_i * y ^+ i - p`_i * x ^+ i)|)).
   apply: ler_norm_sum.
 set aux := (X in _ <= X).
 have ->: aux =  ((\sum_(i<size p) `|p`_i| * (z^+(i.-1) *+ i)) * (y - x)).
-  congr(_ * _); case (poly0Vpos  p). 
+  congr(_ * _); case (poly0Vpos  p).
     by move => ->; rewrite deriv0 size_poly0  !big_ord0.
   move => s1; rewrite - (prednK s1) size_deriv big_ord_recl mulr0n mulr0 add0r.
   apply: eq_bigr => i _; rewrite coef_deriv normrMn mulrnAl mulrnAr //.
 rewrite big_distrl /= ler_sum // => i _;rewrite - mulrBr normrM  -mulrA.
-apply: (ler_wpmul2l (normr_ge0 p`_i)); exact: (diff_xn_ub i zx xy yz). 
+apply: (ler_wpmul2l (normr_ge0 p`_i)); exact: (diff_xn_ub i zx xy yz).
 Qed.
 
-
-Lemma pol_ucont (p : {poly R}) a b
-   (c := (norm_pol p^`()).[(Num.max (- a) b)]):
-   forall x y,
-      a <= x -> x <= y -> y <= b -> `|p.[y] - p.[x]| <= c * (y - x).
+Lemma pol_ucont (p : {poly R}) a b (c := (norm_pol p^`()).[(Num.max (- a) b)]) :
+   forall x y, a <= x -> x <= y -> y <= b -> `|p.[y] - p.[x]| <= c * (y - x).
 Proof.
 move => x y ax xy yb.
 apply: pol_lip => //.
 apply: (le_trans _ ax); by rewrite ler_oppl le_maxr lexx.
-apply: (le_trans  yb); by rewrite  le_maxr lexx orbT. 
+apply: (le_trans  yb); by rewrite  le_maxr lexx orbT.
 Qed.
 
-
-Lemma pol_cont (p : {poly R}) (x eps :R):  0 < eps -> 
+Lemma pol_cont (p : {poly R}) (x eps :R):  0 < eps ->
  { delta | 0 < delta & forall y,  `|(y - x)| < delta ->
     `|p.[y] - p.[x]| < eps }.
 Proof.
@@ -927,9 +881,8 @@ rewrite -subr_ge0 in xy'.
 by rewrite (ger0_norm xy').
 Qed.
 
-
-
 End PolsOnOrderedField.
+
 Section PolsOnArchiField.
 
 (** ** Constructive Intermediate value Theorem *)
@@ -937,24 +890,20 @@ Section PolsOnArchiField.
 Variable R : archiFieldType.
 (** We want to prove a simple and contructive approximation of the
  middle value theorem: if a polynomial is negative in a and positive in b,
- and a < b, then for any positive epsilon, there exists c and d, so that 
+ and a < b, then for any positive epsilon, there exists c and d, so that
  a <= c < d <= b, the polynomial is negative in c and positive in d,
- and the variation between c and d is less than epsilon. 
+ and the variation between c and d is less than epsilon.
  Note: we also add: the distance between c and d is small.
 *)
-
 
 Definition pol_next_approx (p : {poly R}) (ab : R * R) :=
   let: (a,b) := ab in let c :=half(a+b) in
     if (p.[a] * p.[c]  <= 0) then (a,c) else (c,b).
 
-
 Fixpoint pol_approx (p : {poly R}) (ab : R * R) (n:nat) :=
   if n is m.+1 then  pol_next_approx p (pol_approx p ab m) else ab.
 
-
-Definition pair_in_interval (a x y b: R) :=
-  [&& a <= x, x < y & y <= b].
+Definition pair_in_interval (a x y b : R) := [&& a <= x, x < y & y <= b].
 
 Lemma pol_approx_prop (p : {poly R}) (a b: R) n:
   p.[a] < 0 -> 0 <= p.[b] -> a < b ->
@@ -979,12 +928,12 @@ rewrite (addrC _ (-u)) addrK d1 aux pvp h2 vb (ltW (le_lt_trans au h1)).
 by rewrite -(nmulr_rgt0 _ pun) ltNge cp.
 Qed.
 
-Lemma constructive_ivt  (p : {poly R})(a b : R) (eps: R):
-   a < b -> p.[a] < 0 -> 0 <= p.[b]  ->  0 < eps ->
-       { xy |  let:(u,v):= xy in
-          [&& pair_in_interval (-eps) (p.[u]) (p.[v]) eps,
-             (pair_in_interval a u v b),
-             (p.[u] < 0), (0 <= p.[v]) & (v - u) <= eps] }.
+Lemma constructive_ivt (p : {poly R}) (a b : R) (eps : R) :
+  a < b -> p.[a] < 0 -> 0 <= p.[b] ->  0 < eps ->
+    { xy |  let:(u,v):= xy in
+      [&& pair_in_interval (- eps) (p.[u]) (p.[v]) eps,
+          (pair_in_interval a u v b),
+          (p.[u] < 0), (0 <= p.[v]) & (v - u) <= eps] }.
 Proof.
 move=> ab nla plb ep.
 move: (pol_ucont p (a:=a) (b:= b)); set c1 := _ .[_ ] => /= pc.
@@ -999,7 +948,7 @@ case/and3P: (eq1) => [ha hb hc].
 have c2p: 0 < v-u by rewrite subr_gt0.
 have hh1: (v-u) * c < eps.
    rewrite pa;set x := (X in _ / X).
-   have xp: 0 < x by rewrite exprn_gt0 // two_pos.
+   have xp: 0 < x by rewrite exprn_gt0 // ltr0n.
    rewrite mulrAC  -(ltr_pmul2r xp) (mulrVK (unitf_gt0 xp)).
    move: hh.
    rewrite -/x.
@@ -1014,31 +963,28 @@ have hh5: p.[v] - p.[u] <= eps.
 rewrite eq1 /pair_in_interval pun pvp dvp  (ltW hh2) ler_oppl.
 rewrite  (le_trans _ hh5) ?(le_trans _ hh5) //.
    by rewrite -{1} (addr0 p.[v]) ler_add2l oppr_ge0 ltW.
-by rewrite -{1} (add0r (- p.[u])) ler_add2r. 
+by rewrite -{1} (add0r (- p.[u])) ler_add2r.
 Qed.
 
-
 Lemma constructive_ivt_bis  (p : {poly R})(a b : R) (eps: R):
-   a < b -> p.[a] < 0 -> 0 <= p.[b]  ->  0 < eps ->
-       { xy |  
-         (- eps <= p.[xy.1]) && (p.[xy.1] < 0) && (0 <= p.[xy.2]) &&
-         (p.[xy.2] <= eps) && (a <= xy.1) && (xy.1 < xy.2) && (xy.2 <= b) }.
+  a < b -> p.[a] < 0 -> 0 <= p.[b] ->  0 < eps ->
+    { xy |
+      (- eps <= p.[xy.1]) && (p.[xy.1] < 0) && (0 <= p.[xy.2]) &&
+      (p.[xy.2] <= eps) && (a <= xy.1) && (xy.1 < xy.2) && (xy.2 <= b) }.
 Proof.
 move=> ab nla plb ep.
 move:(constructive_ivt ab nla plb ep) => [xy etc].
 exists xy.
 set u := xy.1; set v := xy.2; move: etc.
 have ->: xy = (u,v) by rewrite /u /v; case xy.
-case/and5P => [/and3P[-> _ ->] /and3P[-> -> ->] -> ->  _].
-done.
+by case/and5P => [/and3P[-> _ ->] /and3P[-> -> ->] -> ->  _].
 Qed.
 
-
 Lemma constructive_ivt_ter  (p : {poly R})(a b : R) (eps: R):
-   a < b -> p.[a] < 0 -> 0 <= p.[b]  ->  0 < eps ->
-       { xy |  
-         (- eps <= p.[xy.1]) && (p.[xy.1] < 0) && (0 <= p.[xy.2]) &&
-         (p.[xy.2] <= eps) && (a <= xy.1) && (xy.1 < xy.2) && (xy.2 <= b) }.
+  a < b -> p.[a] < 0 -> 0 <= p.[b]  ->  0 < eps ->
+    { xy |
+      (- eps <= p.[xy.1]) && (p.[xy.1] < 0) && (0 <= p.[xy.2]) &&
+      (p.[xy.2] <= eps) && (a <= xy.1) && (xy.1 < xy.2) && (xy.2 <= b) }.
 Proof.
 move=> ab nla plb ep.
 have ba' : 0 < b - a by rewrite -(addrN a) ltr_add2r.
@@ -1047,7 +993,7 @@ move: (pol_ucont p (a:=a) (b:= b)).
 set c := _ .[_ ] => /= pc.
 have cpos : 0 < c.
   rewrite - (ltr_pmul2r ba') mul0r.
-  by apply: lt_le_trans (pc a b _ _ _) => //; rewrite ? ger0_norm // ltW. 
+  by apply: lt_le_trans (pc a b _ _ _) => //; rewrite ? ger0_norm // ltW.
 have pdiv : (0 < (b - a) * c / eps) by rewrite ltr_pdivl_mulr // mul0r mulr_gt0.
 move: (archi_boundP (ltW pdiv)); set n := Num.bound _ => qn.
 have fact1 : (0 : R) < n%:R by exact: lt_trans qn => /=.
@@ -1072,7 +1018,7 @@ rewrite -ltNge => pa'n.
 move:(ltW ba') => ba'w.
 have aa' : a <= a'.
   rewrite /a'/sl (nth_map 0%N) // ler_addl mulr_ge0 //.
-  by rewrite mulr_ge0 // ?invr_ge0 ?ler0n //. 
+  by rewrite mulr_ge0 // ?invr_ge0 ?ler0n.
 have ia'_sharp : (ia' < n.+1)%N.
   move: ia'iota; rewrite leq_eqVlt; rewrite size_iota; case/orP=> //.
   move/eqP; case=> abs.
@@ -1082,7 +1028,7 @@ have ia'_sharp : (ia' < n.+1)%N.
 have b'b : b' <= b.
   rewrite /b'/sl (nth_map 0%N) ?size_iota ?ltnS // nth_iota // add0n.
   have e : b = a + (b - a) by rewrite addrCA subrr addr0.
-  rewrite {2}e {e} ler_add2l //= -{2}(mulr1 (b -a)) ler_wpmul2l //.  
+  rewrite {2}e {e} ler_add2l //= -{2}(mulr1 (b -a)) ler_wpmul2l //.
     rewrite ler_pdivr_mulr ?ltr0Sn // mul1r -subr_gte0 /=.
     have -> : (n.+1 = ia'.+1 + (n.+1 - ia'.+1))%N by rewrite subnKC.
     by rewrite mulrnDr addrAC subrr add0r subSS ler0n.

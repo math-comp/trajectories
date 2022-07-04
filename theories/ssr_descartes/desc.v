@@ -1116,7 +1116,7 @@ have res1:pos_in_interval 0 b^-1 (horner p).
   rewrite -[x]invrK -sgr_cp0 - inv_mono  ?invr_gt0 // sgr_cp0.
   rewrite (le_lt_trans posb') //  -subr_gte0 /=.
   have b'x : b' < x^-1.
-    rewrite inv_comp //; apply:(le_lt_trans xb); rewrite - ltpinv => //.
+    by rewrite inv_comp// (le_lt_trans xb)// ltf_pinv.
   have aa:x1 <= b' <= x^-1 by rewrite (ltW (le_lt_trans x1a ab)) (ltW b'x).
   by apply:lt_le_trans (sl _ _ aa); rewrite  mulr_gt0 // subr_gt0.
 have res2: neg_in_interval1 a^-1 1 (horner p).
@@ -1134,7 +1134,7 @@ have res2: neg_in_interval1 a^-1 1 (horner p).
   by rewrite mulr_gt0 // subr_gt0.
 exists b^-1, a^-1, k'.
 split => //.
-  rewrite k'p ibp - ltpinv // (inv_compr ltr01 a0) invr1.
+  rewrite k'p ibp ltf_pinv// (inv_compr ltr01 a0) invr1.
   by rewrite (lt_trans ab b'b) (lt_le_trans x1gt1 x1a).
 move => x z bvx xz zav.
   rewrite le_eqVlt in xz; move/orP: xz => [xz | xz].
@@ -1167,19 +1167,18 @@ set t2 := t3 * _.
 pose k1 := -k'; pose k2 := k' + k'.
 have k2p : k2 = (k * x1 ^+ 2 * y ^-1 ^+ s) by apply: double_half.
 rewrite (_ : k' = k1 + k2); last by rewrite /k1 /k2 addrA addNr add0r.
-have xzi: z^-1 < x^-1 by rewrite -ltpinv //.
+have xzi: z^-1 < x^-1 by rewrite ltf_pinv.
 have pa : x1 <=  z^-1.
-  by apply: (le_trans x1a); rewrite lepinv // ?invr_gt0 // invrK.
+  by rewrite (le_trans x1a)// -(invrK a)// lef_pinv// posrE invr_gt0.
 have pb: x1 <=  x^-1 by rewrite (ltW (le_lt_trans pa xzi)).
 have pc: 0 <= k * (x^-1 - z^-1) by apply: ltW;rewrite(mulr_gt0 kp) // subr_gt0.
 have pdd:(x1 <= z^-1 <= x^-1) by rewrite pa (ltW xzi).
 have pd:= (sl _ _ pdd).
 have t3p:=  le_trans pc pd.
-have pe: 0 <= y^-1 <= z.
-  rewrite invr_ge0 ltW ? y0 //.
-  by apply: le_trans (ltW xz); apply: le_trans bvx; rewrite -lepinv.
+have pe : 0 <= y^-1 <= z.
+  by rewrite invr_ge0 ltW //= (le_trans _ (ltW xz))// (le_trans _ bvx)// lef_pinv.
 case /andP: (pow_monotone s pe) => _ hh.
-have maj' : t3 * y^-1 ^+ s <= t3 * z^+ s by  rewrite ler_wpmul2l.
+have maj' : t3 * y^-1 ^+ s <= t3 * z^+ s by rewrite ler_wpmul2l.
 rewrite mulrDl; apply: ler_add; last first.
   apply: le_trans maj'; rewrite /t3 k2p mulrAC.
   rewrite ler_pmul2r; last by apply: exprn_gt0; rewrite invr_gt0.
@@ -1206,7 +1205,7 @@ case: (lerP 0 ( q.[x^-1])) => sign; last first.
   by rewrite mulr_le0 // ltW.
 rewrite mulNr lter_oppl -mulNr opprD  opprK addrC.
 have rpxe : q.[x^-1] <= e.
-  have bvx': x^-1 <= b by rewrite lepinv // ?invr_gt0 // invrK.
+  have bvx' : x^-1 <= b by rewrite -(invrK b)// lef_pinv.
   apply: (@le_trans _ _ q.[b]).
      have aux:(x1 <= x^-1 <= b) by rewrite pb bvx'.
     rewrite -subr_ge0 /= ;apply: le_trans (sl _ _ aux).
