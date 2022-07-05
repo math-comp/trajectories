@@ -604,6 +604,20 @@ From mathcomp Require Import interval matrix.
 From mathcomp Require Import classical_sets set_interval.
 Local Open Scope classical_set_scope.
 
+
+
+(* NB: already in mathcomp but with realType PR in progress *)
+Definition factor (R : numDomainType) (a b x : R) := (x - a) / (b - a).
+
+(* TODO: move to set_interval *)
+Lemma factorE (R : numFieldType) (a b x : R) : a != b ->
+  1 - factor a b x = (b - x) / (b - a).
+Proof.
+move=> ab.
+rewrite /factor -(@divrr _ (b - a)) ?unitfE ?subr_eq0 1?eq_sym//.
+by rewrite -mulrBl opprB addrA subrK.
+Qed.
+
 Module Convn.
 Record t (R : numDomainType) (n : nat) := {
   f : 'rV[R]_n ;
@@ -627,6 +641,19 @@ Definition Bern (R : numDomainType) (n i : nat) : {poly R} := bernp 0 1 n i.
 Lemma BernE (R : numDomainType) (n i : nat) :
   Bern R n i = 'X ^+ i * (1 - 'X) ^+ (n - i) *+ 'C(n, i).
 Proof. by rewrite /Bern /bernp !(subr0,expr1n,invr1,mul1r). Qed.
+
+Lemma Bern_bernp (R : numFieldType) (n i : nat) (a b x : R) :
+  a != b -> (i <= n)%N ->
+  (Bern R n i).[factor a b x] = (bernp a b n i).[x].
+Proof.
+move=> ab ni.
+rewrite BernE/= /bernp !(hornerMn,hornerE,horner_exp,hornerE); congr (_ *+ _).
+rewrite factorE// !expr_div_n !mulrA mulrC !mulrA; congr (_ * _).
+rewrite mulrC mulrA; congr (_ * _).
+rewrite exprB// ?unitfE ?subr_eq0 1?eq_sym// mulrC invf_div mulrC mulrA -exprVn.
+rewrite -exprMn_comm; last by rewrite /GRing.comm mulrC.
+by rewrite mulVf ?subr_eq0 1?eq_sym// expr1n div1r.
+Qed.
 
 Lemma Bern_convn (R : numDomainType) (n : nat) x :
   \sum_(k < n.+1) (Bern R n k).[x] = 1.
@@ -666,6 +693,8 @@ rewrite inE/= /convex_hull/= /convex_combination.
 rewrite in_itv/= in t01; exists (convn_Bern n t01) => //.
 by apply eq_bigr => i _; rewrite /= mxE.
 Qed.
+
+
 
 Section BernsteinPols.
 Variables (R : rcfType) (a b : R) (deg : nat).
