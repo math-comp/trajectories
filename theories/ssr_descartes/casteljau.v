@@ -554,7 +554,7 @@ by move=> E; rewrite !poly_def; apply: eq_bigr => i _; rewrite E.
 Qed.
 
 Section bernp.
-Variables (R : rcfType) (a b : R) (deg : nat).
+Variables (R : numDomainType) (a b : R) (deg : nat).
 
 (* elements of the Bernstein basis of degree p *)
 Definition bernp (i : nat) : {poly R} :=
@@ -599,6 +599,73 @@ by rewrite horner_exp exprn_gt0 // !hornerE subr_gt0.
 Qed.
 
 End bernp.
+
+From mathcomp Require Import interval matrix.
+From mathcomp Require Import classical_sets set_interval.
+Local Open Scope classical_set_scope.
+
+Module Convn.
+Record t (R : numDomainType) (n : nat) := {
+  f : 'rV[R]_n ;
+  f0 : forall k, (0 <= f ord0 k)%R ;
+  f1 : \sum_(i < n) f ord0 i = 1 }.
+End Convn.
+Notation convn := Convn.t.
+Coercion Convn.f : convn >-> matrix.
+
+Definition convex_combination (R : numDomainType) (T : lmodType R) (n : nat)
+    (l : 'rV[T]_n) (a : convn R n) :=
+  \sum_(i < n) a ord0 i *: l ord0 i.
+
+Definition convex_hull
+    (R : numDomainType) (T : lmodType R) (n : nat) (l : 'rV[T]_n) :=
+  [set convex_combination l a | a in [set: convn R n]].
+
+(* Bernstein polynomials *)
+Definition Bern (R : numDomainType) (n i : nat) : {poly R} := bernp 0 1 n i.
+
+Lemma BernE (R : numDomainType) (n i : nat) :
+  Bern R n i = 'X ^+ i * (1 - 'X) ^+ (n - i) *+ 'C(n, i).
+Proof. by rewrite /Bern /bernp !(subr0,expr1n,invr1,mul1r). Qed.
+
+Lemma Bern_convn (R : numDomainType) (n : nat) x :
+  \sum_(k < n.+1) (Bern R n k).[x] = 1.
+Proof.
+transitivity ((((1 - 'X) + 'X) ^+ n).[x]).
+  rewrite exprDn horner_sum;  apply: eq_bigr => /= i _.
+  by rewrite BernE; rewrite mulrC.
+by rewrite horner_exp !hornerE subrK expr1n.
+Qed.
+
+Lemma Bern_ge0 (R : numDomainType) (n : nat) x :
+  0 <= x <= 1 -> forall k :'I_n.+1, 0 <= (Bern R n k).[x].
+Proof.
+move=> /andP[x0 x1] k; rewrite BernE hornerMn !hornerE mulrn_wge0//.
+by rewrite !horner_exp mulr_ge0// !hornerE ?exprn_ge0// subr_ge0.
+Qed.
+
+Definition convn_Bern (R : numDomainType) (n : nat)
+  (x : R) (x01 : 0 <= x <= 1) : convn R n.+1.
+apply: (@Convn.Build_t _ _ (\row_(j < n.+1) (Bern R n j).[x])).
+- by move=> k; rewrite mxE; exact: Bern_ge0.
+- under eq_bigr do rewrite mxE.
+  exact: Bern_convn.
+Defined.
+
+Definition Bezier_curve
+    (R : numDomainType) (T : lmodType R) (n : nat) (l : 'rV[T]_n.+1) : set T :=
+  [set \sum_(i < n.+1) (Bern R n i).[t] *: l ord0 i | t in `[0, 1]].
+
+Lemma Bezier_curve_convex_hull
+    (R : numDomainType) (T : lmodType R) (n : nat) (l : 'rV[T]_n.+1) :
+  forall p, p \in Bezier_curve l -> p \in convex_hull l.
+Proof.
+move=> p.
+rewrite inE /Bezier_curve/= => -[t t01 <-].
+rewrite inE/= /convex_hull/= /convex_combination.
+rewrite in_itv/= in t01; exists (convn_Bern n t01) => //.
+by apply eq_bigr => i _; rewrite /= mxE.
+Qed.
 
 Section BernsteinPols.
 Variables (R : rcfType) (a b : R) (deg : nat).
