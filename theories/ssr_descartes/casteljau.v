@@ -84,28 +84,28 @@ Lemma size_amul_expr : forall (t c : R)(i : nat),
   c != 0 -> size (('X * c%:P + t%:P) ^+ i) = i.+1.
 Proof.
 move=> t c; elim=> [| i ih] cn0; first by rewrite expr0 size_poly1.
-have hn0 : size ('X * c%:P + t%:P) = 2.
+have hn0 : size ('X * c%:P + t%:P) = 2%N.
   rewrite mulrC size_MXaddC polyC_eq0.
   move: cn0; rewrite -eqbF_neg=> /eqP => cn0.
   by rewrite size_polyC cn0 andFb.
 by rewrite exprS size_mul // ?expf_eq0 -?size_poly_eq0 hn0 ?andbF // ih.
 Qed.
 
-Lemma size_factor : forall x : R, size ('X + x%:P) = 2.
+Lemma size_factor (x : R) : size ('X + x%:P) = 2%N.
 Proof.
- by move=> x; rewrite size_addl ?size_polyX // size_polyC /=; case: (x == 0).
+by rewrite size_addl ?size_polyX // size_polyC /=; case: (x == 0).
 Qed.
 
-Lemma size_polyX_mul : forall p : {poly R},
+Lemma size_polyX_mul (p : {poly R}) :
   size ('X * p) = if p == 0 then 0%nat else (size p).+1.
 Proof.
-move=> p; rewrite (_ : 'X * p = p * 'X + 0%:P); last by rewrite mulrC addr0.
+rewrite (_ : 'X * p = p * 'X + 0%:P); last by rewrite mulrC addr0.
   by rewrite size_MXaddC eqxx andbT.
 Qed.
 
-Lemma coef_poly0 : forall p q : {poly R}, (p * q)`_0 = p`_0 * q`_0.
+Lemma coef_poly0 (p q : {poly R}) : (p * q)`_0 = p`_0 * q`_0.
 Proof.
-by move=> p q; rewrite coef_mul_poly big_ord_recl big_ord0 sub0n addr0.
+by rewrite coef_mul_poly big_ord_recl big_ord0 sub0n addr0.
 Qed.
 
 End ToBeAddedInPoly.

@@ -250,11 +250,11 @@ Definition schange l := (size (schange_index l)).-1.
 Lemma schange_index_alternate l: (schange l = 1%N) <->
    (alternate l \/ alternate (opp_seq l)).
 Proof.
-have aux0 : (schange l = 1%N) <->  size (schange_index l) = 2.
+have aux0 : (schange l = 1%N) <->  size (schange_index l) = 2%N.
    rewrite /schange; split; last by move => ->.
    by case (size (schange_index l)) => // n /= ->.
 apply:(iff_trans aux0).
-have aux: forall l, alternate l -> size (schange_index l) = 2.
+have aux: forall l, alternate l -> size (schange_index l) = 2%N.
   move => l0 /alternate_P [l1 [x [l2 [y [l3 [-> xn yp [l1p l2p l3p]]]]]]].
   move: (xn); rewrite lt_neqAle => /andP [xnz _].
   move: (yp); rewrite lt0r => /andP [ynz _].

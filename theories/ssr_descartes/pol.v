@@ -520,8 +520,8 @@ Definition Mobius (R:ringType) (deg : nat) (a b : R) (p: {poly R}) : {poly R} :=
 
 Section ReciprocalPoly.
 
-Variable (R: fieldType).
-Implicit Type p: {poly R}.
+Variable (R : idomainType).
+Implicit Type p : {poly R}.
 
 Lemma size_scaleX c p : c != 0 -> size (p \scale c) = size p.
 Proof. by move=> cu; rewrite size_comp_poly2 // size_XmulC. Qed.
@@ -621,7 +621,7 @@ Lemma reciprocal_monom (a b: R): a != 0 ->
   reciprocal_pol ('X * a%:P + b%:P) = ('X * b%:P + a%:P).
 Proof.
 move=> /negbTE h; rewrite /reciprocal_pol.
-have ->: size ('X * a%:P + b%:P) = 2.
+have ->: size ('X * a%:P + b%:P) = 2%N.
   by rewrite - commr_polyX size_MXaddC size_polyC polyC_eq0 h.
 apply/polyP=> i.
 rewrite coef_poly !coefD !coefMC !coefC !coefX.
@@ -638,7 +638,7 @@ rewrite size_polyC cz !coefC; case:i => [| i]//.
 Qed.
 
 Lemma reciprocalM p q :
-  reciprocal_pol (p * q) = (reciprocal_pol p) *  (reciprocal_pol q).
+  reciprocal_pol (p * q) = reciprocal_pol p * reciprocal_pol q.
 Proof.
 move: (reciprocalC (GRing.zero R)) => aux.
 case (poly0Vpos p); first by move => ->; rewrite mul0r aux mul0r.
