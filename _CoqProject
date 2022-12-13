@@ -1,3 +1,5 @@
+drafts/convexity/convex.v
+drafts/convexity/preliminaries.v
 theories/ssr_descartes/poly_normal.v
 theories/ssr_descartes/pol.v
 theories/ssr_descartes/civt.v
@@ -12,6 +14,8 @@ theories/ssr_descartes/isolate.v
 theories/ssr_descartes/square_free.v
 theories/ssr_descartes/three_circles.v
 
+-R drafts trajectories
 -R theories trajectories
+
 -arg -w -arg -notation-overridden
 -arg -w -arg -ambiguous-paths
