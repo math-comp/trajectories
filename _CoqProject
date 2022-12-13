@@ -1,20 +1,19 @@
-drafts/convexity/convex.v
-drafts/convexity/preliminaries.v
-theories/ssr_descartes/poly_normal.v
-theories/ssr_descartes/pol.v
-theories/ssr_descartes/civt.v
-theories/ssr_descartes/desc.v
-theories/ssr_descartes/desc1.v
-theories/ssr_descartes/desc2.v
-theories/ssr_descartes/infra.v
-theories/ssr_descartes/bern.v
-theories/ssr_descartes/bern5.v
-theories/ssr_descartes/casteljau.v
-theories/ssr_descartes/isolate.v
-theories/ssr_descartes/square_free.v
-theories/ssr_descartes/three_circles.v
+theories/convex.v
+theories/preliminaries.v
+theories/poly_normal.v
+theories/pol.v
+theories/civt.v
+theories/desc.v
+theories/desc1.v
+theories/desc2.v
+theories/infra.v
+theories/bern.v
+theories/bern5.v
+theories/casteljau.v
+theories/isolate.v
+theories/square_free.v
+theories/three_circles.v
 
--R drafts trajectories
 -R theories trajectories
 
 -arg -w -arg -notation-overridden
