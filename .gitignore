@@ -2,3 +2,7 @@
 *.glob
 *~
 *.cache
+*.vo
+*.vok
+*.vos
+
