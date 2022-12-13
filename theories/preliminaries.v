@@ -47,6 +47,42 @@ rewrite enumT Finite.EnumDef.enumDef cardE=>/=.
 by apply index_allpairs; rewrite enumT.
 Qed.
 
+Lemma unsplit_prodp (m n: nat) (i: 'I_m) (j: 'I_n): (i*n+j < m*n)%N.
+Proof.
+rewrite -addnS.
+apply (@leq_trans (i*n+n)%N).
+   by rewrite leq_add2l.
+rewrite addnC.
+have->: (n+i*n = i.+1 * n)%N by rewrite /muln /muln_rec /addn /addn_rec.
+by apply leq_mul.
+Qed.
+
+Definition unsplit_prod (m n: nat) (i:'I_m * 'I_n): 'I_(m*n) := let (i, j) := i in Ordinal (unsplit_prodp i j).
+
+(* TODO: shall we extend the lemmas on Nat.div to divn ? *)
+Definition split_prodpl (m n: nat) (i: 'I_(m*n)): (Nat.div i n < m)%N.
+Proof.
+case: i=>[i ilt].
+case: m ilt=>[| m] ilt.
+   by exfalso; move: ilt; rewrite /muln /muln_rec ltn0.
+case: n ilt=>[| n] ilt.
+   by exfalso; move: ilt; rewrite mulnC /muln /muln_rec ltn0.
+apply /leP; apply PeanoNat.Nat.div_lt_upper_bound=>//=.
+by move: ilt; rewrite mulnC=>/leP.
+Qed.
+
+Lemma split_prodpr (m n: nat) (i: 'I_(m*n)): (Nat.modulo i n < n)%N.
+Proof.
+case: i=>[i ilt].
+case: m ilt=>[| m] ilt.
+   by exfalso; move: ilt; rewrite /muln /muln_rec ltn0.
+case: n ilt=>[| n] ilt.
+   by exfalso; move: ilt; rewrite mulnC /muln /muln_rec ltn0.
+by apply /leP; apply PeanoNat.Nat.mod_upper_bound.
+Qed.
+
+Definition split_prod (m n: nat) (i: 'I_(m*n)): 'I_m * 'I_n := (Ordinal (split_prodpl i), Ordinal (split_prodpr i)).
+
 (* TODO: find a suitable name *)
 Lemma big_prod_ord [R' : Type] [idx : R'] (op : Monoid.com_law idx) [m n : nat] (P : pred 'I_(m * n)) (F : ordinal_finType (m * n) -> R'): \big[op/idx]_(i | P i) F i = \big[op/idx]_(i | true) \big[op/idx]_(j | P (unsplit_prod (i, j))) F (unsplit_prod (i, j)).
 Proof.
@@ -239,3 +275,56 @@ elim: r=>[| a r IHr].
    by do 3 rewrite big_nil.
 by do 3 rewrite big_cons; rewrite IHr.
 Qed.
+
+(* TODO: takes forever to compile. *)
+From mathcomp Require Import ereal.
+Local Open Scope ereal_scope.
+
+Ltac case_ereal x :=
+  let H0 := fresh "x_eq_0" in
+  let He0 := fresh "Heqx_eq_0" in
+  let Hgt := fresh "x_gt_0" in
+  let Hegt := fresh "Heqx_gt_0" in
+  let Heqlt := fresh "Heqx_lt_0" in
+  case: x=> [ x | |];
+      [ remember (x%:E == 0) as H0; case: H0 He0=>/esym He0;
+      [| remember (0 < x%:E) as Hgt; case: Hgt Hegt=>/esym Hegt;
+          [| (have /Order.TotalTheory.lt_total: (x%:E != 0) by apply /negP; rewrite He0); rewrite Hegt orbF=>Heqlt ]] | |].
+
+(* Takes ~7s to compile.
+Lemma muleA (R: realDomainType) (a b c: \bar R): a * (b * c) = a * b * c.
+Proof.
+rewrite /mule /mule_subdef.
+case_ereal a; case_ereal b; case_ereal c; (try by (congr (_%:E); apply mulrA)); rewrite ?(mule_eq0 a%:E b%:E) ?Heqx_eq_0 ?Heqx_eq_1 ?Heqx_eq2 //= ?mulr0 // ?mul0r // ?eq_refl ?lt0y // ?(mule_eq0 a%:E b%:E) ?(mule_eq0 b%:E c%:E) ?Heqx_eq_0 ?Heqx_eq_1 ?orbT ?orbF // ?(mule_gt0 Heqx_gt_0 Heqx_gt_1) //.
+   1, 2: by rewrite mulrC (pmule_lgt0 b%:E Heqx_gt_0) Heqx_gt_1.
+   1, 2: by rewrite (pmule_lgt0 a%:E Heqx_gt_1) Heqx_gt_0.
+   1, 2: by rewrite (mule_lt0_lt0 Heqx_lt_0 Heqx_lt_1).
+   1, 4: by rewrite mulrC (pmule_lgt0 c%:E Heqx_gt_0) Heqx_gt_1.
+   1, 3: by rewrite (pmule_lgt0 b%:E Heqx_gt_1) Heqx_gt_0.
+   1, 2: by rewrite (mule_lt0_lt0 Heqx_lt_0 Heqx_lt_1).
+   Qed.*)
+
+Lemma muleA (R: realDomainType) (a b c: \bar R): a * (b * c) = a * b * c.
+Proof.
+wlog: a b c / 0 < a => [h|a0].
+   case/boolP: (a == 0)=>[/eqP->|]; first by rewrite 3!mul0e.
+   move=>/Order.TotalTheory.lt_total=>/orP[a0|]; last by apply h.
+   by apply (inv_inj oppeK); rewrite -!mulNe; apply h; rewrite oppe_gt0.
+wlog: a b c a0 / 0 < b => [h|b0].
+   case/boolP: (b == 0)=>[/eqP->|]; first by rewrite mul0e mule0 mul0e.
+   move=>/Order.TotalTheory.lt_total=>/orP[b0|]; last by apply h.
+   by apply (inv_inj oppeK); rewrite -muleN -mulNe -mulNe -muleN; apply h=>//; rewrite oppe_gt0.
+wlog: a b c a0 b0 / 0 < c => [h|c0].
+   case/boolP: (c == 0)=>[/eqP->|]; first by rewrite 3!mule0.
+   move=>/Order.TotalTheory.lt_total=>/orP[c0|]; last by apply h.
+   by apply (inv_inj oppeK); rewrite -!muleN ; apply h=>//; rewrite oppe_gt0.
+case: a a0=>// [a a0 | _].
+   case: b b0=>// [b b0 | _].
+      case: c c0=>// [c c0 | _].
+         by rewrite /mule/mule_subdef mulrA.
+      repeat rewrite [_* +oo]muleC gt0_mulye//.
+      by apply mule_gt0.
+   by rewrite gt0_mulye// [_* +oo]muleC gt0_mulye// gt0_mulye.
+by rewrite !gt0_mulye//; apply mule_gt0.
+Qed.
+
