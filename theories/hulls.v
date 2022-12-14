@@ -13,6 +13,37 @@ Import Order.POrderTheory Order.TotalTheory GRing.Theory Num.Theory.
 
 Module Spec := SpecKA(sensDirect_KA).
 
+(* on the model of infotheo *)
+Module FDist.
+Section fdist.
+Variables (R : realType) (A : finType).
+Local Open Scope ring_scope.
+Record t := mk {
+  f :> A -> R ;
+  _ : [forall a, 0 <= f a] && (\sum_(a in A) f a == 1) }.
+Lemma ge0 (d : t) a : 0 <= d a.
+Proof. by case: d => ? /= /andP[/forallP ]. Qed.
+Lemma f1 (d : t) : \sum_(a in A) d a = 1.
+Proof. by case: d => ? /= /andP[? /eqP]. Qed.
+Program Definition make (f : {ffun A -> R}) (H0 : forall a, 0 <= f a)
+  (H1 : \sum_(a in A) f a = 1) := @mk f _.
+Next Obligation.
+by move=> f f0 f1; apply/andP; split; [exact/forallP|exact/eqP].
+Qed.
+End fdist.
+Module Exports.
+Notation fdist := t.
+End Exports.
+End FDist.
+Export FDist.Exports.
+Coercion FDist.f : fdist >-> Funclass.
+Canonical fdist_subType R A := Eval hnf in [subType for @FDist.f R A].
+Definition fdist_eqMixin R A := [eqMixin of fdist R A by <:].
+Canonical fdist_eqType R A := Eval hnf in EqType _ (fdist_eqMixin R A).
+
+Definition fdist_of (R : realType) (A : finType) := fun phT : phant (Finite.sort A) => fdist R A.
+Notation "{ 'fdist' T }" := (fdist_of _ (Phant T)).
+
 Section Dummy.
 Variable R : realType.
 Let Plane := Plane R.
@@ -23,7 +54,8 @@ Open Scope order_scope.
 Section hull_def.
 Local Open Scope classical_set_scope.
 Definition hull (T : lmodType R) (X : set T) : set T :=
-  [set p : T | exists n (g : 'I_n -> T) (d : 'I_n -> R), (forall i, 0 <= d i)%R /\ (\sum_(i < n) d i = 1%R) /\ g @` setT `<=` X /\ p = \sum_(i < n) (d i) *: (g i)].
+  [set p : T | exists n (g : 'I_n -> T) (d : {fdist 'I_n}), g @` setT `<=` X /\
+  p = \sum_(i < n) (d i) *: (g i)].
 End hull_def.
 
 Section hull_prop.
