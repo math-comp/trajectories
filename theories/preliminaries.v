@@ -1,7 +1,8 @@
-From mathcomp Require Import all_ssreflect all_algebra vector reals classical_sets.
+Require Import Reals.
+From mathcomp Require Import all_ssreflect all_algebra vector reals classical_sets Rstruct.
 From infotheo Require Import convex.
 
-Import GRing.Theory Num.Theory.
+Import GRing.Theory Num.Theory convex.
 Local Open Scope ring_scope.
 
 Set Implicit Arguments.
@@ -45,62 +46,6 @@ Proof.
 do 3 rewrite enum_rank_index.
 rewrite enumT Finite.EnumDef.enumDef cardE=>/=.
 by apply index_allpairs; rewrite enumT.
-Qed.
-
-Lemma unsplit_prodp (m n: nat) (i: 'I_m) (j: 'I_n): (i*n+j < m*n)%N.
-Proof.
-rewrite -addnS.
-apply (@leq_trans (i*n+n)%N).
-   by rewrite leq_add2l.
-rewrite addnC.
-have->: (n+i*n = i.+1 * n)%N by rewrite /muln /muln_rec /addn /addn_rec.
-by apply leq_mul.
-Qed.
-
-Definition unsplit_prod (m n: nat) (i:'I_m * 'I_n): 'I_(m*n) := let (i, j) := i in Ordinal (unsplit_prodp i j).
-
-(* TODO: shall we extend the lemmas on Nat.div to divn ? *)
-Definition split_prodpl (m n: nat) (i: 'I_(m*n)): (Nat.div i n < m)%N.
-Proof.
-case: i=>[i ilt].
-case: m ilt=>[| m] ilt.
-   by exfalso; move: ilt; rewrite /muln /muln_rec ltn0.
-case: n ilt=>[| n] ilt.
-   by exfalso; move: ilt; rewrite mulnC /muln /muln_rec ltn0.
-apply /leP; apply PeanoNat.Nat.div_lt_upper_bound=>//=.
-by move: ilt; rewrite mulnC=>/leP.
-Qed.
-
-Lemma split_prodpr (m n: nat) (i: 'I_(m*n)): (Nat.modulo i n < n)%N.
-Proof.
-case: i=>[i ilt].
-case: m ilt=>[| m] ilt.
-   by exfalso; move: ilt; rewrite /muln /muln_rec ltn0.
-case: n ilt=>[| n] ilt.
-   by exfalso; move: ilt; rewrite mulnC /muln /muln_rec ltn0.
-by apply /leP; apply PeanoNat.Nat.mod_upper_bound.
-Qed.
-
-Definition split_prod (m n: nat) (i: 'I_(m*n)): 'I_m * 'I_n := (Ordinal (split_prodpl i), Ordinal (split_prodpr i)).
-
-(* TODO: find a suitable name *)
-Lemma big_prod_ord [R' : Type] [idx : R'] (op : Monoid.com_law idx) [m n : nat] (P : pred 'I_(m * n)) (F : ordinal_finType (m * n) -> R'): \big[op/idx]_(i | P i) F i = \big[op/idx]_(i | true) \big[op/idx]_(j | P (unsplit_prod (i, j))) F (unsplit_prod (i, j)).
-Proof.
-elim: m P F=>[| m IHm] P F.
-   by do 2 rewrite big_ord0.
-rewrite big_ord_recl.
-move: P F.
-rewrite /muln /muln_rec /= -/muln_rec -/muln -/addn_rec -/addn=>P F.
-rewrite big_split_ord. congr (_ _ _).
-   apply congr_big=>// i.
-      by congr P; apply val_inj.
-   by move=>_; congr F; apply val_inj.
-rewrite IHm; apply congr_big=>// i _.
-have e: forall j, rshift n (unsplit_prod (i, j)) = Ordinal (unsplit_prodp (lift ord0 i) j).
-   move=>j; apply val_inj=>/=.
-   rewrite /bump leq0n.
-   by rewrite addnA.
-by apply congr_big=>// [ j | j _ ]; f_equal.
 Qed.
 
 Lemma nth_cat_ord [T : Type] (x0 : T) (s1 s2 : seq T) (i: 'I_(size s1 + size s2)): nth x0 (s1 ++ s2) i = match split i with inl i=> nth x0 s1 i | inr i=> nth x0 s2 i end.
@@ -276,7 +221,31 @@ elim: r=>[| a r IHr].
 by do 3 rewrite big_cons; rewrite IHr.
 Qed.
 
-(* TODO: takes forever to compile. *)
+Lemma bigC [R : Type] (idr : R) (opr : Monoid.com_law idr) [I J : Type] (r : seq I) (s : seq J) (P : I -> pred J) (F : I -> J -> R) : \big[opr/idr]_(x <- r) \big[opr/idr]_(y <- s | P x y) F x y = \big[opr/idr]_(y <- s) \big[opr/idr]_(x <- r | P x y) F x y.
+Proof.
+elim:r s=>[|x r IHr] s.
+   rewrite big_nil.
+   elim:s=>[|y s IHs]; first by rewrite big_nil.
+   by rewrite big_cons big_nil -IHs Monoid.mul1m.
+rewrite big_cons.
+elim:s=>[|y s IHs]; first by rewrite IHr 3!big_nil Monoid.mul1m.
+rewrite !big_cons.
+case:ifP=>_; rewrite IHr -IHs big_cons -IHr.
+   by rewrite Monoid.mulmACA.
+by rewrite Monoid.mulmCA.
+Qed.
+
+Lemma Convn_pair [T U : convType] [n : nat] (g : 'I_n -> T * U) (d : fdist.fdist_of (Phant 'I_n)): Convn d g = (Convn d (fst \o g), Convn d (snd \o g)).
+Proof.
+elim:n g d=>[|n IHn] g d.
+   by move:(fdist.fdistI0_False d).
+rewrite/Convn.
+case:(Bool.bool_dec _ _).
+   by move=>_; rewrite -surjective_pairing.
+move=>d0.
+by move:(IHn (fun i => g (fdist.fdist_del_idx ord0 i)) (fdist.fdist_del (Bool.eq_true_not_negb _ d0))); rewrite/Convn=>->.
+Qed.
+
 From mathcomp Require Import ereal.
 Local Open Scope ereal_scope.
 
