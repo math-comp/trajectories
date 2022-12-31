@@ -239,7 +239,7 @@ have: [exists i : 'I_(size l), det l`_i l`_(Zp_succ i) (conv (sup I) b a) <= 0].
          rewrite ltxI; apply/andP; split; last by apply ltNye.
          by apply ereal_meets_gt=>// i _; apply ltNye.
       suff : (t `&` 1 < +oo)%E by rewrite tinf lt_irreflexive.
-      by rewrite ltIx ltry orbT.
+      by rewrite ltIx [(1 < +oo)%E]ltey orbT.
    move:(It); rewrite -tfin lte_fin ltNge=>/negP; apply.
    have t01: in01 (fine (t `&` 1%E)).
       apply/andP; split; rewrite -lee_fin tfin; last by rewrite lteIx le_refl orbT.
