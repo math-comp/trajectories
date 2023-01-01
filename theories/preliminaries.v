@@ -223,16 +223,7 @@ Qed.
 
 Lemma bigC [R : Type] (idr : R) (opr : Monoid.com_law idr) [I J : Type] (r : seq I) (s : seq J) (P : I -> pred J) (F : I -> J -> R) : \big[opr/idr]_(x <- r) \big[opr/idr]_(y <- s | P x y) F x y = \big[opr/idr]_(y <- s) \big[opr/idr]_(x <- r | P x y) F x y.
 Proof.
-elim:r s=>[|x r IHr] s.
-   rewrite big_nil.
-   elim:s=>[|y s IHs]; first by rewrite big_nil.
-   by rewrite big_cons big_nil -IHs Monoid.mul1m.
-rewrite big_cons.
-elim:s=>[|y s IHs]; first by rewrite IHr 3!big_nil Monoid.mul1m.
-rewrite !big_cons.
-case:ifP=>_; rewrite IHr -IHs big_cons -IHr.
-   by rewrite Monoid.mulmACA.
-by rewrite Monoid.mulmCA.
+exact: exchange_big_dep.
 Qed.
 
 Lemma Convn_pair [T U : convType] [n : nat] (g : 'I_n -> T * U) (d : fdist.fdist_of (Phant 'I_n)): Convn d g = (Convn d (fst \o g), Convn d (snd \o g)).
@@ -244,56 +235,5 @@ case:(Bool.bool_dec _ _).
    by move=>_; rewrite -surjective_pairing.
 move=>d0.
 by move:(IHn (fun i => g (fdist.fdist_del_idx ord0 i)) (fdist.fdist_del (Bool.eq_true_not_negb _ d0))); rewrite/Convn=>->.
-Qed.
-
-From mathcomp Require Import ereal.
-Local Open Scope ereal_scope.
-
-Ltac case_ereal x :=
-  let H0 := fresh "x_eq_0" in
-  let He0 := fresh "Heqx_eq_0" in
-  let Hgt := fresh "x_gt_0" in
-  let Hegt := fresh "Heqx_gt_0" in
-  let Heqlt := fresh "Heqx_lt_0" in
-  case: x=> [ x | |];
-      [ remember (x%:E == 0) as H0; case: H0 He0=>/esym He0;
-      [| remember (0 < x%:E) as Hgt; case: Hgt Hegt=>/esym Hegt;
-          [| (have /Order.TotalTheory.lt_total: (x%:E != 0) by apply /negP; rewrite He0); rewrite Hegt orbF=>Heqlt ]] | |].
-
-(* Takes ~7s to compile.
-Lemma muleA (R: realDomainType) (a b c: \bar R): a * (b * c) = a * b * c.
-Proof.
-rewrite /mule /mule_subdef.
-case_ereal a; case_ereal b; case_ereal c; (try by (congr (_%:E); apply mulrA)); rewrite ?(mule_eq0 a%:E b%:E) ?Heqx_eq_0 ?Heqx_eq_1 ?Heqx_eq2 //= ?mulr0 // ?mul0r // ?eq_refl ?lt0y // ?(mule_eq0 a%:E b%:E) ?(mule_eq0 b%:E c%:E) ?Heqx_eq_0 ?Heqx_eq_1 ?orbT ?orbF // ?(mule_gt0 Heqx_gt_0 Heqx_gt_1) //.
-   1, 2: by rewrite mulrC (pmule_lgt0 b%:E Heqx_gt_0) Heqx_gt_1.
-   1, 2: by rewrite (pmule_lgt0 a%:E Heqx_gt_1) Heqx_gt_0.
-   1, 2: by rewrite (mule_lt0_lt0 Heqx_lt_0 Heqx_lt_1).
-   1, 4: by rewrite mulrC (pmule_lgt0 c%:E Heqx_gt_0) Heqx_gt_1.
-   1, 3: by rewrite (pmule_lgt0 b%:E Heqx_gt_1) Heqx_gt_0.
-   1, 2: by rewrite (mule_lt0_lt0 Heqx_lt_0 Heqx_lt_1).
-   Qed.*)
-
-Lemma muleA (R: realDomainType) (a b c: \bar R): a * (b * c) = a * b * c.
-Proof.
-wlog: a b c / 0 < a => [h|a0].
-   case/boolP: (a == 0)=>[/eqP->|]; first by rewrite 3!mul0e.
-   move=>/Order.TotalTheory.lt_total=>/orP[a0|]; last by apply h.
-   by apply (inv_inj oppeK); rewrite -!mulNe; apply h; rewrite oppe_gt0.
-wlog: a b c a0 / 0 < b => [h|b0].
-   case/boolP: (b == 0)=>[/eqP->|]; first by rewrite mul0e mule0 mul0e.
-   move=>/Order.TotalTheory.lt_total=>/orP[b0|]; last by apply h.
-   by apply (inv_inj oppeK); rewrite -muleN -mulNe -mulNe -muleN; apply h=>//; rewrite oppe_gt0.
-wlog: a b c a0 b0 / 0 < c => [h|c0].
-   case/boolP: (c == 0)=>[/eqP->|]; first by rewrite 3!mule0.
-   move=>/Order.TotalTheory.lt_total=>/orP[c0|]; last by apply h.
-   by apply (inv_inj oppeK); rewrite -!muleN ; apply h=>//; rewrite oppe_gt0.
-case: a a0=>// [a a0 | _].
-   case: b b0=>// [b b0 | _].
-      case: c c0=>// [c c0 | _].
-         by rewrite /mule/mule_subdef mulrA.
-      repeat rewrite [_* +oo]muleC gt0_mulye//.
-      by apply mule_gt0.
-   by rewrite gt0_mulye// [_* +oo]muleC gt0_mulye// gt0_mulye.
-by rewrite !gt0_mulye//; apply mule_gt0.
 Qed.
 

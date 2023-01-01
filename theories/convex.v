@@ -79,7 +79,7 @@ rewrite Convn_pair/comp/=; congr pair; apply S1_inj; rewrite !S1_Convn big_prod_
       by refine (inj_eq _ k (i, j)); exact (can_inj (@unsplit_prodK n m)). 
    rewrite (big_pred1 (i, j))// fdist_prodE/= ssrR.mulRC; congr (scalept _ (S1 (g _))).
    by move:(unsplit_prodK (i, j))=>/(congr1 fst)/esym.
-rewrite bigC/=.
+rewrite (exchange_big_dep xpredT)//=.
 apply eq_big=>// j _.
 rewrite -(scale1pt (scalept _ _)) scaleptA//.
 rewrite -(FDist.f1 d).
@@ -505,43 +505,6 @@ Definition fconvex := forall (x y: E) (t: prob),
 Definition fconvex_strict := forall (x y: E) (t: oprob), x <> y ->
   f (x <|t|> y) < EFin (t : R_ringType) * f x + EFin (onem t)%R * f y.
 
-Lemma muleDl_ge0 (R : realDomainType) (x y z : \bar R) :
-  0 <= y -> 0 <= z -> (y + z) * x = y * x + z * x.
-Proof.
-case: y=>// [y | _].
-   rewrite lee_fin le0r -lte_fin=>/orP; case=>[/eqP-> _ | y0].
-      by rewrite mul0e 2!add0e.
-   case yne0: (y%:E == 0).
-      by move:yne0 y0=>/eqP->; rewrite lt_irreflexive.
-all: case: z=>// [z | _].
-   1, 3: rewrite lee_fin le0r -lte_fin=>/orP; case=>[/eqP-> | z0].
-      1, 3: by rewrite mul0e 2!adde0.
-   1, 2: case zne0: (z%:E == 0); first by move:zne0 z0=>/eqP->;
-         rewrite lt_irreflexive.
-      have: 0 < y%:E + z%:E by apply adde_gt0.
-      case yzne0: (y%:E + z%:E == 0); move:yzne0.
-         by move=>/eqP->; rewrite lt_irreflexive.
-all: case: x=>[x | |]; rewrite/adde/adde_subdef/mule/mule_subdef/=
-    ?lt0y// ?yne0 ?y0// ?zne0 ?z0//.
-- by rewrite mulrDl.
-- by move=>-> ->. 
-- by move=>-> ->.
-all: case: ifP=>[/eqP/= x0 | _]; last by case: ifP.
-3: by rewrite addr0.
-all: by rewrite (EFin_inj x0) mulr0 addr0.
-Qed.
-
-Lemma lee_pemul (R : realDomainType) (t : R) (x y : \bar R) :
-  (0 < t)%R -> (t%:E * x <= t%:E * y) = (x <= y).
-Proof.
-rewrite -lte_fin=>t0.
-case tne0: (t%:E == 0); first by move:tne0 t0=>/eqP->; rewrite lt_irreflexive.
-case:x=>[x | |]; case:y=>[y | |];
-    rewrite/mule/mule_def/= ?tne0 ?t0// ?leey// ?leNye//.
-move:t0; rewrite 2!lee_fin lte_fin=>t0.
-by rewrite -subr_ge0 -mulrBr pmulr_rge0// subr_ge0.
-Qed.
-
 Lemma fconvex_max_ext (C: {convex_set E}) (x: E):
   fconvex_strict ->
   x \in C ->
@@ -566,11 +529,11 @@ move=>/eqP uv.
 move:(fconv u v (OProb.mk t01) uv)=>/=.
 have fle: (Prob.p t)%:E * f u + (onem (Prob.p t))%:E * f v <= f (u <|t|> v).
    have ->: f (u <|t|> v) = (Prob.p t)%:E * f (u <|t|> v) + (onem (Prob.p t))%:E * f (u <|t|> v).
-      rewrite -muleDl_ge0 ?lee_fin /onem ?RminusE -?EFinD.
+      rewrite -ge0_muleDl ?lee_fin /onem ?RminusE -?EFinD.
       - by rewrite addrCA subrr addr0 mul1e.
       - by apply ltW.
       - by rewrite subr_ge0; apply/RleP/prob_le1.
-   apply (@lee_add R_realDomainType); rewrite (@lee_pemul R_realDomainType)=>//.
+   apply (@lee_add R_realDomainType); rewrite (@lee_pmul2l R_realDomainType)//= lte_fin.
    by rewrite subr_gt0.
 by move=>/(le_lt_trans fle); rewrite lt_irreflexive.
 Qed.
