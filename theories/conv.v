@@ -209,7 +209,7 @@ by rewrite -2!addrA; congr add; rewrite addrC.
 Qed.
 End Conv.
 
-Section between. 
+Section between.
 Variable R : realType.
 Let Plane := pair_vectType (regular_vectType R) (regular_vectType R).
 
@@ -252,8 +252,8 @@ exists (1 - ordonnee r / ordonnee q)=>//.
 Qed.
 
 Definition between (x y z : Plane) := (det x y z == 0)%R &&
-  (0%R <= scalar_product (x-y) (z-y)) &&
-  (0%R <= scalar_product (x-z) (y-z)) &&
+  (0%R <= scalar_product (x - y) (z - y)) &&
+  (0%R <= scalar_product (x - z) (y - z)) &&
   ((y == z) ==> (x == z)).
 
 Lemma between_conv x y z : between x y z <->
@@ -283,7 +283,8 @@ by apply/andP; split; apply mulr_ge0=>//; first (by rewrite subr_ge0); apply sca
 Qed.
 
 Lemma betweenC (a b c : Plane) : between a b c = between a c b.
-Proof. rewrite/between det_inverse -det_cyclique oppr_eq0 -!andbA; congr andb; rewrite !andbA; congr andb.
+Proof.
+rewrite/between det_inverse -det_cyclique oppr_eq0 -!andbA; congr andb; rewrite !andbA; congr andb.
    by apply andbC.
 by rewrite eq_sym; apply implyb_id2l=>/eqP->.
 Qed.
@@ -340,4 +341,3 @@ by apply in01_conv.
 Qed.
 
 End between.
-

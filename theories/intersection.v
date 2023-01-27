@@ -1,4 +1,4 @@
-Require Export sensDirect conv encompass preliminaries.
+Require Export counterclockwise conv encompass preliminaries.
 From mathcomp Require Import all_ssreflect ssralg matrix ssrnum vector reals normedtype order boolp classical_sets constructive_ereal.
 
 Set Implicit Arguments.
@@ -167,16 +167,34 @@ apply/idP/idP; last by rewrite/encompass.is_left; move=>->; rewrite orbT.
 by move=>/orP; case=>// /orP; case=>/eqP re; subst r; rewrite /oriented det_cyclique; [ rewrite det_cyclique |]; rewrite det_alternate.
 Qed.
 
-(* We prove that if a segment does not intersect the border of a convex set C, then either the segment is included in C, or they are disjoint. C is represented by a list of points that generate it (as given by the output of Jarvis' algorithm). We prove the result by contraposition, assuming that one point of the segment lies inside C and another one is outside. We immediatly reduce to the case where the ends of the segment verify this property. Let [a, b] be the segment, with a in C and b outside. Notice that t \mapsto conv t b a is a continuous curve from a to b, hence we expect it to cross the border of C. Let I = \{t \in [0, 1], conv t b a \in C\} and t = sup(I). t is well defined because I is not empty (as 0 \in I) and bounded (by 1). C being defined by a set of large inequalities, we show conv t b a \in C. Then we show that at least one inequality is an equality. Let this consraint being given by two points x and y of the list defining C. Then conv t b a is on the line (xy) and every other point of the list is strictly to the left of the line (xy), hence every other inequality is strict. Then, looking at the inequalities involving x and y, we show that conv t b a is between x and y, which concludes the proof.
- *)
+(* We prove that if a segment does not intersect the border of a
+   convex set C, then either the segment is included in C, or they are
+   disjoint.  C is represented by a list of points that generate it
+   (as given by the output of Jarvis' algorithm). We prove the result
+   by contraposition, assuming that one point of the segment lies
+   inside C and another one is outside. We immediately reduce to the
+   case where the ends of the segment verify this property. Let [a, b]
+   be the segment, with a in C and b outside. Notice that t \mapsto
+   conv t b a is a continuous curve from a to b, hence we expect it to
+   cross the border of C. Let I = \{t \in [0, 1], conv t b a \in C\}
+   and t = sup(I). t is well defined because I is not empty (as 0 \in
+   I) and bounded (by 1). C being defined by a set of large
+   inequalities, we show conv t b a \in C. Then we show that at least
+   one inequality is an equality. Let this consraint being given by
+   two points x and y of the list defining C. Then conv t b a is on
+   the line (xy) and every other point of the list is strictly to the
+   left of the line (xy), hence every other inequality is
+   strict. Then, looking at the inequalities involving x and y, we
+   show that conv t b a is between x and y, which concludes the proof.
+   *)
 
 Lemma hull_border_no_intersection (l : seq Plane) (a b : Plane) :
   (3 <= size l)%N ->
   uniq l ->
-  encompass (sensDirect (R:=R)) l l ->
+  encompass (ccw (R:=R)) l l ->
   [forall i : 'I_(size l), ~~ intersect l`_i l`_(Zp_succ i) a b] ->
     (forall t : R, in01 t ->
-      encompass (sensDirect (R:=R)) l [:: conv t a b]) \/
+      encompass (ccw (R:=R)) l [:: conv t a b]) \/
     (forall t : R, in01 t ->
       ~~ encompass oriented l [:: conv t a b]).
 Proof.
@@ -285,7 +303,7 @@ apply/negPn/negP; rewrite negb_and -2!ltNge=>/orP; case.
    move:lt=>/(_ (Zp_succ i)); rewrite -tie -det_cyclique det_conv det_alternate /conv scaler0 addr0 sm nmulr_rge0// =>ile.
    move:ll; rewrite encompass_all_index l0/= =>/forallP/(_ i)/allP/(_ l`_(Zp_succ (Zp_succ i))).
    have ilin: l`_(Zp_succ (Zp_succ i)) \in l by apply mem_nth.
-   move=>/(_ ilin); rewrite /encompass.is_left/sensDirect ltNge ile orbF=>/orP; case=>/eqP/lu; rewrite 2!inE=>/(_ (ils _) (ils _)); rewrite !Zp_succE=>/eqP; rewrite -2!addn1 modnDml -addnA addn1.
+   move=>/(_ ilin); rewrite /encompass.is_left /ccw ltNge ile orbF=>/orP; case=>/eqP/lu; rewrite 2!inE=>/(_ (ils _) (ils _)); rewrite !Zp_succE=>/eqP; rewrite -2!addn1 modnDml -addnA addn1.
       by rewrite -{2}(modn_small (ils i)) -{2}(addn0 i) eqn_modDl modn_small// mod0n=>/eqP.
    rewrite eqn_modDl modn_small// modn_small; last by apply ltnW.
    by move=>/eqP.
@@ -297,7 +315,7 @@ have succ_predi : Zp_succ (Ordinal predi_ltl) = i.
 move:lt=>/(_ (Ordinal predi_ltl)); rewrite succ_predi -tie -det_cyclique det_conv -det_cyclique det_alternate /conv scaler0 add0r sm nmulr_rge0// =>ile.
 move:ll; rewrite encompass_all_index l0/= =>/forallP/(_ (Ordinal predi_ltl))/allP/(_ l`_(Zp_succ i)).
 have ilin: l`_(Zp_succ i) \in l by apply mem_nth.
-move=>/(_ ilin); rewrite succ_predi /encompass.is_left/sensDirect ltNge -det_cyclique ile orbF=>/orP; case=>/eqP/lu; rewrite 2!inE=>/(_ (ils _) (ils _)); rewrite !Zp_succE=>/eqP.
+move=>/(_ ilin); rewrite succ_predi /encompass.is_left /ccw ltNge -det_cyclique ile orbF=>/orP; case=>/eqP/lu; rewrite 2!inE=>/(_ (ils _) (ils _)); rewrite !Zp_succE=>/eqP.
    rewrite -addn1 eqn_modDl modn_small//; last by apply ltnW.
    rewrite modn_small; last by rewrite prednK=>//; do 2 apply ltnW.
    rewrite -eqSS prednK; last by do 2 apply ltnW.

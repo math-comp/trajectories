@@ -17,7 +17,7 @@ theories/hulls.v
 theories/intersection.v
 theories/conv.v
 theories/encompass.v
-theories/sensDirect.v
+theories/counterclockwise.v
 theories/axiomsKnuth.v
 theories/preliminaries_hull.v
 

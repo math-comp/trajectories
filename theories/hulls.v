@@ -126,7 +126,7 @@ Qed.
 Lemma encompass_correct (l : seq Plane) (p : Plane) :
   uniq l ->
   (3 <= size l)%N ->
-  encompass (sensDirect (R:=R)) l l ->
+  encompass (ccw (R:=R)) l l ->
   encompass oriented l [:: p] ->
   exists t : 'I_(size l) -> R,
     (forall i, 0 <= t i)%R /\ (\sum_i t i = 1%:R) /\ p = \sum_i t i *: l`_i.
@@ -136,8 +136,7 @@ have orientedW: forall a b c, encompass.is_left oriented a b c -> oriented a b c
    move=>a b c /orP; case=>// /orP; case=>/eqP<-; rewrite /oriented.
          by rewrite 2!det_cyclique det_alternate.
       by rewrite det_cyclique det_alternate.
-have H3: forall a b c p, uniq [:: a; b; c] -> encompass (sensDirect (R:=R)) [:: a; b; c] [:: a; b; c] -> encompass oriented [:: a; b; c] [:: p] -> exists t : 'I_3 -> R, (forall i, 0 <= t i)%R /\ (\sum_i t i = 1%:R) /\ p = \sum_i t i *: [:: a; b; c]`_i.
-   move=>a b c p.
+have H3 a b c p : uniq [:: a; b; c] -> encompass (ccw (R:=R)) [:: a; b; c] [:: a; b; c] -> encompass oriented [:: a; b; c] [:: p] -> exists t : 'I_3 -> R, (forall i, 0 <= t i)%R /\ (\sum_i t i = 1%:R) /\ p = \sum_i t i *: [:: a; b; c]`_i.
    rewrite/uniq !in_cons negb_or 2!in_nil 2!orbF=>/andP [/andP[/negPf ab /negPf ac] /andP[/negPf bc _]] /andP[/andP [_ /andP [h _]] _] /= /andP [/andP [/orientedW cap _]] /andP [/andP [/orientedW abp _]] /andP [/andP [/orientedW bcp _] _].
    move: h; rewrite/encompass.is_left bc eq_sym ab =>/= cab.
    exists (fun i => [:: det c p b / det c a b; det c a p / det c a b; det p a b / det c a b]`_i); split.
@@ -145,7 +144,7 @@ have H3: forall a b c p, uniq [:: a; b; c] -> encompass (sensDirect (R:=R)) [:: 
       - by rewrite 2!det_cyclique.
       - by [].
       - by rewrite det_cyclique.
-   move: cab; rewrite /sensDirect lt0r=>/andP[cab _].
+   move: cab; rewrite /ccw lt0r=>/andP[cab _].
    split.
       by rewrite !big_ord_recr big_ord0 /= add0r -2!mulrDl addrC addrA -decompose_det divff.
    rewrite !big_ord_recr big_ord0 /= add0r.
@@ -227,7 +226,7 @@ Qed.
 Lemma encompass_complete (l : seq Plane) (p : Plane) :
   uniq l ->
   (3 <= size l)%N ->
-  encompass (sensDirect (R:=R)) l l ->
+  encompass (ccw (R:=R)) l l ->
   (exists t : 'I_(size l) -> R,
     (forall i, 0 <= t i)%R /\
     (\sum_i t i = 1%:R) /\
@@ -263,8 +262,8 @@ wlog: l lu ls ll f f0 f1 i ilt / l`_i == 0%R.
       apply/forallP=>[[b blt]].
       apply/forallP=>[[c clt]].
       apply/implyP=>abc.
-      rewrite /sensDirect_KA.OT/sensDirect det_scalar_productE subl'// subl'//.
-      by move:ll; rewrite Spec.encompassll_spec=>// /andP[_] /forallP /(_ (Ordinal alt)) /forallP /(_ (Ordinal blt)) /forallP /(_ (Ordinal clt)) /implyP /(_ abc); rewrite /sensDirect_KA.OT/sensDirect det_scalar_productE.
+      rewrite /sensDirect_KA.OT /ccw det_scalar_productE subl'// subl'//.
+      by move:ll; rewrite Spec.encompassll_spec=>// /andP[_] /forallP /(_ (Ordinal alt)) /forallP /(_ (Ordinal blt)) /forallP /(_ (Ordinal clt)) /implyP /(_ abc); rewrite /sensDirect_KA.OT /ccw det_scalar_productE.
       - apply f0.
       - exact f1.
       - by rewrite (nth_map (GRing.zero _))// subrr.
@@ -277,13 +276,13 @@ rewrite encompass_all_index=>/andP[_] /forallP /(_ (Ordinal ilt))/=; rewrite and
    move=>/orP; case=>/eqP ->.
       by rewrite -{2}(scale0r 0) rotateZ scalar_productZR mul0r.
    by rewrite scalar_product_rotatexx.
-by rewrite /sensDirect det_scalar_productE 2!subr0=>/ltW.
+by rewrite /ccw det_scalar_productE 2!subr0=>/ltW.
 Qed.
 
 Lemma encompassP (l : seq Plane) (p : Plane) :
   uniq l ->
   (3 <= size l)%N ->
-  encompass (sensDirect (R:=R)) l l ->
+  encompass (ccw (R:=R)) l l ->
   reflect (p \in hull (fun x => x \in l)) (encompass oriented l [:: p]).
 Proof.
 move=>lu ls ll; apply/(iffP idP).
