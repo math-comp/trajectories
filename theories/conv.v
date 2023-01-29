@@ -1,5 +1,5 @@
-Require Export sensDirect.
 From mathcomp Require Import all_ssreflect ssralg matrix ssrnum vector reals normedtype order boolp classical_sets.
+Require Import counterclockwise.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -16,10 +16,10 @@ Variable R : realType.
 Definition in01 (t : R) := 0 <= t <= 1.
 
 Lemma in010 : in01 0.
-Proof. by rewrite/in01 le_refl ler01. Qed.
+Proof. by rewrite/in01 lexx ler01. Qed.
 
 Lemma in011 : in01 1.
-Proof. by rewrite/in01 le_refl ler01. Qed.
+Proof. by rewrite/in01 lexx ler01. Qed.
 
 Lemma in01_ge0 t : in01 t -> 0 <= t.
 Proof. by move=>/andP[]. Qed.
@@ -29,8 +29,8 @@ Proof.
 apply/idP/idP.
    by move=>/andP[t0 t1]; apply mulr_ge0=>//; rewrite subr_ge0.
 move=>ge0; apply/andP; split; rewrite leNgt; apply/negP=>ti; move:ge0.
-   by rewrite nmulr_rge0// subr_le0=>t1; move:(lt_trans ltr01 (le_lt_trans t1 ti)); rewrite lt_irreflexive.
-by move:(ti); rewrite -subr_lt0=>t1'; rewrite nmulr_lge0// =>t0; move:(lt_trans (le_lt_trans t0 ltr01) ti); rewrite lt_irreflexive.
+   by rewrite nmulr_rge0// subr_le0=>t1; move:(lt_trans ltr01 (le_lt_trans t1 ti)); rewrite ltxx.
+by move:(ti); rewrite -subr_lt0=>t1'; rewrite nmulr_lge0// =>t0; move:(lt_trans (le_lt_trans t0 ltr01) ti); rewrite ltxx.
 Qed.
 
 Lemma in01_onem t : in01 t = in01 (1-t).
@@ -49,7 +49,7 @@ apply/idP/idP; last by move=>/andP[/eqP-> /eqP->]; rewrite mulr1.
 case tn1: (t == 1); first by move:tn1=>/eqP->; rewrite mul1r.
 case un1: (u == 1); first by move:un1=>/eqP->; rewrite mulr1 tn1.
 move=>/eqP tu1/=.
-suff: t * u < 1 by rewrite tu1 lt_irreflexive.
+suff: t * u < 1 by rewrite tu1 ltxx.
 by apply mulr_ilt1=>//; rewrite -subr_gt0 lt0r subr_eq0 subr_ge0 eq_sym ?t1 ?u1 ?tn1 ?un1.
 Qed.
 
@@ -163,7 +163,7 @@ rewrite -{1}[t](addr0) -(subrr u) addrA mulrBl divff// -subr_ge0 opprB addrCA su
 by rewrite mulrC.
 Qed.
 
-Lemma conv_onem (t u v : R) : 
+Lemma conv_onem (t u v : R) :
   conv t (1-u : regular_lmodType R) (1-v) =
   1 - conv t (u : regular_lmodType R) v.
 Proof.
@@ -175,25 +175,25 @@ Qed.
 Lemma convACA (t u v : R) (a b c d : E) : in01 t -> in01 u -> in01 v -> conv t (conv u a b) (conv v c d) = conv (conv t (u : regular_lmodType R) v) (conv (t*u/(conv t (u : regular_lmodType R) v)) a c) (conv (t*(1-u)/(conv t (1-u : regular_lmodType R) (1-v))) b d).
 Proof.
 move=>/andP[t0 t1]/andP[u0 u1]/andP[v0 v1].
-move:t0; rewrite le0r=>/orP; case.
+move:t0; rewrite le0r => /orP[|].
    by move=>/eqP->; rewrite !mul0r !conv0.
-move=>t0; move:t1; rewrite -subr_ge0 le0r=>/orP; case.
+move=>t0; move:t1; rewrite -subr_ge0 le0r => /orP[|].
    rewrite subr_eq0=>/eqP<-; rewrite !mul1r !conv1.
-   move:u0; rewrite le0r=>/orP; case.
+   move:u0; rewrite le0r => /orP[|].
       by move=>/eqP->; rewrite subr0 !conv0 divff ?oner_neq0// conv1.
    rewrite lt0r=>/andP[u0 _]; rewrite divff// conv1.
-   move:u1; rewrite -subr_ge0 le0r=>/orP; case.
+   move:u1; rewrite -subr_ge0 le0r => /orP[|].
       by rewrite subr_eq0=>/eqP<-; rewrite 2!conv1.
    by rewrite lt0r=>/andP[t1 _]; rewrite divff// conv1.
 move=>t1.
 have c0: forall x y : R, 0 <= x -> 0 <= y -> conv t (x : regular_lmodType R) y = 0 -> x = 0 /\ y = 0.
-   move=>x y; rewrite le0r=>/orP; case.
+   move=>x y; rewrite le0r => /orP[|].
       move=>/eqP-> _ /eqP.
-      rewrite/conv scaler0 add0r mulf_eq0=>/orP; case.
+      rewrite/conv scaler0 add0r mulf_eq0 => /orP[|].
          by move=>t1'; move:t1; rewrite lt0r=>/andP[/negPf]; rewrite t1'.
       by move=>/eqP->.
    move=>x0 y0 c0.
-   suff: 0 < conv t (x : regular_lmodType R) y by rewrite c0 lt_irreflexive.
+   suff: 0 < conv t (x : regular_lmodType R) y by rewrite c0 ltxx.
    rewrite /conv -(addr0 0) ; apply ltr_le_add.
       by apply mulr_gt0.
    by apply mulr_ge0=>//; apply ltW.
@@ -237,10 +237,9 @@ wlog: p q r / p == 0%R.
       by rewrite eq_sym subr_eq0 eq_sym=>/eqP=>pq; left.
     by rewrite{1}/conv scaler0 add0r=>/(f_equal (fun x=> p+x)); rewrite [r-p]addrC addrA subrr add0r=><-; right; exists t=>//; apply convlr.
 move=>/eqP p0; subst p; rewrite !subr0/scalar_product/= mulrN=>/eqP; rewrite subr_eq0=>/eqP e.
-case q0: (q == 0%R).
-   by left; move: q0=>/eqP.
+have [q0|q0] := eqVneq q 0%R; first by left.
 right.
-move:q0=>/eqP/eqP; rewrite -pair_eqE /= negb_and=>/orP; case=>q0.
+move:q0; rewrite -pair_eqE /= negb_and => /orP[|] q0.
    exists (1 - abscisse r / abscisse q)=>//.
    rewrite -convC convrl add0r subr0; apply /eqP; rewrite -pair_eqE; apply /andP; split=>/=; have ->: forall (a: R) (b: (regular_vectType (Real.ringType R))), a *: b = a*b by lazy.
    - by rewrite -mulrA [_^-1*_]mulrC divff // mulr1.
@@ -260,7 +259,7 @@ Lemma between_conv x y z : between x y z <->
   exists t, in01 t && (x == conv t y z).
 Proof.
 case yz: (y == z).
-   rewrite/between yz; move:yz=>/eqP yz; rewrite yz subrr -(scale0r 0) scalar_productZR mul0r det_cyclique det_alternate eq_refl le_refl/=.
+   rewrite/between yz; move:yz=>/eqP yz; rewrite yz subrr -(scale0r 0) scalar_productZR mul0r det_cyclique det_alternate eqxx lexx/=.
    split; first by move=>/eqP->; exists 0; rewrite in010 convmm/=.
    by move=>[t /andP[_]]; rewrite convmm.
 rewrite /between yz/= andbT.
@@ -270,7 +269,7 @@ have zye: forall t (y z: Plane), t *: y + (1-t) *: z - y = (1-t) *: (z-y).
 have yze: forall t (y z: Plane), t *: y + (1-t) *: z - z = t *: (y-z).
    by move=>t y' z'; rewrite -addrA scalerBr; congr +%R; rewrite scalerBl scale1r [_-_*:_]addrC -addrA subrr addr0.
 split.
-   rewrite det_cyclique=>/andP [/andP [/eqP/det0_aligned]]; case; first by move=> yz'; move:yz' yz=>->; rewrite eq_refl.
+   rewrite det_cyclique=>/andP [/andP [/eqP/det0_aligned]]; case; first by move=> yz'; move:yz' yz=>->; rewrite eqxx.
    move=>[t <-].
    rewrite yze zye 2!scalar_productZL=> yp zp; exists t; apply/andP; split=>//.
    apply/andP; split.
@@ -290,7 +289,7 @@ by rewrite eq_sym; apply implyb_id2l=>/eqP->.
 Qed.
 
 Lemma betweenl (a b : Plane) : between a a b.
-Proof. rewrite/between det_alternate eq_refl/= subrr -(scale0r 0) scalar_productZL mul0r le_refl/= Bool.implb_same andbT; apply scalar_productrr_ge0. Qed.
+Proof. rewrite/between det_alternate eqxx/= subrr -(scale0r 0) scalar_productZL mul0r lexx/= Bool.implb_same andbT; apply scalar_productrr_ge0. Qed.
 
 Lemma betweenr (a b : Plane) : between a b a.
 Proof. rewrite betweenC; apply betweenl. Qed.
@@ -306,27 +305,26 @@ split.
    case t1: (t == 1).
       move:t1=>/eqP->; rewrite subrr scale1r scale0r addr0 subr_eq0=>/eqP->.
       exists (c-b), 0, 1.
-      by rewrite mul0r le_refl scale0r addr0 eq_refl scale1r addrCA subrr addr0 eq_refl.
+      by rewrite mul0r lexx scale0r addr0 eqxx scale1r addrCA subrr addr0 eqxx.
    rewrite addr_eq0 -scalerN opprB=>/eqP e.
    exists (b-a), 1, (-t / (1-t)).
    move:t1=>/negbT; rewrite eq_sym -subr_eq0=>tn1.
-   move:t01=>/andP[t0 t1]; rewrite mul1r mulNr oppr_le0 scale1r addrCA subrr addr0 eq_refl mulrC scaleNr -scalerN opprB -scalerA e scalerA [_*(1-t)]mulrC divff// scale1r addrCA subrr addr0 eq_refl 2!andbT; apply mulr_ge0=>//.
+   move:t01=>/andP[t0 t1]; rewrite mul1r mulNr oppr_le0 scale1r addrCA subrr addr0 eqxx mulrC scaleNr -scalerN opprB -scalerA e scalerA [_*(1-t)]mulrC divff// scale1r addrCA subrr addr0 eqxx 2!andbT; apply mulr_ge0=>//.
       by rewrite invr_ge0 subr_ge0.
 move=>[d][t][u]/andP[/andP[tu0]].
 wlog: d t u tu0 / 0 < t.
    move=>h.
-   case t0: (0 < t); first by apply h.
-   move:t0=>/negbT; rewrite -leNgt -oppr_ge0 le0r oppr_eq0=>/orP; case.
+   have [t0|t0] := ltP 0 t; first by apply h.
+   move:t0; rewrite le_eqVlt => /orP[|].
       by move=>/eqP->; rewrite scale0r addr0=>/eqP-> _; apply betweenl.
-   by move=>t0; rewrite -(opprK d) 2![_ *: - - _]scalerN -2!scaleNr; apply h=>//; rewrite mulrN -mulNr opprK.
+   by rewrite -oppr_gt0 -(opprK d) 2![_ *: - - _]scalerN -2!scaleNr; apply h=>//; rewrite mulrN -mulNr opprK.
 move=>t0 /eqP be /eqP ce.
 move:tu0; rewrite pmulr_rle0// =>u0.
 have tugt0: 0 < t-u by rewrite subr_gt0; exact (le_lt_trans u0 t0).
-have tun0: t-u != 0 by apply/negP=>/eqP tu0; move:tugt0; rewrite tu0 lt_irreflexive.
+have tun0: t-u != 0 by apply/negP=>/eqP tu0; move:tugt0; rewrite tu0 ltxx.
 apply/between_conv; exists (-u/(t-u)); apply/andP; split.
    apply/andP; split.
-      apply mulr_ge0; first by rewrite oppr_ge0.
-      by rewrite invr_ge0; apply ltW.
+      by rewrite mulr_ge0 ?oppr_ge0// invr_ge0 ltW.
    by rewrite -subr_ge0 -(pmulr_rge0 _ tugt0) mulrBr mulrCA divff// 2!mulr1 -addrA subrr addr0; apply ltW.
 by rewrite/conv be ce 2!scalerDr addrACA -scalerDl [_ + (1-_)]addrCA subrr addr0 scale1r -subr_eq0 opprD addrA subrr add0r oppr_eq0 2!scalerA -scalerDl mulrBl mul1r addrCA -mulrBr mulrAC -mulrA divff// mulr1 subrr scale0r.
 Qed.

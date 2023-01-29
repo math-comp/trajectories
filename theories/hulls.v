@@ -1,6 +1,7 @@
-Require Export encompass sensDirect conv.
+Require Export encompass conv.
 From mathcomp Require Import all_ssreflect all_algebra vector reals normedtype.
 From mathcomp Require Import classical_sets boolp.
+Require Import counterclockwise.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -11,7 +12,7 @@ From mathcomp.zify Require Import zify.
 
 Import Order.POrderTheory Order.TotalTheory GRing.Theory Num.Theory.
 
-Module Spec := SpecKA(sensDirect_KA).
+Module Spec := SpecKA(ccw_KA).
 
 Section Dummy.
 Variable R : realType.
@@ -43,7 +44,7 @@ Lemma hull0 : hull set0 = set0 :> set A.
 Proof.
 rewrite funeqE => d; rewrite propeqE; split => //.
 move=> [n [g [e [e0 [e1 [gX ->{d}]]]]]].
-destruct n as [|n]; first by rewrite big_ord0 in e1; move:(@ltr01 R); rewrite e1 lt_irreflexive.
+destruct n as [|n]; first by rewrite big_ord0 in e1; move:(@ltr01 R); rewrite e1 ltxx.
 exfalso; apply: (gX (g ord0)); exact/imageP.
 Qed.
 
@@ -111,7 +112,7 @@ case: (splitP (rshift n i))=>/=.
    by case=>j jlt/= jgt; exfalso; move:jlt; rewrite -jgt -{2}(addn0 n) ltn_add2l ltn0.
 by move=>j /eqP; rewrite eqn_add2l=>/eqP ij; congr (_ * e _ *: h _); apply val_inj.
 Qed.
-  
+
 End hull_prop.
 
 Let oriented := fun p q r : Plane => 0%:R <= det p q r.
@@ -262,8 +263,8 @@ wlog: l lu ls ll f f0 f1 i ilt / l`_i == 0%R.
       apply/forallP=>[[b blt]].
       apply/forallP=>[[c clt]].
       apply/implyP=>abc.
-      rewrite /sensDirect_KA.OT /ccw det_scalar_productE subl'// subl'//.
-      by move:ll; rewrite Spec.encompassll_spec=>// /andP[_] /forallP /(_ (Ordinal alt)) /forallP /(_ (Ordinal blt)) /forallP /(_ (Ordinal clt)) /implyP /(_ abc); rewrite /sensDirect_KA.OT /ccw det_scalar_productE.
+      rewrite /ccw_KA.OT /ccw det_scalar_productE subl'// subl'//.
+      by move:ll; rewrite Spec.encompassll_spec=>// /andP[_] /forallP /(_ (Ordinal alt)) /forallP /(_ (Ordinal blt)) /forallP /(_ (Ordinal clt)) /implyP /(_ abc); rewrite /ccw_KA.OT /ccw det_scalar_productE.
       - apply f0.
       - exact f1.
       - by rewrite (nth_map (GRing.zero _))// subrr.

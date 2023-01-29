@@ -11,21 +11,23 @@ Unset Printing Implicit Defensive.
 
 (* TODO: move to mathcomp ? *)
 
-Lemma enum_rank_index {T: finType} i: nat_of_ord (enum_rank i) = index i (enum T).
+Lemma enum_rank_index {T : finType} i :
+  nat_of_ord (enum_rank i) = index i (enum T).
 Proof.
-rewrite /enum_rank /enum_rank_in /insubd /odflt /oapp insubT.
-   2: by lazy.
-rewrite cardE index_mem.
-destruct T, c, mixin.
-rewrite /(enum _) mem_filter.
-by apply /andP; split.
+rewrite /enum_rank /enum_rank_in /insubd /odflt /oapp insubT//.
+by rewrite cardE index_mem mem_enum.
 Qed.
 
-(* TODO: do we keep this as more newcomer friendly than having to look deep into the library ? *)
-Lemma enum_prodE {T1 T2: finType}: enum (prod_finType T1 T2) = prod_enum T1 T2.
+(* TODO: do we keep this as more newcomer friendly than having to look
+   deep into the library ? *)
+Lemma enum_prodE {T1 T2 : finType} :
+  enum (prod_finType T1 T2) = prod_enum T1 T2.
 Proof. by rewrite enumT Finite.EnumDef.enumDef. Qed.
 
-Lemma index_allpairs {T1 T2: eqType} (s1: seq T1) (s2: seq T2) x1 x2: x1 \in s1 -> x2 \in s2 -> index (x1, x2) [seq (x1, x2) | x1 <- s1, x2 <- s2] = ((index x1 s1) * (size s2) + index x2 s2)%N.
+Lemma index_allpairs {T1 T2: eqType} (s1: seq T1) (s2: seq T2) x1 x2 :
+    x1 \in s1 -> x2 \in s2 ->
+  index (x1, x2) [seq (x1, x2) | x1 <- s1, x2 <- s2] =
+    ((index x1 s1) * (size s2) + index x2 s2)%N.
 Proof.
 move=>ins1 ins2.
 elim: s1 ins1=>//= a s1 IHs1 ins1.
@@ -236,4 +238,3 @@ case:(Bool.bool_dec _ _).
 move=>d0.
 by move:(IHn (fun i => g (fdist.fdist_del_idx ord0 i)) (fdist.fdist_del (Bool.eq_true_not_negb _ d0))); rewrite/Convn=>->.
 Qed.
-
