@@ -98,14 +98,14 @@ exists (c + x1), (c + x2), k; split.
 Qed.
 
 Lemma diff_xn_ub {R : archiFieldType} (n : nat) :
-  forall z, (0 < z)%R -> exists k, (0 <= k)%R /\
+  forall z, (0 < z)%R -> exists2 k, (0 <= k)%R &
    forall x y : R, (0 < x)%R -> x <= y -> (y <= z) ->
       y ^+ n - x ^+ n <= k * (y - x).
 Proof.
 elim: n => [z z0| n IHn z z0].
-  by exists 0%R; split => // x y x0 xy yz; rewrite !expr0 subrr mul0r.
+  by exists 0%R => // x y x0 xy yz; rewrite !expr0 subrr mul0r.
 have [k [k0 kp]] := IHn z z0.
-exists (z * k + z ^+ n); split => [| x y x0 xy yz].
+exists (z * k + z ^+ n) => [| x y x0 xy yz].
   by rewrite addr_ge0// ?exprn_ge0// ?mulr_ge0// ltW.
 rewrite !exprS.
 rewrite (_: _ * _ - _ =  y * (y ^+ n - x ^+ n) + (y - x) * x ^+ n); last first.

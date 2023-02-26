@@ -24,7 +24,11 @@ Open Scope order_scope.
 Section hull_def.
 Local Open Scope classical_set_scope.
 Definition hull (T : lmodType R) (X : set T) : set T :=
-  [set p : T | exists n (g : 'I_n -> T) (d : 'I_n -> R), (forall i, 0 <= d i)%R /\ (\sum_(i < n) d i = 1%R) /\ g @` setT `<=` X /\ p = \sum_(i < n) (d i) *: (g i)].
+  [set p : T | exists n (g : 'I_n -> T) (d : 'I_n -> R),
+    [/\ (forall i, 0 <= d i)%R,
+    (\sum_(i < n) d i = 1%R),
+    g @` setT `<=` X &
+    p = \sum_(i < n) (d i) *: (g i)] ].
 End hull_def.
 
 Section hull_prop.
@@ -35,15 +39,16 @@ Implicit Types X Y : set A.
 Lemma subset_hull X : X `<=` hull X.
 Proof.
 move=> x xX; rewrite /hull; exists 1%N, (fun=> x), (fun=>1%R).
-split; first by move=>_; exact ler01.
-split; first by rewrite big_ord_recl big_ord0 addr0.
-split => [ d [i _ <-] //|]; by rewrite big_ord_recl big_ord0 scale1r addr0.
+split=> //; first by move=>_; exact ler01.
+- by rewrite big_ord_recl big_ord0 addr0.
+- by move=> d [i _ <-].
+- by rewrite big_ord_recl big_ord0 scale1r addr0.
 Qed.
 
 Lemma hull0 : hull set0 = set0 :> set A.
 Proof.
 rewrite funeqE => d; rewrite propeqE; split => //.
-move=> [n [g [e [e0 [e1 [gX ->{d}]]]]]].
+move=> [n [g [e [e0 e1 gX ->{d}]]]].
 destruct n as [|n]; first by rewrite big_ord0 in e1; move:(@ltr01 R); rewrite e1 ltxx.
 exfalso; apply: (gX (g ord0)); exact/imageP.
 Qed.
@@ -58,8 +63,7 @@ Qed.
 
 Lemma hull_monotone X Y : X `<=` Y -> hull X `<=` hull Y.
 Proof.
-move=> H a [n [g [d [d0 [d1 [gX ae]]]]]]; exists n, g, d; split => //.
-split=>//; split=>//.
+move=> H a [n [g [d [d0 d1 gX ae]]]]; exists n, g, d; split => //.
 by eapply subset_trans; first exact: gX.
 Qed.
 
@@ -70,10 +74,10 @@ rewrite eqEsubset; split; last first.
    rewrite bnd_simp in t0, t1.
    exists 2%N, (fun i => if i == 0 then x else y), (fun i => if i == 0 then t else 1-t).
    split; first by case; case=>//= n _; rewrite subr_ge0.
-   split; first by rewrite big_ord_recl big_ord1/= addrCA subrr addr0.
-   split; first by move=>a[]; case; case=>/= [|n] _ _ <-; [left|right].
-   by rewrite big_ord_recl big_ord1/=.
-move=>z [n][g][d][d0][d1][gxy]->.
+   - by rewrite big_ord_recl big_ord1/= addrCA subrr addr0.
+   - by move=>a[]; case; case=>/= [|n] _ _ <-; [left|right].
+   - by rewrite big_ord_recl big_ord1/=.
+move=>z [n][g][d][d0 d1 gxy ->].
 move:d1=>/esym/eqP; rewrite -subr_eq0 (bigID [pred i | g i == x])//= opprD addrCA addrC subr_eq0=>/eqP/esym=>d1.
 exists (\sum_(i < n | g i == x) d i).
    by rewrite inE; apply/andP; rewrite    2!bnd_simp {2}d1 -[(_<=1)%R]subr_ge0 opprB addrCA subrr addr0; split; apply sumr_ge0.
@@ -86,31 +90,29 @@ Qed.
 
 Lemma hull_convex X : forall x y, (hull X) x -> (hull X) y -> hull [set x; y] `<=` hull X.
 Proof.
-move=>+ + [n][g][d][d0][d1][gX]-> [m][h][e][e0][e1][hX]->.
+move=>+ + [n][g][d][d0 d1 gX->] [m][h][e][e0 e1 hX ->].
 rewrite hull2=>_ _ x [t] /andP; rewrite !bnd_simp -[(_ <= 1)%R]subr_ge0=>[[t0 t1]] <-.
 exists (n+m)%N, (fun i=> match split i with inl i => g i | inr i => h i end), (fun i=> match split i with inl i => t * (d i) | inr i => (1-t) * (e i) end); split.
-   move=>i; case: (split i)=>j; apply mulr_ge0=>//.
-split.
-   rewrite big_split_ord/=.
-   have tonem: t + (1-t) = 1%R by rewrite addrCA subrr addr0.
-   rewrite -{3}tonem; congr GRing.add.
-      rewrite -{3}(mulr1 t) -{2}d1 mulr_sumr; apply congr_big=>// i _.
-      case: (splitP (lshift m i)).
-         by move=>j ij; congr (_ * d _); apply val_inj.
-      by move=>j/=; case: i=>i ilt/= igt; exfalso; move:ilt; rewrite igt -{2}(addn0 n) ltn_add2l ltn0.
-   rewrite -{2}(mulr1 (1-t)) -{3}e1 mulr_sumr; apply congr_big=>// i _.
-   case: (splitP (rshift n i))=>/=.
-      by case=>j jlt/= jgt; exfalso; move:jlt; rewrite -jgt -{2}(addn0 n) ltn_add2l ltn0.
-   by move=>j /eqP; rewrite eqn_add2l=>/eqP ij; congr (_ * e _); apply val_inj.
-split.
-   by move=>y/= [i] _; case: split=>j <-; [ apply gX | apply hX ].
-rewrite big_split_ord /conv; congr GRing.add; rewrite scaler_sumr; apply congr_big=>// i _; rewrite scalerA.
-   case: (splitP (lshift m i)).
+- by move=>i; case: (split i)=>j; apply mulr_ge0.
+- rewrite big_split_ord/=.
+  have tonem: t + (1-t) = 1%R by rewrite addrCA subrr addr0.
+  rewrite -{3}tonem; congr GRing.add.
+    rewrite -{3}(mulr1 t) -{2}d1 mulr_sumr; apply congr_big=>// i _.
+    case: (splitP (lshift m i)).
+      by move=>j ij; congr (_ * d _); apply val_inj.
+    by move=>j/=; case: i=>i ilt/= igt; exfalso; move:ilt; rewrite igt -{2}(addn0 n) ltn_add2l ltn0.
+  rewrite -{2}(mulr1 (1-t)) -{3}e1 mulr_sumr; apply congr_big=>// i _.
+  case: (splitP (rshift n i))=>/=.
+    by case=>j jlt/= jgt; exfalso; move:jlt; rewrite -jgt -{2}(addn0 n) ltn_add2l ltn0.
+  by move=>j /eqP; rewrite eqn_add2l=>/eqP ij; congr (_ * e _); apply val_inj.
+- by move=>y/= [i] _; case: split=>j <-; [ apply gX | apply hX ].
+- rewrite big_split_ord /conv; congr GRing.add; rewrite scaler_sumr; apply congr_big=>// i _; rewrite scalerA.
+  + case: (splitP (lshift m i)).
       by move=>j ij; congr (_ * d _ *: g _); apply val_inj.
-   by move=>j/=; case: i=>i ilt/= igt; exfalso; move:ilt; rewrite igt -{2}(addn0 n) ltn_add2l ltn0.
-case: (splitP (rshift n i))=>/=.
-   by case=>j jlt/= jgt; exfalso; move:jlt; rewrite -jgt -{2}(addn0 n) ltn_add2l ltn0.
-by move=>j /eqP; rewrite eqn_add2l=>/eqP ij; congr (_ * e _ *: h _); apply val_inj.
+    by move=>j/=; case: i=>i ilt/= igt; exfalso; move:ilt; rewrite igt -{2}(addn0 n) ltn_add2l ltn0.
+  + case: (splitP (rshift n i))=>/=.
+      by case=>j jlt/= jgt; exfalso; move:jlt; rewrite -jgt -{2}(addn0 n) ltn_add2l ltn0.
+    by move=>j /eqP; rewrite eqn_add2l=>/eqP ij; congr (_ * e _ *: h _); apply val_inj.
 Qed.
 
 End hull_prop.
@@ -290,10 +292,9 @@ Lemma encompassP (l : seq Plane) (p : Plane) :
 Proof.
 move=>lu ls ll; apply/(iffP idP).
    move=>/(encompass_correct lu ls ll)[f [f0 [f1 ->]]].
-   rewrite inE/hull/=; exists (size l), (fun i=> l`_i), f.
-   split=>//; split=>//; split=>// x/= [i] _ <-{x}.
-   by apply (@mem_nth Plane).
-rewrite inE/hull/= =>[[n [g [d [d0 [d1 [gl pe]]]]]]].
+   rewrite inE/hull/=; exists (size l), (fun i=> l`_i), f; split => //.
+   by move =>// x/= [i] _ <-{x}; exact: (@mem_nth Plane).
+rewrite inE/hull/= =>[[n [g [d [d0 d1 gl pe]]]]].
 apply encompass_complete=>//.
 exists (fun i=> \sum_(j < n | g j == l`_i) d j); split.
    by move=>i; apply sumr_ge0.

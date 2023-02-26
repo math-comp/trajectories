@@ -21,7 +21,7 @@ Qed.
 (* TODO: do we keep this as more newcomer friendly than having to look
    deep into the library ? *)
 Lemma enum_prodE {T1 T2 : finType} :
-  enum (prod_finType T1 T2) = prod_enum T1 T2.
+  enum [finType of T1 * T2] = prod_enum T1 T2.
 Proof. by rewrite enumT Finite.EnumDef.enumDef. Qed.
 
 Lemma index_allpairs {T1 T2: eqType} (s1: seq T1) (s2: seq T2) x1 x2 :
@@ -43,17 +43,21 @@ case in12: ((x1, x2) \in [seq (a, x0) | x0 <- s2]).
 by rewrite size_map (IHs1 ins1) addnA.
 Qed.
 
-Lemma enum_rank_prod {T T': finType} i j: (nat_of_ord (@enum_rank (prod_finType T T') (i, j)) = (enum_rank i) * #|T'| + enum_rank j)%N.
+Lemma enum_rank_prod {T T': finType} i j :
+  (nat_of_ord (@enum_rank [finType of T * T'] (i, j)) = (enum_rank i) * #|T'| + enum_rank j)%N.
 Proof.
 do 3 rewrite enum_rank_index.
 rewrite enumT Finite.EnumDef.enumDef cardE=>/=.
 by apply index_allpairs; rewrite enumT.
 Qed.
 
-Lemma nth_cat_ord [T : Type] (x0 : T) (s1 s2 : seq T) (i: 'I_(size s1 + size s2)): nth x0 (s1 ++ s2) i = match split i with inl i=> nth x0 s1 i | inr i=> nth x0 s2 i end.
+Lemma nth_cat_ord [T : Type] (x0 : T) (s1 s2 : seq T) (i: 'I_(size s1 + size s2)) :
+  nth x0 (s1 ++ s2) i = match split i with inl i=> nth x0 s1 i | inr i=> nth x0 s2 i end.
 Proof. by move: (nth_cat x0 s1 s2 i)=>->; rewrite /split; case: (ltnP i (size s1)). Qed.
 
-Lemma nth_allpairs [T1 T2 rT : Type] (f : T1 -> T2 -> rT) (s1: seq T1) (s2: seq T2) (x1: T1) (x2: T2) (x: rT) (i: 'I_(size s1 * size s2)): nth x (allpairs f s1 s2) i = let (i, j) := split_prod i in f (nth x1 s1 i) (nth x2 s2 j).
+Lemma nth_allpairs [T1 T2 rT : Type] (f : T1 -> T2 -> rT)
+    (s1: seq T1) (s2: seq T2) (x1: T1) (x2: T2) (x: rT) (i: 'I_(size s1 * size s2)) :
+  nth x (allpairs f s1 s2) i = let (i, j) := split_prod i in f (nth x1 s1 i) (nth x2 s2 j).
 Proof.
 elim: s1 i=>/= [| a s1 IHs1] i.
    by exfalso; move: i=>[i ilt]; move: ilt; rewrite /muln /muln_rec /= ltn0.
@@ -79,7 +83,8 @@ by move: ilt; rewrite s20 muln0.
 Qed.
 
 (*TODO: move to mathcomp.*)
-Lemma lift_range {aT rT: Type} [f: aT -> rT] (s: seq rT): all (fun u => u \in range f) s -> exists s', map f s' = s.
+Lemma lift_range {aT rT: Type} [f: aT -> rT] (s: seq rT) :
+  all (fun u => u \in range f) s -> exists s', map f s' = s.
 Proof.
 elim: s=>[| a s IHs].
    by exists nil.
@@ -96,7 +101,8 @@ apply eq_map=>[[x xlt]].
 rewrite /cast_ord; congr Ordinal; apply bool_irrelevance.
 Qed.
 
-Lemma perm_map_bij [T: finType] [f : T -> T] (s: seq T): bijective f -> perm_eq (index_enum T) [seq f i | i <- index_enum T].
+Lemma perm_map_bij [T: finType] [f : T -> T] (s: seq T) :
+  bijective f -> perm_eq (index_enum T) [seq f i | i <- index_enum T].
 Proof.
 rewrite /index_enum; case: index_enum_key=>/=.
 move=>fbij.
@@ -112,8 +118,7 @@ apply/eqP/eqP.
 by move=>->.
 Qed.
 
-(* TODO: this lemma is already in infotheo where it was wrongly specialized to R!
-   this will be fixed in infotheo 0.5.1 so that this lemma can be removed *)
+(* TODO: this lemma has been moved to infotheo 0.5.1 *)
 Section freeN_combination.
 Import ssrnum vector.
 Import Order.POrderTheory Num.Theory.
@@ -156,7 +161,8 @@ move: sub=>/=; case sa: (b == a).
 by move=>/IHs' [f [fn flt]]; exists (fun i => lift ord0 (f i)).
 Qed.
 
-Lemma hom_lt_inj {disp disp' : unit} {T : orderType disp} {T' : porderType disp'} [f : T -> T']: {homo f : x y / (x < y)%O >-> (x < y)%O} -> injective f.
+Lemma hom_lt_inj {disp disp' : unit} {T : orderType disp} {T' : porderType disp'} [f : T -> T'] :
+  {homo f : x y / (x < y)%O >-> (x < y)%O} -> injective f.
 Proof.
 move=>flt i j.
 move: (Order.TotalTheory.le_total i j).
@@ -180,7 +186,8 @@ elim: s=>/= [| a s IHs].
 by rewrite enum_ordSl /= -map_comp /=; congr cons.
 Qed.
 
-Lemma nth_filter [T : Type] (P: {pred T}) x (s: seq T) n: (n < size [seq i <- s | P i])%N -> P (nth x [seq i <- s | P i] n).
+Lemma nth_filter [T : Type] (P: {pred T}) x (s: seq T) n :
+  (n < size [seq i <- s | P i])%N -> P (nth x [seq i <- s | P i] n).
 Proof.
 elim: s n=> [| a s IHs] n //=.
 case Pa: (P a).
@@ -189,25 +196,24 @@ by case: n=>//=; rewrite ltnS; apply IHs.
 Qed.
 
 Lemma big_pair [R : Type] (idr : R) (opr : R -> R -> R) [S : Type] (ids : S) (ops : S -> S -> S) [I : Type]
-  (r : seq I) (F : I -> R) (G: I -> S): \big[(fun (x y: R*S)=> (opr x.1 y.1, ops x.2 y.2))/(idr, ids)]_(i <- r) (F i, G i) = (\big[opr/idr]_(i <- r) F i, \big[ops/ids]_(i <- r) G i).
+  (r : seq I) (F : I -> R) (G: I -> S) :
+  \big[(fun (x y: R*S)=> (opr x.1 y.1, ops x.2 y.2))/(idr, ids)]_(i <- r) (F i, G i) =
+  (\big[opr/idr]_(i <- r) F i, \big[ops/ids]_(i <- r) G i).
 Proof.
 elim: r=>[| a r IHr].
    by do 3 rewrite big_nil.
 by do 3 rewrite big_cons; rewrite IHr.
 Qed.
 
-Lemma bigC [R : Type] (idr : R) (opr : Monoid.com_law idr) [I J : Type] (r : seq I) (s : seq J) (P : I -> pred J) (F : I -> J -> R) : \big[opr/idr]_(x <- r) \big[opr/idr]_(y <- s | P x y) F x y = \big[opr/idr]_(y <- s) \big[opr/idr]_(x <- r | P x y) F x y.
-Proof.
-exact: exchange_big_dep.
-Qed.
+From infotheo Require Import fdist.
+Local Open Scope fdist_scope.
 
-Lemma Convn_pair [T U : convType] [n : nat] (g : 'I_n -> T * U) (d : fdist.fdist_of (Phant 'I_n)): Convn d g = (Convn d (fst \o g), Convn d (snd \o g)).
+Lemma Convn_pair [T U : convType] [n : nat] (g : 'I_n -> T * U) (d : {fdist 'I_n}) :
+  Convn d g = (Convn d (fst \o g), Convn d (snd \o g)).
 Proof.
-elim:n g d=>[|n IHn] g d.
-   by move:(fdist.fdistI0_False d).
-rewrite/Convn.
-case:(Bool.bool_dec _ _).
-   by move=>_; rewrite -surjective_pairing.
-move=>d0.
-by move:(IHn (fun i => g (fdist.fdist_del_idx ord0 i)) (fdist.fdist_del (Bool.eq_true_not_negb _ d0))); rewrite/Convn=>->.
+elim: n g d => [|n IHn] g d.
+   by have := fdistI0_False d.
+rewrite /Convn; case: (Bool.bool_dec _ _) => [_|d0]; first by rewrite -surjective_pairing.
+have := IHn (g \o fdist_del_idx ord0) (fdist_del (Bool.eq_true_not_negb _ d0)).
+by rewrite/Convn => ->.
 Qed.
