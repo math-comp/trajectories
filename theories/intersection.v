@@ -201,9 +201,9 @@ Lemma hull_border_no_intersection (l : seq Plane) (a b : Plane) :
   encompass (ccw (R:=R)) l l ->
   [forall i : 'I_(size l), ~~ intersect l`_i l`_(Zp_succ i) a b] ->
     (forall t : R, in01 t ->
-      encompass (ccw (R:=R)) l [:: conv t a b]) \/
+      encompass (ccw (R:=R)) [:: conv t a b] l) \/
     (forall t : R, in01 t ->
-      ~~ encompass oriented l [:: conv t a b]).
+      ~~ encompass oriented [:: conv t a b] l).
 Proof.
 have sm t u : t *: (u : regular_lmodType R) = t * u by [].
 move=>ls /uniqP lu ll /forallP lab.
@@ -224,7 +224,7 @@ wlog : a b t u lab t01 ltab u01 luab / (t == 0) && (u == 1).
    - by apply/andP; split.
 move=>/andP[/eqP t0 /eqP u1]; subst t u; clear t01 u01; move:ltab luab; rewrite conv0 conv1=>lb la.
 (* We define I = \{t \in R, conv t b a is encompassed by l\}. We show that I is not empty and bounded. *)
-set I := [set t | in01 t && encompass oriented l [:: conv t b a]]%classic.
+set I := [set t | in01 t && encompass oriented [:: conv t b a] l]%classic.
 have I0 : I 0 by apply/andP; split; [ apply in010 | rewrite conv0 ].
 have Ib : has_sup I.
    split.

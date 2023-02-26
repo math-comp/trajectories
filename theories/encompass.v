@@ -26,14 +26,14 @@ Fixpoint encompass_aux (l l' : seq plane) : bool :=
   | t1 :: ((t2 :: l') as l'') => all_left t1 t2 l && encompass_aux l l''
   end.
 
-Definition encompass (l s : seq plane) :=
+Definition encompass (s l : seq plane) :=
   match l with
   | nil => false
   | t1 :: l' => encompass_aux s (last t1 l' :: l)
   end.
 
 Definition convexHullSpec (l1 l2 : seq plane) :=
-  uniq l2 && all (mem l1) l2 && encompass l2 l1.
+  uniq l2 && all (mem l1) l2 && encompass l1 l2.
 
 (* TOTHINK: replace encompass : seq -> seq -> bool by a predicate
    seq -> plane -> bool? *)
@@ -47,8 +47,8 @@ rewrite /= -/(encompass_aux l (b' :: l')) IHl' -all_predI; apply eq_all=>x.
 by rewrite /= andbT.
 Qed.
 
-Lemma encompass_all (l s : seq plane) : encompass l s =
-  (l != [::]) && all (fun x => encompass l [:: x]) s.
+Lemma encompass_all (l s : seq plane) : encompass s l =
+  (l != [::]) && all (fun x => encompass [:: x] l) s.
 Proof.
 case: l=>// a l.
 by rewrite {1}/encompass encompass_aux_all.
@@ -81,7 +81,7 @@ move=>ilt ilt1.
 by rewrite /= modn_small ?ltnS// modn_small ?ltnS.
 Qed.
 
-Lemma encompass_all_index (l s : seq plane) : encompass l s =
+Lemma encompass_all_index (l s : seq plane) : encompass s l =
   (l != [::]) && [forall i : 'I_(size l), all_left l`_i l`_(Zp_succ i) s].
 Proof.
 case: l=>// a l /=.

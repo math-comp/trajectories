@@ -128,7 +128,7 @@ Lemma encompass_correct (l : seq Plane) (p : Plane) :
   uniq l ->
   (3 <= size l)%N ->
   encompass (ccw (R:=R)) l l ->
-  encompass oriented l [:: p] ->
+  encompass oriented [:: p] l ->
   exists t : 'I_(size l) -> R,
     (forall i, 0 <= t i)%R /\ (\sum_i t i = 1%:R) /\ p = \sum_i t i *: l`_i.
 Proof.
@@ -137,7 +137,9 @@ have orientedW: forall a b c, encompass.is_left oriented a b c -> oriented a b c
    move=>a b c /orP; case=>// /orP; case=>/eqP<-; rewrite /oriented.
          by rewrite 2!det_cyclique det_alternate.
       by rewrite det_cyclique det_alternate.
-have H3 a b c p : uniq [:: a; b; c] -> encompass (ccw (R:=R)) [:: a; b; c] [:: a; b; c] -> encompass oriented [:: a; b; c] [:: p] -> exists t : 'I_3 -> R, (forall i, 0 <= t i)%R /\ (\sum_i t i = 1%:R) /\ p = \sum_i t i *: [:: a; b; c]`_i.
+have H3 a b c p : uniq [:: a; b; c] -> encompass (ccw (R:=R)) [:: a; b; c] [:: a; b; c] ->
+                                       encompass oriented [::p] [:: a; b; c] ->
+    exists t : 'I_3 -> R, (forall i, 0 <= t i)%R /\ (\sum_i t i = 1%:R) /\ p = \sum_i t i *: [:: a; b; c]`_i.
    rewrite/uniq !in_cons negb_or 2!in_nil 2!orbF=>/andP [/andP[/negPf ab /negPf ac] /andP[/negPf bc _]] /andP[/andP [_ /andP [h _]] _] /= /andP [/andP [/orientedW cap _]] /andP [/andP [/orientedW abp _]] /andP [/andP [/orientedW bcp _] _].
    move: h; rewrite/encompass.is_left bc eq_sym ab =>/= cab.
    exists (fun i => [:: det c p b / det c a b; det c a p / det c a b; det p a b / det c a b]`_i); split.
@@ -232,7 +234,7 @@ Lemma encompass_complete (l : seq Plane) (p : Plane) :
     (forall i, 0 <= t i)%R /\
     (\sum_i t i = 1%:R) /\
     p = \sum_i t i *: l`_i) ->
-  encompass oriented l [:: p].
+  encompass oriented [:: p] l.
 Proof.
 move=>lu ls ll [f [f0 [f1 fp]]]; subst p.
 rewrite encompass_all_index; apply/andP; split.
@@ -284,7 +286,7 @@ Lemma encompassP (l : seq Plane) (p : Plane) :
   uniq l ->
   (3 <= size l)%N ->
   encompass (ccw (R:=R)) l l ->
-  reflect (p \in hull (fun x => x \in l)) (encompass oriented l [:: p]).
+  reflect (p \in hull (fun x => x \in l)) (encompass oriented [:: p] l).
 Proof.
 move=>lu ls ll; apply/(iffP idP).
    move=>/(encompass_correct lu ls ll)[f [f0 [f1 ->]]].
