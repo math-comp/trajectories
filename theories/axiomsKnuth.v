@@ -33,5 +33,3 @@ Axiom Axiom5' : forall (pivot p q r : Plane),
 
 End Dummy.
 End KnuthAxioms.
-
-
