@@ -125,36 +125,7 @@ Import GRing.
 Lemma freeN_combination n (s : n.-tuple E) : ~~ free s ->
   exists k : 'I_n -> R, (\sum_i k i *: s`_i = 0) /\ exists i, k i != 0.
 Proof.
-rewrite freeNE => /existsP[[i ilt] /coord_span /=].
-move: (ilt) s.
-have ne : (n = i.+1 + (n - i.+1))%nat by rewrite subnKC.
-rewrite ne => ilt' s sin.
-have hk m : (m < n - i.+1 -> m < i.+1 + (n - i.+1) - i.+1)%nat.
-  by move=> mni; rewrite -addnBAC// subnn add0n.
-pose k (x : 'I_(i.+1 + (n - i.+1))) :=
-  match fintype.split x with
-  | inl (@Ordinal _ m _) => if m == i then 1 else 0
-  | inr (@Ordinal _ m i0) => - coord (drop_tuple i.+1 s) (Ordinal (hk m i0)) s`_i
-  end.
-exists k; split; last first.
-  exists (Ordinal ilt'); rewrite /k; case: splitP.
-    by case=> j ji/= <-; rewrite eqxx; exact/oner_neq0.
-  by case=> j jni/= /eqP; rewrite lt_eqF// ltEnat/= addSn ltnS leq_addr.
-rewrite big_split_ord big_ord_recr/= big1 ?add0r; last first.
-  case=> j ji _; rewrite /k; case: splitP.
-    by case=> m mi /= jm; rewrite -jm lt_eqF ?ltEnat// !scale0r.
-  by case=> m mni /= jim; move: ji; rewrite jim addSnnS -ltn_subRL subnn.
-rewrite {1}/k /=; case: splitP => /=; last first.
-  by move=> m /eqP; rewrite lt_eqF// ltEnat/= addSn ltnS leq_addr.
-case=> j/= ji ij; rewrite [in j == i]ij eqxx scale1r.
-apply/eqP; rewrite addrC addr_eq0 sin -sumrN; apply/eqP.
-have {}ne : (i.+1 + (n - i.+1) - i.+1 = n - i.+1)%nat by rewrite -addnBAC// subnn.
-rewrite (index_enum_cast_ord ne) big_map; apply congr_big=>// [[x xlt]] _.
-rewrite nth_drop -scaleNr; congr (_ *: _).
-rewrite /k; case: splitP.
-  by case=> m + /= ixm; rewrite -ixm -ltn_subRL subnn.
-case=> m/= mni /eqP; rewrite eqn_add2l => /eqP kl.
-by congr (- coord _ _ _); exact/val_inj.
+exact: freeN_combination.
 Qed.
 
 End freeN_combination.
