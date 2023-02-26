@@ -118,16 +118,20 @@ Implicit Types (t u v : R) (a b c d : E).
 
 Lemma convA t u a b c : in01 t -> in01 u ->
   a <| t |> (b <| u |> c) =
-  (a <| t / ((1 : regular_lmodType R) <| t |> u) |> b) <| (1 : regular_lmodType R) <| t |> u |> c.
+  (a <| t / ((1 : regular_lmodType R) <| t |> u) |> b)
+    <| (1 : regular_lmodType R) <| t |> u |>
+  c.
 Proof.
 move=>t01 u01.
 have -> : (1 : regular_lmodType R) <| t |> u = 1 - (1 - t) * (1 - u).
   by rewrite (convlr _ (1 : regular_lmodType R)) -[u-1]opprB scalerN.
 rewrite/conv scalerDr addrA 2!scalerA opprB addrCA subrr addr0; congr add.
-case /boolP: (1 - (1 - t) * (1 - u) == 0).
-   by rewrite {1}subr_eq0 eq_sym in01M1 -?in01_onem// -2![_-_ == 1]subr_eq0 2![1-_-1]addrAC subrr 2!add0r 2!oppr_eq0=>/andP[/eqP-> /eqP->]; rewrite mulr0 subr0 mulr1 subrr 3!scale0r addr0.
-move=>tu1.
-by rewrite scalerDr 2!scalerA [(1-_*_)*(1-_)]mulrBr mulrCA divff// 2!mulr1 mulrBr mulr1 addrAC opprB addrCA subrr addr0.
+have [/eqP|tu1] := eqVneq (1 - (1 - t) * (1 - u)) 0.
+  rewrite {1}subr_eq0 eq_sym in01M1 -?in01_onem// -2![_-_ == 1]subr_eq0.
+  rewrite 2![1-_-1]addrAC subrr 2!add0r 2!oppr_eq0=>/andP[/eqP-> /eqP->].
+  by rewrite mulr0 subr0 mulr1 subrr 3!scale0r addr0.
+rewrite scalerDr 2!scalerA [(1-_*_)*(1-_)]mulrBr mulrCA divff// 2!mulr1 mulrBr.
+by rewrite mulr1 addrAC opprB addrCA subrr addr0.
 Qed.
 
 Lemma convA' t u a b c : in01 t -> in01 u ->
@@ -141,9 +145,9 @@ rewrite -convC convC (convC _ c).
 have -> : (1 - u : regular_lmodType R) <| t |> 1 = 1 - t * u.
   by rewrite (convrl _ _ 1) addrAC subrr add0r scalerN.
 rewrite opprB addrCA subrr addr0.
-case /boolP : (1-t*u == 0).
+have [/eqP|tu1] := eqVneq (1 - t * u) 0.
     by rewrite subr_eq0 eq_sym in01M1// =>/andP[/eqP-> /eqP->]; rewrite 2!mul1r 2!conv1.
-move=>tu1; congr (conv _ _ (conv _ _ _)).
+congr (_ <| _ |> (_ <| _ |> _)).
 by apply (mulfI tu1); rewrite mulrBr mulr1 2![(1-t*u)*(_/_)]mulrCA divff// 2!mulr1 opprB addrCA addrAC subrr add0r mulrBr mulr1.
 Qed.
 
@@ -164,9 +168,8 @@ Lemma in01_convl (t u : R) : 0 <= t*u -> in01 (t / (t+u)).
 Proof.
 have H: forall a b : R, 0 <= a*b -> 0 <= a/(a+b) by move=>a b ab0; rewrite -sgr_ge0 sgrM sgrV -sgrM sgr_ge0 mulrDr -expr2; apply addr_ge0=>//; apply sqr_ge0.
 move=>tu0.
-case/boolP: (t+u == 0).
-   move=>/eqP->; rewrite invr0 mulr0; apply in010.
-move=>tun0.
+have [->|tun0] := eqVneq (t + u) 0.
+   by rewrite invr0 mulr0; apply in010.
 apply/andP; split; first by apply H.
 rewrite -{1}[t](addr0) -(subrr u) addrA mulrBl divff// -subr_ge0 opprB addrCA subrr addr0 addrC; apply H.
 by rewrite mulrC.
@@ -210,13 +213,11 @@ have c0: forall x y : R, 0 <= x -> 0 <= y -> (x : regular_lmodType R) <| t |> y 
    rewrite /conv -(addr0 0) ; apply ltr_le_add.
       by apply mulr_gt0.
    by apply mulr_ge0=>//; apply ltW.
-case/boolP: ((u : regular_lmodType R) <| t |> v == 0).
-   by move=>/eqP/(c0 _ _ u0 v0) [-> ->]; rewrite convmm !conv0 subr0 convmm -mulrA divff ?oner_neq0// mulr1.
-move=>uv0.
+have [|uv0] := eqVneq ((u : regular_lmodType R) <| t |> v) 0.
+   by move=>/(c0 _ _ u0 v0) [-> ->]; rewrite convmm !conv0 subr0 convmm -mulrA divff ?oner_neq0// mulr1.
 move:u1 v1; rewrite -2![_ <= 1]subr_ge0=>u1 v1.
-case/boolP: ((1 - u : regular_lmodType R) <| t |> (1 -v) == 0).
-    by move=>/eqP/(c0 _ _ u1 v1)[/eqP]; rewrite subr_eq0=>/eqP<- /eqP; rewrite subr_eq0=>/eqP<-; rewrite convmm !conv1 -mulrA divff ?oner_neq0// mulr1.
-move=>uv0'.
+have [|uv0'] := eqVneq ((1 - u : regular_lmodType R) <| t |> (1 -v)) 0.
+    by move=> /(c0 _ _ u1 v1)[/eqP]; rewrite subr_eq0=>/eqP<- /eqP; rewrite subr_eq0=>/eqP<-; rewrite convmm !conv1 -mulrA divff ?oner_neq0// mulr1.
 rewrite{1 2 3 4 6 8}/conv 4!scalerDr 2!addrA !scalerA -conv_onem.
 rewrite 2![((_ : regular_lmodType R) <| _ |> _) * (1 - _)]mulrBr 2![_ * (_ * _ / _)]mulrC -!mulrA 2![_^-1 * _]mulrC divff// divff// !mulr1 /conv [t *: _ + _ + _]addrAC subrr add0r [t *: _ + _ + _]addrAC subrr add0r; congr add.
 by rewrite -2!addrA; congr add; rewrite addrC.

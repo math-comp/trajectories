@@ -87,10 +87,11 @@ move=> /andP [/set_mem [a' _ ae] /IHs [s' se]]; subst a s.
 by exists (a' :: s').
 Qed.
 
-Lemma index_enum_cast_ord n m (e: n = m): index_enum (ordinal_finType m) = [seq (cast_ord e i) | i <- index_enum (ordinal_finType n)].
+Lemma index_enum_cast_ord n m (e: n = m) :
+  index_enum [finType of 'I_m] = [seq (cast_ord e i) | i <- index_enum [finType of 'I_n]].
 Proof.
 subst m.
-rewrite -{1}(map_id (index_enum (ordinal_finType n))).
+rewrite -{1}(map_id (index_enum [finType of 'I_n])).
 apply eq_map=>[[x xlt]].
 rewrite /cast_ord; congr Ordinal; apply bool_irrelevance.
 Qed.
@@ -199,7 +200,8 @@ Qed.
 Lemma size_index_enum (T: finType): size (index_enum T) = #|T|.
 Proof. by rewrite cardT enumT. Qed.
 
-Lemma map_nth_ord [T : Type] (x: T) (s : seq T): [seq nth x s (nat_of_ord i) | i <- index_enum (ordinal_finType (size s))] = s.
+Lemma map_nth_ord [T : Type] (x: T) (s : seq T) :
+  [seq nth x s (nat_of_ord i) | i <- index_enum [finType of 'I_(size s)]] = s.
 Proof.
 rewrite /index_enum; case: index_enum_key=>/=; rewrite -enumT.
 elim: s=>/= [| a s IHs].
@@ -215,7 +217,7 @@ case Pa: (P a).
 by case: n=>//=; rewrite ltnS; apply IHs.
 Qed.
 
-Lemma big_pair [R : Type] (idr : R) (opr : R -> R -> R) [S : Type] (ids : S) (ops : S -> S -> S) [I : Type] 
+Lemma big_pair [R : Type] (idr : R) (opr : R -> R -> R) [S : Type] (ids : S) (ops : S -> S -> S) [I : Type]
   (r : seq I) (F : I -> R) (G: I -> S): \big[(fun (x y: R*S)=> (opr x.1 y.1, ops x.2 y.2))/(idr, ids)]_(i <- r) (F i, G i) = (\big[opr/idr]_(i <- r) F i, \big[ops/ids]_(i <- r) G i).
 Proof.
 elim: r=>[| a r IHr].

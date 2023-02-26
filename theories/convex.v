@@ -43,7 +43,7 @@ rewrite Convn_pair/comp/=; congr pair; apply S1_inj; rewrite !S1_Convn big_prod_
    rewrite -(scale1pt (scalept _ _)) scaleptA//.
    rewrite -(FDist.f1 e).
    (* TODO: the next 5 lines should be a single rewrite. *)
-   move: (@mulr_suml R_ringType _ (index_enum (ordinal_finType m)) (fun i=> i \in ordinal_finType m) (fun i=> Reals_ext.nneg_ff (FDist.f e) i) (Reals_ext.nneg_ff (FDist.f d) i))=>/=.
+   move: (@mulr_suml R_ringType _ (index_enum [finType of 'I_m]) (mem 'I_m) (fun i=> Reals_ext.nneg_ff (FDist.f e) i) (Reals_ext.nneg_ff (FDist.f d) i))=>/=.
    have->: @GRing.mul R_ringType = Rdefinitions.RbaseSymbolsImpl.Rmult by [].
    have->: GRing.zero (GRing.Ring.zmodType R_ringType) = Rdefinitions.RbaseSymbolsImpl.R0 by [].
    have->: (@GRing.add (GRing.Ring.zmodType R_ringType)) = Rdefinitions.RbaseSymbolsImpl.Rplus by [].
@@ -63,20 +63,15 @@ rewrite Convn_pair/comp/=; congr pair; apply S1_inj; rewrite !S1_Convn big_prod_
    rewrite scalept_sum.
    apply eq_big=>// j _.
    rewrite/h/= fdistmapE.
-   have->: \big[Rdefinitions.RbaseSymbolsImpl.Rplus/Rdefinitions.RbaseSymbolsImpl.R0]_(a in 
-   prod_finType (ordinal_finType n) (ordinal_finType m) | 
-   a
-     \in preim (unsplit_prod (n:=m))
-           (pred1 (Ordinal (unsplit_prodp i j))))
-
-           Reals_ext.nneg_ff (FDist.f (fdist_prod d (fun=> e))) a =
-      \big[Rdefinitions.RbaseSymbolsImpl.Rplus/Rdefinitions.RbaseSymbolsImpl.R0]_(a in 
-   prod_finType (ordinal_finType n) (ordinal_finType m) | 
-   a
-     \in (pred1 (i, j)))
+   have->: \big[Rdefinitions.RbaseSymbolsImpl.Rplus/Rdefinitions.RbaseSymbolsImpl.R0]_(a in
+     [finType of 'I_n * 'I_m] |
+     a \in preim (unsplit_prod (n:=m)) (pred1 (Ordinal (unsplit_prodp i j))))
+       Reals_ext.nneg_ff (FDist.f (fdist_prod d (fun=> e))) a =
+     \big[Rdefinitions.RbaseSymbolsImpl.Rplus/Rdefinitions.RbaseSymbolsImpl.R0]_(a in
+     [finType of 'I_n * 'I_m] | a \in pred1 (i, j))
       Reals_ext.nneg_ff (FDist.f (fdist_prod d (fun=> e))) a.
       apply eq_big=>// k; congr andb; rewrite 3!inE.
-      by refine (inj_eq _ k (i, j)); exact (can_inj (@unsplit_prodK n m)). 
+      by refine (inj_eq _ k (i, j)); exact (can_inj (@unsplit_prodK n m)).
    rewrite (big_pred1 (i, j))// fdist_prodE/= ssrR.mulRC; congr (scalept _ (S1 (g _))).
    by move:(unsplit_prodK (i, j))=>/(congr1 fst)/esym.
 rewrite (exchange_big_dep xpredT)//=.
@@ -84,7 +79,7 @@ apply eq_big=>// j _.
 rewrite -(scale1pt (scalept _ _)) scaleptA//.
 rewrite -(FDist.f1 d).
 (* TODO: the next 5 lines should be a single rewrite. *)
-move: (@mulr_suml R_ringType _ (index_enum (ordinal_finType n)) (fun i=> i \in ordinal_finType n) (fun i=> Reals_ext.nneg_ff (FDist.f d) i) (Reals_ext.nneg_ff (FDist.f e) j))=>/=.
+move: (@mulr_suml R_ringType _ (index_enum [finType of 'I_n]) (mem 'I_n) (fun i=> Reals_ext.nneg_ff (FDist.f d) i) (Reals_ext.nneg_ff (FDist.f e) j))=>/=.
 have->: @GRing.mul R_ringType = Rdefinitions.RbaseSymbolsImpl.Rmult by [].
 have->: GRing.zero (GRing.Ring.zmodType R_ringType) = Rdefinitions.RbaseSymbolsImpl.R0 by [].
 have->: (@GRing.add (GRing.Ring.zmodType R_ringType)) = Rdefinitions.RbaseSymbolsImpl.Rplus by [].
@@ -104,20 +99,15 @@ have->: \big[Rdefinitions.RbaseSymbolsImpl.Rplus/Rdefinitions.RbaseSymbolsImpl.R
 rewrite scalept_sum.
 apply eq_big=>// i _.
 rewrite/h/= fdistmapE.
-have->: \big[Rdefinitions.RbaseSymbolsImpl.Rplus/Rdefinitions.RbaseSymbolsImpl.R0]_(a in 
-   prod_finType (ordinal_finType n) (ordinal_finType m) | 
-   a
-   \in preim (unsplit_prod (n:=m))
-         (pred1 (Ordinal (unsplit_prodp i j))))
-
+have->: \big[Rdefinitions.RbaseSymbolsImpl.Rplus/Rdefinitions.RbaseSymbolsImpl.R0]_(a in
+   [finType of 'I_n * 'I_m] |
+   a \in preim (unsplit_prod (n:=m)) (pred1 (Ordinal (unsplit_prodp i j))))
          Reals_ext.nneg_ff (FDist.f (fdist_prod d (fun=> e))) a =
-   \big[Rdefinitions.RbaseSymbolsImpl.Rplus/Rdefinitions.RbaseSymbolsImpl.R0]_(a in 
-   prod_finType (ordinal_finType n) (ordinal_finType m) | 
-   a
-     \in (pred1 (i, j)))
+   \big[Rdefinitions.RbaseSymbolsImpl.Rplus/Rdefinitions.RbaseSymbolsImpl.R0]_(a in
+   [finType of 'I_n * 'I_m] | a \in pred1 (i, j))
       Reals_ext.nneg_ff (FDist.f (fdist_prod d (fun=> e))) a.
    apply eq_big=>// k; congr andb; rewrite 3!inE.
-   by refine (inj_eq _ k (i, j)); exact (can_inj (@unsplit_prodK n m)). 
+   by refine (inj_eq _ k (i, j)); exact (can_inj (@unsplit_prodK n m)).
 rewrite (big_pred1 (i, j))// fdist_prodE/= ssrR.mulRC; congr (scalept _ (S1 (f _))).
 by move:(unsplit_prodK (i, j))=>/(congr1 snd)/esym.
 Qed.
@@ -230,11 +220,11 @@ split.
    split; first by move:(convex_setP A)=>/asboolP; apply.
    wlog: u v t xext xA uA ux vA vx / (t : R_ringType) <= 2^-1.
       move=>h.
-      have [tle|tle] := boolP ((t : R_ringType) <= 2^-1); first exact: (h u v t).
+      have [tle|tle] := leP (t : R_ringType) (2^-1); first exact: (h u v t).
       rewrite convC.
       apply (h v u (onem t)%:pr)=>//.
       rewrite -onem_half; apply ler_sub=>//.
-      by move: tle; rewrite -ltNge => /ltW.
+      exact/ltW.
    move=>tle.
    have t01: ssrR.leRb (Rdefinitions.IZR BinNums.Z0) (2*(t : R_ringType)) &&
   ssrR.leRb (2*(t : R_ringType)) (Rdefinitions.IZR (BinNums.Zpos 1%AC)).
@@ -418,7 +408,7 @@ Lemma cone0_of_hullE (A: set E): cone0_of A = [set (t : R_ringType) *: a | t in 
 Proof.
 rewrite eqEsubset; split=>x.
    move=>[n [s [k [<- kA]]]]; set t := \sum_i (k i : R_ringType).
-   have k0': forall i : ordinal_finType n.+1, true -> 0 <= (k i : R_ringType) by move=>i _; apply/ltW/RltP/Rpos_gt0.
+   have k0' (i : 'I_n.+1) : true -> 0 <= (k i : R_ringType) by move=> _; apply/ltW/RltP/Rpos_gt0.
    have: 0 <= t by apply sumr_ge0.
    rewrite le0r=>/orP; case.
       move=>/eqP /psumr_eq0P; move=> /(_ k0') /(_ ord0 Logic.eq_refl) k00; exfalso.
@@ -444,17 +434,17 @@ have ->: \sum_(i | true && ~~ (0 < d i)) (t : R_ringType) *: (d i *: s i) = \sum
    move:(FDist.ge0 d i)=>/RleP->; rewrite orbF=>/eqP->.
    by rewrite 2!scale0r GRing.scaler0.
 rewrite -[\sum_(_ < _ | _) 0 *: 0]scaler_sumr scale0r addr0 -big_filter /=.
-remember [seq i <- index_enum (ordinal_finType n) | 0 < d i] as I; move: HeqI=>/esym HeqI.
+remember [seq i <- index_enum [finType of 'I_n] | 0 < d i] as I; move: HeqI=>/esym HeqI.
 case: I HeqI=> [| i I] HeqI.
    exfalso; move: (FDist.f1 d) (oner_neq0 R_ringType); rewrite (@mathcomp_extra.bigID_idem _ _ _ _ _ _ _ _ (fun i=> 0 < d i)); [| apply addrA | apply addrC | apply addr0 ].
    rewrite -big_filter HeqI big_nil/=.
    have ->: forall x, Rdefinitions.RbaseSymbolsImpl.Rplus Rdefinitions.RbaseSymbolsImpl.R0 x = 0+x by [].
    have ->: Rdefinitions.IZR (BinNums.Zpos 1%AC) = 1 by [].
-   rewrite add0r=><- /eqP; apply. 
+   rewrite add0r=><- /eqP; apply.
    transitivity (\sum_(i < n | true && ~~ (0 < d i)) (0*0:R_ringType)).
       2: by rewrite -mulr_sumr mul0r.
    by apply congr_big=>// i /= dile; move: (FDist.ge0 d i)=>/RleP; rewrite le0r mul0r=>/orP; case=> [ /eqP // | ]; move: dile=>/[swap]->.
-have: subseq (i::I) (index_enum (ordinal_finType n)) by rewrite -HeqI; apply filter_subseq.
+have: subseq (i::I) (index_enum [finType of 'I_n]) by rewrite -HeqI; apply filter_subseq.
 case: n s d sA i I HeqI=> [| n] s d sA i I HeqI.
    by inversion i.
 move=> /subseq_incl; move=> /(_ ord0); rewrite size_index_enum card_ord; move=> [f [fn flt]].
@@ -524,8 +514,7 @@ rewrite subr_gt0=>t1.
 have t01: ssrR.ltRb (Rdefinitions.IZR BinNums.Z0) t &&
        ssrR.ltRb t (Rdefinitions.IZR (BinNums.Zpos 1%AC)).
    by apply/andP; split; apply/ssrR.ltRP/RltP.
-case /boolP: (u == v); first by move=>/eqP->; rewrite convmm; left.
-move=>/eqP uv.
+have [->|/eqP uv] := eqVneq u v; first by rewrite convmm; left.
 move:(fconv u v (OProb.mk t01) uv)=>/=.
 have fle: (Prob.p t)%:E * f u + (onem (Prob.p t))%:E * f v <= f (u <|t|> v).
    have ->: f (u <|t|> v) = (Prob.p t)%:E * f (u <|t|> v) + (onem (Prob.p t))%:E * f (u <|t|> v).

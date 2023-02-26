@@ -276,14 +276,13 @@ have : [exists i : 'I_(size l), det l`_i l`_(Zp_succ i) (b <| sup I |> a) <= 0].
    apply sup_upper_bound; first by [].
    apply/andP; split; first by [].
    rewrite encompass_all_index l0/=; apply/forallP=>i; rewrite is_left_oriented andbT/oriented -det_cyclique det_conv convrl sm -opprB mulrN subr_ge0.
-   case/boolP: (0 < det a l`_i l`_(Zp_succ i) - det b l`_i l`_(Zp_succ i)).
-      move=>abgt0; move:abgt0 (abgt0); rewrite {1}lt0r -invr_gt0=>/andP[ab0 _] abgt0.
+   have [/[dup]|able0] := ltP 0 (det a l`_i l`_(Zp_succ i) - det b l`_i l`_(Zp_succ i)).
+      rewrite {1}lt0r -invr_gt0=>/andP[ab0 _] abgt0.
       rewrite -subr_ge0 -(pmulr_lge0 _ abgt0) mulrBl subr_ge0 -mulrA divff// mulr1 -lee_fin tfin leIx; apply/orP; left.
       rewrite ![det _ l`_i _]det_cyclique /t.
       move:abgt0; rewrite invr_gt0=>abgt0.
       by apply (@Order.TBLatticeTheory.meets_inf ereal_display (ereal_tblatticeType R) _ i _ (fun i : 'I_(size l)=> (det l`_i l`_(Zp_succ i) a /
   (det l`_i l`_(Zp_succ i) a - det l`_i l`_(Zp_succ i) b))%:E) abgt0).
-  rewrite -leNgt => able0.
   rewrite {2}[det a _ _]det_cyclique; refine (le_trans _ (la i)); apply mulr_ge0_le0=>//.
   by move:t01=>/andP[].
 move=>/existsP[i] iable0.
