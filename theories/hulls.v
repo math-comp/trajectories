@@ -63,7 +63,7 @@ split=>//; split=>//.
 by eapply subset_trans; first exact: gX.
 Qed.
 
-Lemma hull2 (x y : A) : hull [set x; y]%classic = ((fun t => conv t x y) @` `[0%R, 1%R])%classic.
+Lemma hull2 (x y : A) : hull [set x; y]%classic = ((fun t => x <| t |> y) @` `[0%R, 1%R])%classic.
 Proof.
 rewrite eqEsubset; split; last first.
    move=> z [t /andP [t0 t1]] <-.
@@ -299,13 +299,13 @@ exists (fun i=> \sum_(j < n | g j == l`_i) d j); split.
    by move=>i; apply sumr_ge0.
 split.
    rewrite -(big_map (fun i: 'I_(size l) => l`_i) xpredT (fun x=> \sum_(j < n | g j == x) d j)).
-   rewrite (map_comp (fun i : nat=>l`_i) (fun i : ordinal (size l)=> i : nat)).
+   rewrite (map_comp (fun i : nat => l`_i) (@nat_of_ord (size l))).
    move:(val_enum_ord (size l)); rewrite enumT=>->.
    rewrite map_nth_iota0// take_size -big_partition//.
    by apply/allP=>i _; apply gl.
 transitivity (\sum_(i < size l) \sum_(j < n | g j == l`_i) d j *: g j).
    rewrite -(big_map (fun i: 'I_(size l) => l`_i) xpredT (fun x=> \sum_(j < n | g j == x) d j *: g j)).
-   rewrite (map_comp (fun i : nat=>l`_i) (fun i : ordinal (size l)=> i : nat)).
+   rewrite (map_comp (fun i : nat => l`_i) (@nat_of_ord (size l))).
    move:(val_enum_ord (size l)); rewrite enumT=>->.
    rewrite map_nth_iota0// take_size -big_partition//.
    by apply/allP=>i _; apply gl.

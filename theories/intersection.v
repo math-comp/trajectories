@@ -66,18 +66,18 @@ move: abc0; rewrite le0r => /orP[|].
       rewrite nmulr_rge0// -expr2=>badle.
       have-> : (det b a d = 0) by apply/eqP; rewrite -sqrf_eq0; apply/eqP/le_anti/andP; split=>//; apply sqr_ge0.
       rewrite 2!mulr0 oppr0 eqxx/= =>/orP[|]; last by move=>/andP[acd _]; exists a; rewrite betweenl.
-      move=>/orP[|] cdb; first by exists (conv t a b); rewrite betweenl andbT.
+      move=>/orP[|] cdb; first by exists (a <| t |> b); rewrite betweenl andbT.
       by exists d; rewrite betweenr andbT.
-   move=>_ _; exists (conv t a b); rewrite betweenl andbT; apply between_conv.
+   move=>_ _; exists (a <| t |> b); rewrite betweenl andbT; apply between_conv.
    by exists t; rewrite eqxx andbT in01M_ge0 leNgt mulrC tlt.
 move:ab0=> _ abc; move:absep; rewrite pmulr_rle0// =>abd.
 set t := det a b d / (det d a b - det c a b).
 have denom: det d a b - det c a b != 0 by rewrite 2![det _ a b]det_cyclique subr_eq0; apply/negP=>/eqP detE; move:(le_lt_trans abd abc); rewrite detE ltxx.
-have: det a b (conv t c d) == 0 by rewrite -det_cyclique det_conv convrl sm -opprB mulrN /t -mulrA [_^-1 * _]mulrC divff// mulr1 det_cyclique subrr.
+have: det a b (c <| t |> d) == 0 by rewrite -det_cyclique det_conv convrl sm -opprB mulrN /t -mulrA [_^-1 * _]mulrC divff// mulr1 det_cyclique subrr.
 move=>/eqP /det0_aligned; case; first by move=>/eqP; rewrite ab.
 move=>[u utE].
 case u01: (in01 u).
-   exists (conv u a b); apply/andP; split.
+   exists (a <| u |> b); apply/andP; split.
       apply between_conv.
       by exists u; rewrite u01 eqxx.
    rewrite utE; apply between_conv.
@@ -86,7 +86,7 @@ case u01: (in01 u).
    by apply mulr_ge0; [ rewrite oppr_ge0 | apply ltW ].
 move:u01; rewrite in01M_ge0 leNgt=>/negbT; rewrite negbK=>u01.
 move:(u01); rewrite -oppr_gt0 lt0r oppr_eq0 mulf_eq0 negb_or=>/andP[/andP [/lregP u0 /lregP u1] _].
-have: det (conv u a b) c d == 0 by rewrite utE det_conv -[det d _ _]det_cyclique 2!det_alternate convmm.
+have: det (a <| u |> b) c d == 0 by rewrite utE det_conv -[det d _ _]det_cyclique 2!det_alternate convmm.
 rewrite det_conv 2![det _ c d]det_cyclique addr_eq0 2!sm=>/eqP udetE.
 move:cdsep; rewrite -(nmulr_rge0 _ u01) mulrACA udetE mulNr oppr_ge0 -expr2=>det2_le0.
 have /eqP cdb0: det c d b == 0 by rewrite -(mulrI_eq0 _ u1) -sqrf_eq0; apply/eqP/le_anti/andP; split=>//; apply sqr_ge0.
@@ -108,7 +108,7 @@ suff: forall a b c d, (exists p : counterclockwise.Plane R, between p a b && bet
    by move:abcd=>[p]; rewrite andbC=>pabcd; exists p.
    move=>a b c d [p] /andP[/between_conv] [t] /andP[t01] /eqP pe /between_conv [u] /andP[u01] /eqP pe'; subst p; rewrite/separate -andbA.
 apply/andP; split.
-   have: det (conv t a b) a b == 0 by rewrite det_conv -[det b a b]det_cyclique 2!det_alternate convmm.
+   have: det (a <| t |> b) a b == 0 by rewrite det_conv -[det b a b]det_cyclique 2!det_alternate convmm.
    rewrite pe' det_conv 2![det _ a b]det_cyclique addr_eq0 2!sm=>/eqP detE.
    move:u01; rewrite in01M_ge0 le0r =>/orP[|].
       rewrite mulf_eq0 subr_eq0 => /orP[|] /eqP ue; move:detE=>/eqP.
@@ -182,17 +182,17 @@ Qed.
    this property.
 
    Let [a, b] be the segment, with a in C and b outside. Notice that t
-   \mapsto conv t b a is a continuous curve from a to b, hence we
-   expect it to cross the border of C. Let I = \{t \in [0, 1], conv t
-   b a \in C\} and t = sup(I). t is well defined because I is not
+   \mapsto b <| t |> a is a continuous curve from a to b, hence we
+   expect it to cross the border of C. Let I = \{t \in [0, 1],
+   b <| t |> a \in C\} and t = sup(I). t is well defined because I is not
    empty (as 0 \in I) and bounded (by 1).  C being defined by a set of
-   large inequalities, we show conv t b a \in C.  Then we show that at
+   large inequalities, we show b <| t |> a \in C.  Then we show that at
    least one inequality is an equality. Let this constraint being
-   given by two points x and y of the list defining C.  Then conv t b
-   a is on the line (xy) and every other point of the list is strictly
+   given by two points x and y of the list defining C.  Then b <| t |> a
+   is on the line (xy) and every other point of the list is strictly
    to the left of the line (xy), hence every other inequality is
    strict. Then, looking at the inequalities involving x and y, we
-   show that conv t b a is between x and y, which concludes the proof.
+   show that b <| t |> a is between x and y, which concludes the proof.
    *)
 
 Lemma hull_border_no_intersection (l : seq Plane) (a b : Plane) :
@@ -201,9 +201,9 @@ Lemma hull_border_no_intersection (l : seq Plane) (a b : Plane) :
   encompass (ccw (R:=R)) l l ->
   [forall i : 'I_(size l), ~~ intersect l`_i l`_(Zp_succ i) a b] ->
     (forall t : R, in01 t ->
-      encompass (ccw (R:=R)) [:: conv t a b] l) \/
+      encompass (ccw (R:=R)) [:: a <| t |> b] l) \/
     (forall t : R, in01 t ->
-      ~~ encompass oriented [:: conv t a b] l).
+      ~~ encompass oriented [:: a <| t |> b] l).
 Proof.
 have sm t u : t *: (u : regular_lmodType R) = t * u by [].
 move=>ls /uniqP lu ll /forallP lab.
@@ -213,7 +213,7 @@ apply/or_asboolP/negPn; rewrite negb_or; apply/negP=>/andP[/existsp_asboolPn [t 
 move=>/existsp_asboolPn [u /asboolPn]; rewrite asbool_imply negb_imply 2!asboolb negbK=>/andP[u01 luab].
 (* We have two points, exactly one of them being encompassed by l, we may assume that they are the ends of the segment. *)
 wlog : a b t u lab t01 ltab u01 luab / (t == 0) && (u == 1).
-   move=>/(_ (conv u a b) (conv t a b) 0 1); apply.
+   move=>/(_ (a <| u |> b) (a <| t |> b) 0 1); apply.
    - move=>i.
      apply/negP=>/intersect_correct[p]/andP[pl pab].
      by move:(lab i)=>/negP; apply; apply intersect_complete; exists p; apply/andP; split=>//; refine (between_trans _ _ pab); apply between_conv; eexists; apply/andP; split=>//.
@@ -223,8 +223,8 @@ wlog : a b t u lab t01 ltab u01 luab / (t == 0) && (u == 1).
    - by rewrite conv1.
    - by apply/andP; split.
 move=>/andP[/eqP t0 /eqP u1]; subst t u; clear t01 u01; move:ltab luab; rewrite conv0 conv1=>lb la.
-(* We define I = \{t \in R, conv t b a is encompassed by l\}. We show that I is not empty and bounded. *)
-set I := [set t | in01 t && encompass oriented [:: conv t b a] l]%classic.
+(* We define I = \{t \in R, b <| t |> a is encompassed by l\}. We show that I is not empty and bounded. *)
+set I := [set t | in01 t && encompass oriented [:: b <| t |> a] l]%classic.
 have I0 : I 0 by apply/andP; split; [ apply in010 | rewrite conv0 ].
 have Ib : has_sup I.
    split.
@@ -232,7 +232,7 @@ have Ib : has_sup I.
    by exists 1=>x /andP[/andP[_]].
 move:la; rewrite encompass_all_index l0/= =>/forallP; setoid_rewrite andbT; setoid_rewrite is_left_oriented; rewrite/oriented=>la.
 (* All constraints being a large inequality, they are all satisfied by sup I. *)
-have lt: forall i : 'I_(size l), 0 <= det l`_i l`_(Zp_succ i) (conv (sup I) b a).
+have lt: forall i : 'I_(size l), 0 <= det l`_i l`_(Zp_succ i) (b <| sup I |> a).
    move=>i; rewrite leNgt -det_cyclique det_conv convrl sm -opprB mulrN subr_lt0; apply/negP=>liI.
    have abl0: (0 < det a l`_i l`_(Zp_succ i) - det b l`_i l`_(Zp_succ i)).
       rewrite ltNge; apply/negP=>abl.
@@ -247,7 +247,7 @@ have I1: sup I <= 1.
    apply sup_le_ub; first by exists 0.
    by move=>x /andP[/andP[_]].
    (* At least one inequality is an equality, otherwise we would find t > sup I that verifies all of them. *)
-have : [exists i : 'I_(size l), det l`_i l`_(Zp_succ i) (conv (sup I) b a) <= 0].
+have : [exists i : 'I_(size l), det l`_i l`_(Zp_succ i) (b <| sup I |> a) <= 0].
    move:I1; rewrite -subr_ge0 le0r subr_eq0 subr_gt0 => /orP[/eqP<-| I1].
       by rewrite conv1; move:lb; rewrite encompass_all_index l0/= =>/forallPn[i]; rewrite andbT negb_or -leNgt=>/andP[_] lb; apply/existsP; exists i.
    rewrite -[_ _ _]negbK; apply/negP=>/existsPn Isubopt.
@@ -287,13 +287,13 @@ have : [exists i : 'I_(size l), det l`_i l`_(Zp_succ i) (conv (sup I) b a) <= 0]
   rewrite {2}[det a _ _]det_cyclique; refine (le_trans _ (la i)); apply mulr_ge0_le0=>//.
   by move:t01=>/andP[].
 move=>/existsP[i] iable0.
-(* We want to show that conv (sup I) b a suits. We show that it is between a and b and between l`_i and l`_(i+1). *)
-move:lab=>/(_ i)/negP; apply; apply intersect_complete; exists (conv (sup I) b a); apply/andP; split; last first.
+(* We want to show that b <| sup I |> a suits. We show that it is between a and b and between l`_i and l`_(i+1). *)
+move:lab=>/(_ i)/negP; apply; apply intersect_complete; exists (b <| sup I |> a); apply/andP; split; last first.
    rewrite betweenC; apply between_conv; exists (sup I); apply/andP; split=>//.
    apply/andP; split=>//.
    by apply sup_upper_bound.
-(* First, conv (sup I) b a, l`_i et l`_(i+1) are aligned. *)
-have: det l`_i l`_(Zp_succ i) (conv (sup I) b a) = 0 by apply le_anti; apply/andP; split.
+(* First, b <| sup I |> a, l`_i et l`_(i+1) are aligned. *)
+have: det l`_i l`_(Zp_succ i) (b <| sup I |> a) = 0 by apply le_anti; apply/andP; split.
 move=>/det0_aligned; case.
    move=>/lu; rewrite 2!inE.
    move=>/(_ (ltn_ord i) (ltn_ord (Zp_succ i))); rewrite Zp_succE.
@@ -301,7 +301,7 @@ move=>/det0_aligned; case.
       by move=>/eqP il; rewrite il modnn=>i0; move:il; rewrite i0=>s1; move:ls; rewrite s1=>/ltnW; rewrite ltnn.
    by move=>isl; rewrite modn_small// =>/n_Sn.
 move=>[t] tie; apply between_conv; exists t; rewrite tie eqxx andbT.
-(* conv (sup I) b a is conv t l`_i l`_(i+1) for some t. We show 0 <= t <= 1 by contradiction by looking at the inequalities 0 <= det l`_j l`_(j+1) (conv (sup I) b a) for j = i+1 and j = i-1. *)
+(* b <| sup I |> a is l`_i <| t |> l`_(i+1) for some t. We show 0 <= t <= 1 by contradiction by looking at the inequalities 0 <= det l`_j l`_(j+1) (b <| sup I |> a) for j = i+1 and j = i-1. *)
 apply/negPn/negP; rewrite negb_and -2!ltNge => /orP[t0|].
    move:lt=>/(_ (Zp_succ i)); rewrite -tie -det_cyclique det_conv det_alternate /conv scaler0 addr0 sm nmulr_rge0// =>ile.
    move:ll; rewrite encompass_all_index l0/= =>/forallP/(_ i)/allP/(_ l`_(Zp_succ (Zp_succ i))).
