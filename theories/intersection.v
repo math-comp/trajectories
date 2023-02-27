@@ -164,8 +164,8 @@ Definition oriented (p q r : Plane) := 0 <= det p q r.
 Lemma is_left_oriented (p q r : Plane) :
   encompass.is_left oriented p q r = oriented p q r.
 Proof.
-apply/idP/idP; last by rewrite/encompass.is_left; move=>->; rewrite orbT.
-by move=>/orP[|//] /orP[|] /eqP re; subst r; rewrite /oriented det_cyclique;
+apply/idP/idP; last by rewrite/encompass.is_left; move=>->; rewrite !orbT.
+by move=>/or3P[| |//] /eqP re; subst r; rewrite /oriented det_cyclique;
   [rewrite det_cyclique |]; rewrite det_alternate.
 Qed.
 
@@ -248,40 +248,41 @@ have I1: sup I <= 1.
    by move=>x /andP[/andP[_]].
    (* At least one inequality is an equality, otherwise we would find t > sup I that verifies all of them. *)
 have : [exists i : 'I_(size l), det l`_i l`_(Zp_succ i) (b <| sup I |> a) <= 0].
-   move:I1; rewrite -subr_ge0 le0r subr_eq0 subr_gt0 => /orP[/eqP<-| I1].
-      by rewrite conv1; move:lb; rewrite encompass_all_index l0/= =>/forallPn[i]; rewrite andbT negb_or -leNgt=>/andP[_] lb; apply/existsP; exists i.
-   rewrite -[_ _ _]negbK; apply/negP=>/existsPn Isubopt.
-   (* Each inequality defines a quantity by which we may exceed sup I without falsifying it. The inequalities being strict, these quantities are all positive, hence their mini too. Alas, R has no maximum, and hence min has no neutral elemnt, so we work in \bar R. *)
-   set t := \meet_(i : 'I_(size l) | 0 < det a l`_i l`_(Zp_succ i) - det b l`_i l`_(Zp_succ i)) (((det l`_i l`_(Zp_succ i) a) / (det l`_i l`_(Zp_succ i) a - det l`_i l`_(Zp_succ i) b))%:E : ereal_tblatticeType R).
-   have It : ((sup I)%:E < t `&` 1%:E)%O.
-      rewrite ltxI lte_fin I1 andbT ereal_meets_gt// ?ltey//.
-      move=>i abl_gt0; move:(abl_gt0); rewrite lt0r=>/andP[abl0 _]; rewrite lte_fin -subr_gt0 -(pmulr_lgt0 _ abl_gt0) mulrBl mulrAC -mulrA -2![det l`_i _ _]det_cyclique divff// mulr1.
-      by move:(Isubopt i); rewrite -ltNge -det_cyclique det_conv convrl sm -opprB mulrN.
-   have tfin : (fine (t `&` 1%:E))%:E = t `&` 1%:E.
-      apply/(@fineK R)/fin_numP; split; apply/negP=>/eqP tinf.
-         suff : (-oo < t `&` 1)%E by rewrite tinf ltxx.
-         rewrite ltxI; apply/andP; split; last by apply ltNye.
-         by apply ereal_meets_gt=>// i _; apply ltNye.
-      suff : (t `&` 1 < +oo)%E by rewrite tinf ltxx.
-      by rewrite ltIx [(1 < +oo)%E]ltey orbT.
-   move: It; rewrite -tfin lte_fin ltNge=>/negP; apply.
-   have t01: in01 (fine (t `&` 1%E)).
-      apply/andP; split; rewrite -lee_fin tfin; last by rewrite lteIx le_refl orbT.
-      rewrite ltexI; apply/andP; split; last by rewrite lee_fin ler01.
-      rewrite /t.
-      apply (@Order.TBLatticeTheory.meets_ge ereal_display (ereal_tblatticeType R))=>i abgt.
-      rewrite lee_fin; apply mulr_ge0.
-         by apply la.
-      by apply ltW; rewrite invr_gt0 -2![det l`_i _ _]det_cyclique.
-   apply sup_upper_bound; first by [].
-   apply/andP; split; first by [].
-   rewrite encompass_all_index l0/=; apply/forallP=>i; rewrite is_left_oriented andbT/oriented -det_cyclique det_conv convrl sm -opprB mulrN subr_ge0.
-   have [/[dup]|able0] := ltP 0 (det a l`_i l`_(Zp_succ i) - det b l`_i l`_(Zp_succ i)).
-      rewrite {1}lt0r -invr_gt0=>/andP[ab0 _] abgt0.
-      rewrite -subr_ge0 -(pmulr_lge0 _ abgt0) mulrBl subr_ge0 -mulrA divff// mulr1 -lee_fin tfin leIx; apply/orP; left.
-      rewrite ![det _ l`_i _]det_cyclique /t.
-      move:abgt0; rewrite invr_gt0=>abgt0.
-      by apply (@Order.TBLatticeTheory.meets_inf ereal_display (ereal_tblatticeType R) _ i _ (fun i : 'I_(size l)=> (det l`_i l`_(Zp_succ i) a /
+  move:I1; rewrite -subr_ge0 le0r subr_eq0 subr_gt0 => /orP[/eqP<-| I1].
+    rewrite conv1; move:lb; rewrite encompass_all_index l0/= =>/forallPn[i].
+    by rewrite andbT !negb_or -leNgt =>/andP[_] /andP[lb det_le0]; apply/existsP; exists i.
+  rewrite -[_ _ _]negbK; apply/negP =>/existsPn Isubopt.
+  (* Each inequality defines a quantity by which we may exceed sup I without falsifying it. The inequalities being strict, these quantities are all positive, hence their mini too. Alas, R has no maximum, and hence min has no neutral elemnt, so we work in \bar R. *)
+  set t := \meet_(i : 'I_(size l) | 0 < det a l`_i l`_(Zp_succ i) - det b l`_i l`_(Zp_succ i)) (((det l`_i l`_(Zp_succ i) a) / (det l`_i l`_(Zp_succ i) a - det l`_i l`_(Zp_succ i) b))%:E : ereal_tblatticeType R).
+  have It : ((sup I)%:E < t `&` 1%:E)%O.
+    rewrite ltxI lte_fin I1 andbT ereal_meets_gt// ?ltey//.
+    move=>i abl_gt0; move:(abl_gt0); rewrite lt0r=>/andP[abl0 _]; rewrite lte_fin -subr_gt0 -(pmulr_lgt0 _ abl_gt0) mulrBl mulrAC -mulrA -2![det l`_i _ _]det_cyclique divff// mulr1.
+    by move:(Isubopt i); rewrite -ltNge -det_cyclique det_conv convrl sm -opprB mulrN.
+  have tfin : (fine (t `&` 1%:E))%:E = t `&` 1%:E.
+    apply/(@fineK R)/fin_numP; split; apply/negP=>/eqP tinf.
+      suff : (-oo < t `&` 1)%E by rewrite tinf ltxx.
+      rewrite ltxI; apply/andP; split; last by apply ltNye.
+      by apply ereal_meets_gt=>// i _; apply ltNye.
+    suff : (t `&` 1 < +oo)%E by rewrite tinf ltxx.
+    by rewrite ltIx [(1 < +oo)%E]ltey orbT.
+  move: It; rewrite -tfin lte_fin ltNge=>/negP; apply.
+  have t01: in01 (fine (t `&` 1%E)).
+    apply/andP; split; rewrite -lee_fin tfin; last by rewrite lteIx le_refl orbT.
+    rewrite ltexI; apply/andP; split; last by rewrite lee_fin ler01.
+    rewrite /t.
+    apply (@Order.TBLatticeTheory.meets_ge ereal_display (ereal_tblatticeType R))=>i abgt.
+    rewrite lee_fin; apply mulr_ge0.
+      by apply la.
+    by apply ltW; rewrite invr_gt0 -2![det l`_i _ _]det_cyclique.
+  apply sup_upper_bound; first by [].
+  apply/andP; split; first by [].
+  rewrite encompass_all_index l0/=; apply/forallP=>i; rewrite is_left_oriented andbT/oriented -det_cyclique det_conv convrl sm -opprB mulrN subr_ge0.
+  have [/[dup]|able0] := ltP 0 (det a l`_i l`_(Zp_succ i) - det b l`_i l`_(Zp_succ i)).
+    rewrite {1}lt0r -invr_gt0=>/andP[ab0 _] abgt0.
+    rewrite -subr_ge0 -(pmulr_lge0 _ abgt0) mulrBl subr_ge0 -mulrA divff// mulr1 -lee_fin tfin leIx; apply/orP; left.
+    rewrite ![det _ l`_i _]det_cyclique /t.
+    move:abgt0; rewrite invr_gt0=>abgt0.
+    by apply (@Order.TBLatticeTheory.meets_inf ereal_display (ereal_tblatticeType R) _ i _ (fun i : 'I_(size l)=> (det l`_i l`_(Zp_succ i) a /
   (det l`_i l`_(Zp_succ i) a - det l`_i l`_(Zp_succ i) b))%:E) abgt0).
   rewrite {2}[det a _ _]det_cyclique; refine (le_trans _ (la i)); apply mulr_ge0_le0=>//.
   by move:t01=>/andP[].

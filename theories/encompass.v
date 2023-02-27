@@ -20,7 +20,7 @@ Section spec.
 Variable plane : zmodType.
 Variable oriented : plane -> plane -> plane -> bool.
 
-Definition is_left (p q r : plane) := (r == p) || (r == q) || oriented p q r.
+Definition is_left (p q r : plane) := [|| r == p, r == q | oriented p q r].
 Hint Unfold is_left : core.
 
 Definition all_left (x y : plane) : seq plane -> bool := all (is_left x y).
@@ -37,6 +37,9 @@ Definition encompass (s l : seq plane) :=
   | nil => false
   | t1 :: l' => encompass_aux s (last t1 l' :: l)
   end.
+
+Lemma encompassl0 l : encompass l [::] = false.
+Proof. by []. Qed.
 
 Definition convexHullSpec (l1 l2 : seq plane) :=
   uniq l2 && all (mem l1) l2 && encompass l1 l2.
@@ -55,54 +58,48 @@ Qed.
 
 Lemma encompass_all (l s : seq plane) : encompass s l =
   (l != [::]) && all (fun x => encompass [:: x] l) s.
-Proof.
-case: l =>// a l.
-by rewrite {1}/encompass encompass_aux_all.
-Qed.
+Proof. by case: l =>// a l; rewrite {1}/encompass encompass_aux_all. Qed.
 
 Lemma encompass_aux_all_index (l l' : seq plane): encompass_aux l l' =
   (l' != [::]) &&
   [forall i : 'I_(size l'),
-    (val (Zp_succ i) == 0)%N || all_left l'`_i l'`_(Zp_succ i) l].
+    (Zp_succ i == 0%N :> nat) || all_left l'`_i l'`_(Zp_succ i) l].
 Proof.
 elim: l'=>// a; case.
    by move=>/= _; apply/esym/forallP => i; rewrite modn1 eq_refl.
 move=>b l' IHl' /=; rewrite -/(encompass_aux l (b :: l')) IHl' /=.
-apply/idP/idP => H.
-   apply/forallP; case; case=>/=.
-      by move: H=>/andP [H _].
-   move=> n; rewrite ltnS=> nlt.
-   move: H=>/andP [_ /forallP] /(_ (Ordinal nlt)).
-   move: nlt (nlt); rewrite {1}ltnS leq_eqVlt => /predU1P[-> mm _|nm nm1].
-      by rewrite modnn eq_refl.
-   by rewrite modn_small ?ltnS// modn_small ?ltnS.
-move:H=>/forallP H.
-apply/andP; split; first by move:H=>/(_ ord0).
-apply/forallP=>[[i ilt]].
-move:H=>/(_ (lift ord0 (Ordinal ilt))).
+apply/idP/idP => [/andP[Habl H]|/forallP H].
+  apply/forallP => -[] [//|n/=].
+  rewrite ltnS => nlt.
+  move: H => /forallP/(_ (Ordinal nlt)).
+  move: nlt (nlt); rewrite {1}ltnS leq_eqVlt => /predU1P[-> mm _|nm nm1].
+    by rewrite modnn eqxx.
+  by rewrite modn_small ?ltnS// modn_small ?ltnS.
+apply/andP; split; first by move: H => /(_ ord0).
+apply/forallP => -[i ilt].
+move: H => /(_ (lift ord0 (Ordinal ilt))).
 move: ilt (ilt); rewrite {1}ltnS leq_eqVlt => /predU1P[-> mm _|ilt ilt1].
-  by rewrite modnn eq_refl.
+  by rewrite modnn eqxx.
 by rewrite modn_small ?ltnS// modn_small ?ltnS.
 Qed.
 
 Lemma encompass_all_index (l s : seq plane) : encompass s l =
   (l != [::]) && [forall i : 'I_(size l), all_left l`_i l`_(Zp_succ i) s].
 Proof.
-case: l=>// a l /=.
+case: l => // a l /=.
 rewrite -/(encompass_aux s (a :: l)) encompass_aux_all_index.
-apply/idP/idP=>H.
-   apply/forallP=>[[i ilt]].
+apply/idP/idP => [H|/forallP H].
+   apply/forallP => -[i ilt].
    move: ilt (ilt); rewrite {1}ltnS leq_eqVlt => /predU1P[-> /= _|ilt ilt1].
      by rewrite modnn nth_last /=; move: H => /andP[H _].
    move: H => /andP[_ /andP [_ /forallP]] /(_ (Ordinal ilt1)) /=.
    by rewrite modn_small ?ltnS.
-move:H=>/forallP H.
 apply/andP; split.
-   by move:H=>/(_ ord_max); rewrite /= modnn nth_last /=.
-apply/forallP=>[[i ilt]].
+   by move: H => /(_ ord_max); rewrite /= modnn nth_last.
+apply/forallP => -[i ilt].
 move: ilt (ilt); rewrite {1}ltnS leq_eqVlt => /predU1P[-> /= _|ilt ilt1].
   by rewrite modnn.
-by move:H=>/(_ (Ordinal ilt1))/=; rewrite modn_small ?ltnS.
+by move: H => /(_ (Ordinal ilt1))/=; rewrite modn_small ?ltnS.
 Qed.
 
 End spec.
@@ -132,9 +129,7 @@ move=> /uniqP-/(_ 0%R) lu; apply/idP/idP.
     have /ll : l`_j \in l by rewrite mem_nth.
     have il : (i < size l)%N by rewrite (leq_trans _ isl).
     rewrite encompass_all_index => /andP[_] /forallP /(_ (Ordinal il)) /=.
-    have -> : val (Zp_succ (Ordinal il)) = i.+1.
-      by destruct l => //=; rewrite modn_small ?ltnS.
-    rewrite andbT => /orP[|//] /orP[|] /eqP/lu; rewrite 2!inE.
+    rewrite Zp_succE andbT/= modn_small// => /or3P[| |//] /eqP/lu; rewrite 2!inE.
        by move=> /(_ jl il)/eqP; rewrite (negbTE ji).
     by move=>/(_ jl isl)/eqP; rewrite (negbTE jis).
   apply/'forall_'forall_'forall_implyP => -[i ilt] [j jlt] [k klt] /= /andP[ij jk].
@@ -175,12 +170,13 @@ apply/allP => _ /id[i il <-].
 rewrite encompass_all_index; rewrite l0; apply/forallP => -[j jlt].
 rewrite /all_left/= /is_left/= andbT.
 have [->|ij] := eqVneq i j.
-   by rewrite -orbA; apply/orP; left; apply/eqP; congr nth; apply/eqP.
+   exact/or3P/Or31.
 destruct l as [|a l] => //=.
 have [ijs|ijs] := eqVneq i (j.+1 %% (size l).+1)%N.
-   by apply/orP; left; apply/orP; right; apply/eqP; congr nth; rewrite -ijs.
-apply/orP; right; move: jlt; rewrite leq_eqVlt => /predU1P[[je]|jlt].
-   subst j; rewrite modnn; do 2 apply Ax1.
+   by apply/or3P/Or32; rewrite -ijs.
+apply/or3P/Or33; move: jlt; rewrite leq_eqVlt => /predU1P[[je]|jlt].
+   subst j; rewrite modnn.
+   do 2 apply Ax1.
    move: sD => /'forall_'forall_'forall_implyP
                /(_ ord0 (Ordinal il) (Ordinal (leqnn _)));
                apply => /=.

@@ -122,8 +122,8 @@ Let oriented := fun p q r : Plane => 0%:R <= det p q r.
 Lemma is_left_oriented (p q r : Plane) :
   encompass.is_left oriented p q r = oriented p q r.
 Proof.
-apply/idP/idP; last by rewrite/encompass.is_left; move=>->; rewrite orbT.
-by move=>/orP; case=>// /orP; case=>/eqP re; subst r; rewrite /oriented det_cyclique; [ rewrite det_cyclique |]; rewrite det_alternate.
+apply/idP/idP; last by rewrite/encompass.is_left; move=>->; rewrite !orbT.
+by move=>/or3P[| |//] /eqP re; subst r; rewrite /oriented det_cyclique; [ rewrite det_cyclique |]; rewrite det_alternate.
 Qed.
 
 Lemma encompass_correct (l : seq Plane) (p : Plane) :
@@ -136,15 +136,16 @@ Lemma encompass_correct (l : seq Plane) (p : Plane) :
 Proof.
 move: l p.
 have orientedW: forall a b c, encompass.is_left oriented a b c -> oriented a b c.
-   move=>a b c /orP; case=>// /orP; case=>/eqP<-; rewrite /oriented.
+   move=>a b c /or3P[| |//] /eqP<-; rewrite /oriented.
          by rewrite 2!det_cyclique det_alternate.
       by rewrite det_cyclique det_alternate.
-have H3 a b c p : uniq [:: a; b; c] -> encompass (ccw (R:=R)) [:: a; b; c] [:: a; b; c] ->
-                                       encompass oriented [::p] [:: a; b; c] ->
+have H3 a b c p : uniq [:: a; b; c] ->
+    encompass (ccw (R:=R)) [:: a; b; c] [:: a; b; c] ->
+    encompass oriented [::p] [:: a; b; c] ->
     exists t : 'I_3 -> R, (forall i, 0 <= t i)%R /\ (\sum_i t i = 1%:R) /\ p = \sum_i t i *: [:: a; b; c]`_i.
-   rewrite/uniq !in_cons negb_or 2!in_nil 2!orbF=>/andP [/andP[/negPf ab /negPf ac] /andP[/negPf bc _]] /andP[/andP [_ /andP [h _]] _] /= /andP [/andP [/orientedW cap _]] /andP [/andP [/orientedW abp _]] /andP [/andP [/orientedW bcp _] _].
-   move: h; rewrite/encompass.is_left bc eq_sym ab =>/= cab.
-   exists (fun i => [:: det c p b / det c a b; det c a p / det c a b; det p a b / det c a b]`_i); split.
+  rewrite/uniq !in_cons negb_or 2!in_nil 2!orbF=>/andP [/andP[/negPf ab /negPf ac] /andP[/negPf bc _]] /andP[/andP [_ /andP [h _]] _] /= /andP [/andP [/orientedW cap _]] /andP [/andP [/orientedW abp _]] /andP [/andP [/orientedW bcp _] _].
+  move: h; rewrite/encompass.is_left bc eq_sym ab =>/= cab.
+  exists (fun i => [:: det c p b / det c a b; det c a p / det c a b; det p a b / det c a b]`_i); split.
       case; case; [| case; [| case=>//]]; move=>/= _; (apply mulr_ge0; [| by rewrite invr_ge0; apply ltW]).
       - by rewrite 2!det_cyclique.
       - by [].
@@ -170,7 +171,7 @@ case labp: (oriented b (last d l) p).
          by move:lp=>/andP[lp _]; move:lp.
       apply/andP; split.
          by move:lp=>/andP[_ /andP[ap _]].
-      by rewrite /=/encompass.is_left labp orbT.
+      by rewrite /=/encompass.is_left labp !orbT.
    move=>f [f0 [f1 fp]].
    exists (fun i:'I_(size l).+4 => (i == ord0)%:R * f ord0 + (i == lift ord0 ord0)%:R * f (lift ord0 ord0) + (i == ord_max)%:R * f ord_max).
    split.
@@ -197,7 +198,7 @@ case: IHl.
    - move: ll=>/Spec.encompassll_subseq; apply=>//; apply subseq_cons.
    - apply/andP; split.
       2: by move: lp=>/andP[_ /andP [_ lp]].
-   rewrite/= andbT; apply/orP; right.
+   rewrite/= andbT; apply/or3P/Or33.
    by rewrite/oriented det_inverse 2!det_cyclique leNgt oppr_lt0; apply/negP=>/ltW; move: labp; rewrite /oriented=>->.
 move=>f [f0 [f1 fp]].
 exists (fun i=>
@@ -277,11 +278,11 @@ rewrite det_scalar_productE 2!subr0 rotateZ scalar_productZR; apply mulr_ge0.
    apply f0.
 move:ll; rewrite encompass_all=>/andP[_ /allP ll].
 have/ll: l`_(Ordinal jlt) \in l by rewrite mem_nth.
-rewrite encompass_all_index=>/andP[_] /forallP /(_ (Ordinal ilt))/=; rewrite andbT; rewrite li0=>/orP; case.
-   move=>/orP; case=>/eqP ->.
-      by rewrite -{2}(scale0r 0) rotateZ scalar_productZR mul0r.
-   by rewrite scalar_product_rotatexx.
-by rewrite /ccw det_scalar_productE 2!subr0=>/ltW.
+rewrite encompass_all_index=>/andP[_] /forallP /(_ (Ordinal ilt))/=; rewrite andbT.
+rewrite li0// => /or3P[/eqP ->|/eqP ->|].
+- by rewrite -{2}(scale0r 0) rotateZ scalar_productZR mul0r.
+- by rewrite scalar_product_rotatexx.
+- by rewrite /ccw det_scalar_productE 2!subr0=>/ltW.
 Qed.
 
 Lemma encompassP (l : seq Plane) (p : Plane) :
