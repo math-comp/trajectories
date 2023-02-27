@@ -104,7 +104,7 @@ Lemma diff_xn_ub {R : archiFieldType} (n : nat) :
 Proof.
 elim: n => [z z0| n IHn z z0].
   by exists 0%R => // x y x0 xy yz; rewrite !expr0 subrr mul0r.
-have [k [k0 kp]] := IHn z z0.
+have [k k0 kp] := IHn z z0.
 exists (z * k + z ^+ n) => [| x y x0 xy yz].
   by rewrite addr_ge0// ?exprn_ge0// ?mulr_ge0// ltW.
 rewrite !exprS.
@@ -201,13 +201,13 @@ have y'pos : (0 <= (reciprocal_pol l).[y'])%R.
   apply: le_trans (_ : k * (y' - x1) <= _)=> /=.
     by rewrite /y' (addrC x1) addrK mulrN mulrC mulrVK // unitfE gt_eqF.
   exact: sl.
-have [u [u0 up]] := diff_xn_ub (size l - 1) _ (@ltr01 R).
-have [u' [u1 u'u]] : exists u', (1 <= u' /\ u <= u')%R.
-  case cmp: (1 <= u)%R; first by exists u; rewrite lexx cmp.
-  by exists 1%R; rewrite lexx; split=> //; rewrite ltW // ltNge cmp.
+have [u u0 up] := diff_xn_ub (size l - 1) _ (@ltr01 R).
+have [u' u1 u'u] : exists2 u', (1 <= u')%R & (u <= u')%R.
+  case cmp: (1 <= u)%R; first by exists u => //; rewrite lexx cmp.
+  by exists 1%R; rewrite ?lexx // ltW // ltNge cmp.
 have u'0 : (0 < u')%R by apply: lt_le_trans u1.
-have divu_ltr : forall x : R, (0 <= x)%R -> (x / u' <= x)%R.
-  by move => x x0; rewrite ler_pdivr_mulr// ler_pemulr.
+have divu_ltr (x : R) : (0 <= x)%R -> (x / u' <= x)%R.
+  by move=> x0; rewrite ler_pdivr_mulr// ler_pemulr.
 have y'0 : (0 < y')%R by apply: lt_trans y'1.
 pose y := y' + 1.
 have y'y : y' < y by rewrite /y ltr_addl ltr01.
@@ -288,8 +288,8 @@ exists b^-1, a^-1, k'; split => //.
   apply: sl => //.
   rewrite -ltNge in cmp.
   exact: ltW.
-- move => x z bvx xz zav ; rewrite le_eqVlt in xz; move/orP: xz => [xz | xz].
-    by rewrite (eqP xz) !addrN mulr0 lexx.
+- move=> x z bvx + zav; rewrite le_eqVlt => /predU1P[->|xz].
+    by rewrite !addrN mulr0 lexx.
   have x0 : (0 < x)%R by apply: lt_trans bvx.
   have z0 : (0 < z)%R by apply: (lt_trans x0).
   have := horner_reciprocal1 l (unitf_gt0 x0) => ->.
@@ -370,20 +370,20 @@ exists b^-1, a^-1, k'; split => //.
     apply: (le_trans (ler_norm _)).
     by apply/ltW/(le_lt_trans _ clb)/cp=> //; apply/ltW.
   apply: le_trans (_ : (z^+ (size l - 1) - x ^+ (size l - 1)) * e <= _).
-    move: xzexp; rewrite -subr_gte0 le_eqVlt; case/orP=> [xzexp | xzexp] /=.
-      by rewrite /= -(eqP xzexp) !mul0r.
-    by rewrite lter_pmul2l.
-  rewrite [_ * e]mulrC; apply: le_trans (_ : e * (u' * (z - x)) <= _)=> /=.
-    rewrite ler_pmul2l//.
-    apply: le_trans (_ : u * (z - x) <= _).
-      apply: up => //.
-        by apply: ltW.
-      apply: ltW (lt_trans zav _).
-      by rewrite invf_lt1 //; by apply: lt_le_trans x1a.
-    by rewrite ler_pmul2r// subr_gt0.
-  rewrite mulrA.
-  rewrite ler_pmul2r// ?subr_gt0//.
-  by rewrite /e divrK// unitfE gt_eqF.
+    move: xzexp; rewrite -subr_gte0 le_eqVlt => /predU1P[<-|xzexp] /=.
+      by rewrite !mul0r.
+  by rewrite lter_pmul2l.
+rewrite [_ * e]mulrC; apply: le_trans (_ : e * (u' * (z - x)) <= _)=> /=.
+  rewrite ler_pmul2l//.
+  apply: le_trans (_ : u * (z - x) <= _).
+    apply: up => //.
+      by apply: ltW.
+    apply: ltW (lt_trans zav _).
+    by rewrite invf_lt1 //; by apply: lt_le_trans x1a.
+  by rewrite ler_pmul2r// subr_gt0.
+rewrite mulrA.
+rewrite ler_pmul2r// ?subr_gt0//.
+by rewrite /e divrK// unitfE gt_eqF.
 Qed.
 
 (* TODO(rei)

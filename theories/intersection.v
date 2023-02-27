@@ -294,11 +294,11 @@ move:lab=>/(_ i)/negP; apply; apply intersect_complete; exists (b <| sup I |> a)
 (* First, b <| sup I |> a, l`_i et l`_(i+1) are aligned. *)
 have: det l`_i l`_(Zp_succ i) (b <| sup I |> a) = 0 by apply le_anti; apply/andP; split.
 move=>/det0_aligned; case.
-   move=>/lu; rewrite 2!inE.
-   move=>/(_ (ltn_ord i) (ltn_ord (Zp_succ i))); rewrite Zp_succE.
-   move:(ltn_ord i); rewrite leq_eqVlt => /orP[|].
-      by move=>/eqP il; rewrite il modnn=>i0; move:il; rewrite i0=>s1; move:ls; rewrite s1=>/ltnW; rewrite ltnn.
-   by move=>isl; rewrite modn_small// =>/n_Sn.
+  move=>/lu; rewrite 2!inE.
+  move=>/(_ (ltn_ord i) (ltn_ord (Zp_succ i))); rewrite Zp_succE.
+  move:(ltn_ord i); rewrite leq_eqVlt => /predU1P[il|isl].
+    by rewrite il modnn=>i0; move:il; rewrite i0=>s1; move:ls; rewrite s1=>/ltnW; rewrite ltnn.
+  by rewrite modn_small// => /n_Sn.
 move=>[t] tie; apply between_conv; exists t; rewrite tie eqxx andbT.
 (* b <| sup I |> a is l`_i <| t |> l`_(i+1) for some t. We show 0 <= t <= 1 by contradiction by looking at the inequalities 0 <= det l`_j l`_(j+1) (b <| sup I |> a) for j = i+1 and j = i-1. *)
 apply/negPn/negP; rewrite negb_and -2!ltNge => /orP[t0|].

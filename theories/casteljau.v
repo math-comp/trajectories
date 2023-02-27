@@ -941,9 +941,9 @@ elim:n => [ | n IH] /=; first by move=> _ i; rewrite ltn0.
 rewrite big_ord_recr /=.
 case r : (l n == 0).
   rewrite (eqP r) scale0r addr0; move/IH=>{IH} II i.
-  rewrite ltnS leq_eqVlt =>/orP; case.
-    by move/eqP=> ->;apply/eqP.
-  by apply: II.
+  rewrite ltnS leq_eqVlt => /predU1P[->|].
+    exact/eqP.
+  exact: II.
 rewrite addr_eq0 => abs.
 case/negP: (negbT (ltnn n)).
 rewrite [X in (X <= _)%N](_ : _ = size (l n *: 'X^n)); last first.
@@ -1223,7 +1223,7 @@ Definition head_root (f : R -> R) (l : seq (root_info R)) : Prop :=
   end.
 
 Definition unique_root_for (f : R -> R) (x y : R) : Prop :=
-  exists z, x < z < y /\ f z = 0 /\ (forall u, x < u < y -> f u = 0 -> u = z).
+  exists z, [/\ x < z < y, f z = 0 & forall u, x < u < y -> f u = 0 -> u = z ].
 
 Definition no_root_for (f : R -> R) (x y : R) : Prop :=
   forall z, x < z < y -> f z != 0.
@@ -1316,31 +1316,30 @@ have qc0 : 0 <= q.[c] by apply/ltW/itv1; rewrite ac lexx.
 have qcd0 : (-q).[c] <= 0 <= (-q).[d] by rewrite !hornerN !lter_oppE qd0 qc0.
 have [x xin] := (poly_ivt (ltW cd) qcd0).
 rewrite /root hornerN oppr_eq0 =>/eqP => xr.
-exists x.
-split.
-  by case/andP: xin=> cx xd; rewrite (lt_le_trans ac cx) (le_lt_trans xd db).
-split; first by [].
-move=> u; case/andP=> au ub qu0.
-case cu : (u <= c).
-  have : a < u <= c by rewrite cu au.
-  by move/itv1; rewrite qu0 ltxx.
-case ud : (d < u).
-  have : d < u < b by rewrite ud ub.
-  by move/itv2; rewrite qu0 ltxx.
-have cu' : c <= u.
-  by apply: ltW; rewrite ltNge cu.
-have ud' : u <= d.
-  by rewrite leNgt ud.
-case/andP: xin=> cx xd.
-case ux : (u <= x).
-  have := (sl _ _ cu' ux xd).
-  rewrite qu0 xr subrr -(mulr0 k) ler_pmul2l // subr_le0 => xu.
-  by apply/eqP; rewrite eq_le ux.
-have xu : x <= u.
-  by apply: ltW; rewrite ltNge ux.
-  have := (sl _ _ cx xu ud').
-  rewrite qu0 xr subrr -(mulr0 k) ler_pmul2l // subr_le0 => ux'.
-by apply/eqP; rewrite eq_le ux'.
+exists x; split.
+- by case/andP: xin=> cx xd; rewrite (lt_le_trans ac cx) (le_lt_trans xd db).
+- by [].
+- move=> u; case/andP=> au ub qu0.
+  case cu : (u <= c).
+    have : a < u <= c by rewrite cu au.
+    by move/itv1; rewrite qu0 ltxx.
+  case ud : (d < u).
+    have : d < u < b by rewrite ud ub.
+    by move/itv2; rewrite qu0 ltxx.
+  have cu' : c <= u.
+    by apply: ltW; rewrite ltNge cu.
+  have ud' : u <= d.
+    by rewrite leNgt ud.
+  case/andP: xin=> cx xd.
+  case ux : (u <= x).
+    have := (sl _ _ cu' ux xd).
+    rewrite qu0 xr subrr -(mulr0 k) ler_pmul2l // subr_le0 => xu.
+    by apply/eqP; rewrite eq_le ux.
+  have xu : x <= u.
+    by apply: ltW; rewrite ltNge ux.
+    have := (sl _ _ cx xu ud').
+    rewrite qu0 xr subrr -(mulr0 k) ler_pmul2l // subr_le0 => ux'.
+  by apply/eqP; rewrite eq_le ux'.
 Qed.
 
 Lemma alternate_1_neq0 (p : {poly R}) :
@@ -1375,7 +1374,7 @@ have sreo : size (p ++ m) = d by rewrite size_cat /m size_mkseq addnC subnK.
 apply: (@eq_from_nth _ 0).
   by rewrite spax reorg catA size_cat sreo /= addn1.
 move=> i; rewrite spax ltnS leq_eqVlt=> ib; rewrite coef_add_poly coefZ.
-case/orP: ib => [/eqP -> | iltd].
+case/predU1P: ib => [->|iltd].
   rewrite [p`_d]nth_default // add0r coefXn eqxx mulr1 reorg catA.
   by rewrite nth_cat sreo ltnn subnn.
 move: (iltd); rewrite coefXn ltn_neqAle=> /andP [df _]; rewrite (negbTE df).
@@ -1572,7 +1571,7 @@ split => //; last split=>//.
     rewrite -(ltn_add2r i.+1) subnK // addnS ltnS -leq_subLR.
     by rewrite (leq_trans _ b2') // p1 size_cat /= addnS subSS subnDA.
   move=>{p3 p2}.
-  move/negbT: b1; rewrite -leqNgt leq_eqVlt; case/orP=>[/eqP b1 {ci} | b1].
+  move/negbT: b1; rewrite -leqNgt leq_eqVlt => /predU1P[b1 {ci}|b1].
     rewrite b1 subnn p1 /= -b1 p1 size_cat /= addnS subSS [(d - _)%N]subnDA.
     rewrite subnK; last first.
       by rewrite -(leq_add2r (size l1)) subnK // addnC.
@@ -1648,9 +1647,9 @@ wlog : l q / (0 <= (seqn0 l)`_0).
       rewrite !nth_default //; last by rewrite size_map.
       by rewrite !scale0r mulr0.
     by rewrite seqn0_oppr changes_oppr.
-  case: ur => [x [inx [xr xu]]].
+  case: ur => [x [inx xr xu]].
   exists x; split; first by [].
-  split; first by apply/eqP; rewrite -oppr_eq0 -hornerN; apply/eqP.
+  by apply/eqP; rewrite -oppr_eq0 -hornerN; apply/eqP.
   by move=> u inu /eqP; rewrite -oppr_eq0 -hornerN => /eqP; apply:xu.
 move=> sg s ab qq c1.
 suff : one_root1 q a b by apply: one_root1_unique.
