@@ -5,6 +5,10 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+(******************************************************************************)
+(*   ccw p q r := counterclockwise                                            *)
+(******************************************************************************)
+
 From mathcomp.algebra_tactics Require Import ring.
 From mathcomp.zify Require Import zify.
 
@@ -36,7 +40,6 @@ Let det_mx (p q r : Plane) :=
 
 Definition det (p q r : Plane) : R := \det (det_mx p q r).
 
-(* counterclockwise *)
 Definition ccw (p q r : Plane) : bool := (0 < det p q r)%R.
 
 Lemma direct_distincts (p q r : Plane) : ccw p q r -> p <> q.
@@ -257,10 +260,10 @@ rewrite negb_or orbF; apply/andP; split.
 by rewrite eq_sym; apply/eqP; apply (@direct_distincts r p q); rewrite /ccw det_cyclique.
 Qed.
 
-Lemma convex_combinaison p q r s t :
- det t q r * det t s p +
- det t r p * det t s q + det t p q * det t s r =
- 0.
+Lemma convex_combination p q r s t :
+  det t q r * det t s p +
+  det t r p * det t s q + det t p q * det t s r =
+  0.
 Proof. by rewrite !develop_det; ring. Qed.
 
 
@@ -313,7 +316,8 @@ Proof.
 rewrite /OT /ccw => tsp tsq tsr tpq tqr.
 have->: det t p r = - det t r p by rewrite !develop_det; ring.
 rewrite ltNge oppr_le0; apply /negP=>trp.
-suff: 0 < det t q r * det t s p + det t r p * det t s q + det t p q * det t s r by rewrite convex_combinaison ltxx.
+suff: 0 < det t q r * det t s p + det t r p * det t s q + det t p q * det t s r.
+  by rewrite convex_combination ltxx.
 rewrite addrC.
 apply ltr_paddr; [| by apply mulr_gt0].
 by apply addr_ge0; apply mulr_ge0=>//; apply ltW.

@@ -214,43 +214,25 @@ Definition ereal_blatticeMixin :
   Order.BLattice.mixin_of (Order.POrder.class (@ereal_porderType R)).
 exists (-oo); exact leNye.
 Defined.
-Canonical ereal_blatticeType := BLatticeType _ ereal_blatticeMixin.
+Canonical ereal_blatticeType := BLatticeType (\bar R) ereal_blatticeMixin.
 
 Definition ereal_tblatticeMixin :
   Order.TBLattice.mixin_of (Order.POrder.class (ereal_blatticeType)).
 exists (+oo); exact leey.
 Defined.
-Canonical ereal_tblatticeType := TBLatticeType _ ereal_tblatticeMixin.
+Canonical ereal_tblatticeType := TBLatticeType (\bar R) ereal_tblatticeMixin.
 
 (* Note: Should be generalized to tbLatticeType+orderType, but such a structure is not defined. *)
-Lemma ereal_joins_lt (J : Type) (r : seq J) (P : {pred J})
-  (F : J -> \bar R) (u : \bar R) :
-  -oo < u ->
-  (forall x : J, P x -> F x < u) ->
-  @BigOp.bigop (@Order.BLattice.sort ereal_display ereal_blatticeType) J
-               (@Order.bottom ereal_display ereal_blatticeType) r
-               (fun x : J =>
-                @BigBody
-                  (@Order.Lattice.sort ereal_display
-                     (@Order.BLattice.latticeType ereal_display ereal_blatticeType)) J x
-                  (@Order.join ereal_display (@Order.BLattice.latticeType ereal_display ereal_blatticeType))
-                  (P x) (F x)) < u
-.
+Lemma ereal_joins_lt
+    (J : Type) (r : seq J) (P : {pred J}) (F : J -> \bar R) (u : \bar R) :
+    -oo < u ->
+  (forall x, P x -> F x < u) -> \join_(x <- r | P x) F x < u.
 Proof. by move=>u0 ltFm; elim/big_rec: _ => // i x Px xu; rewrite ltUx ltFm. Qed.
 
-Lemma ereal_meets_gt (J : Type) (r : seq J) (P : {pred J})
-  (F : J -> \bar R) (u : \bar R) :
+Lemma ereal_meets_gt
+  (J : Type) (r : seq J) (P : {pred J}) (F : J -> \bar R) (u : \bar R) :
   u < +oo ->
-  (forall x : J, P x -> u < F x) ->
-  u < @BigOp.bigop (@Order.BLattice.sort ereal_display ereal_tblatticeType) J
-               (@Order.top ereal_display ereal_tblatticeType) r
-               (fun x : J =>
-                @BigBody
-                  (@Order.Lattice.sort ereal_display
-                     (@Order.BLattice.latticeType ereal_display ereal_tblatticeType)) J x
-                  (@Order.meet ereal_display (@Order.BLattice.latticeType ereal_display ereal_tblatticeType))
-                  (P x) (F x))
-.
+  (forall x, P x -> u < F x) -> u < \meet_(x <- r | P x) F x.
 Proof. by move=>u0 ltFm; elim/big_rec: _ => // i x Px xu; rewrite ltxI ltFm. Qed.
 
 End ereal_tblattice.
