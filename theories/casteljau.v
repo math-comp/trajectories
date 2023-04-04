@@ -591,11 +591,11 @@ Lemma bernp_gt0 i x : (i <= deg)%N -> a < x < b ->
 Proof.
 move=> id /andP [ax xb]; rewrite /bernp hornerMn pmulrn_lgt0; last first.
   by rewrite bin_gt0.
-rewrite !hornerE.
+rewrite !(hornerE, horner_exp).
 apply mulr_gt0; first apply mulr_gt0.
     by rewrite invr_gt0 exprn_gt0 // subr_gt0 (lt_trans ax).
-  by rewrite horner_exp exprn_gt0 // !hornerE subr_gt0.
-by rewrite horner_exp exprn_gt0 // !hornerE subr_gt0.
+  by rewrite exprn_gt0 // subr_gt0.
+by rewrite exprn_gt0 // subr_gt0.
 Qed.
 
 End bernp.
@@ -1742,7 +1742,7 @@ Lemma bern0_a : forall (a b : R) deg i, a != b -> (0 < deg)%N ->
    (i <= deg)%N -> (bernp a b deg i).[a] == 0 = (i != 0)%N.
 Proof.
 move=> a b deg i anb dn0 id.
-rewrite /bernp hornerMn !hornerE !horner_exp !hornerE subrr.
+rewrite /bernp hornerMn !(hornerE, horner_exp) subrr.
 rewrite mulrn_eq0 !mulf_eq0 !expf_eq0 eqxx andbT invr_eq0 expf_eq0 dn0 andTb.
 rewrite subr_eq0 [b == a]eq_sym (negbTE anb) orFb lt0n andbF orbF.
 by rewrite eqn0Ngt bin_gt0 id.
