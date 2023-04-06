@@ -1181,6 +1181,26 @@ Definition inside_box (p : pt) (bottom top : edge) :=
 (*******  starting work on an example ******************)
 
 Definition example_edge_list : seq edge :=
+  Bedge (Bpt (-1) 0) (Bpt 0 0.1) :: 
+  Bedge (Bpt 0 1) (Bpt 1 1.5) ::
+  nil.
+
+(*
+Definition example_edge_list : seq edge :=
+  Bedge (Bpt (-3) 0.5) (Bpt (-2) 1.5) ::
+  Bedge (Bpt (-2) 1.5) (Bpt 0 1) ::
+  Bedge (Bpt (-3) 0.5) (Bpt (-1) 0) ::
+  Bedge (Bpt (-1) (-2)) (Bpt 0 (-1)) ::
+  Bedge (Bpt 1 0) (Bpt 2 1.5) ::
+  Bedge (Bpt 0 (-3)) (Bpt 3 0) ::
+  Bedge (Bpt (-2) 1) (Bpt 0 1) ::
+  Bedge (Bpt 0 1) (Bpt 1 0) ::
+  Bedge (Bpt (-1) 0) (Bpt 0 (-1)) ::
+ nil.
+*)
+
+(*
+Definition example_edge_list : seq edge :=
   Bedge (Bpt (-3) 0) (Bpt (-2) 1) ::
   Bedge (Bpt (-3) 0) (Bpt 0 (-3)) ::
   Bedge (Bpt 0 (-3)) (Bpt 3 0) ::
@@ -1193,7 +1213,7 @@ Definition example_edge_list : seq edge :=
   Bedge (Bpt (4 # 5) (-1 # 5)) (Bpt 2 1) ::
   Bedge (Bpt (4 # 5) (-1 # 5)) (Bpt (17 # 5) (-5 / 2)) ::
   Bedge  (Bpt (-2) (-1)) (Bpt (17 # 5) (-5 / 2)) :: nil. *)
-
+*)
 
 Lemma example_edge_cond : edge_cond example_edge_list = true.
 Proof. easy. Qed.
@@ -1247,20 +1267,28 @@ List.map (display_curve_element 300 400 70) bad_smooth ++
 Definition example_cells := edges_to_cells example_bottom example_top
      example_edge_list.
 
+Definition example_events := edges_to_events example_edge_list.
+
+Definition ststate := start (nth 0 example_events dummy_event)
+              example_bottom example_top.
+
+Compute ststate.
+Definition state2 := step (nth 1 example_events dummy_event) ststate.
+Compute state2.
+Compute step (nth 2 example_events dummy_event) state2.
+Compute nth 5 example_cells dummy_cell.
+
 Definition o2l [A : Type] (x : option (seq A)) :=
   match x with Some v => v | None => nil end.
 
-Compute (point_to_point example_cells (Bpt 2 1) (Bpt (-2) (1/3)),
-         point_to_point example_cells (Bpt 2 1) (Bpt (-2.1) (1/3))).
+Compute cell_path example_cells 3 12.
 
-Compute let p1 := (* Bpt (-19/10) (-3/2) *) Bpt (-1) (2/3) in
-  let p2 := Bpt (-3.1) 1.9 in
-  let target_is := find_origin_cells example_cells p2 in
-  let cp := o2l (cell_path example_cells 0 3) in
-  existsb (Nat.eqb (nth ((List.length cp) - 2) cp 0%nat)) target_is.
+Compute (nth 12 example_cells dummy_cell).
+Compute cell_safe_exits_left (nth 12 example_cells dummy_cell).
+Compute cell_safe_exits_right (nth 3 example_cells dummy_cell).
 
-Compute let p2 := (* Bpt (-19/10) (-3/2) *) Bpt (-1.1) (2/3) in
-  let p1 := Bpt (-3.1) 1.9 in
+Compute let p2 := (* Bpt (-19/10) (-3/2) *) Bpt (-0.5) (0.5) in
+  let p1 := Bpt 0.5 0 in
   example_test p1 p2
    ("[4 4] 0 setdash 3 setlinewidth"%string ::
    (List.map (fun sg => display_segment 300 400 70 (apt_val (fst sg), apt_val (snd sg)))
