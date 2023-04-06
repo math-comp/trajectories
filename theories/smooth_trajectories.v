@@ -1235,6 +1235,15 @@ Lemma example_inside_box :
      (edges_to_events example_edge_list) = true.
 Proof. easy. Qed.
 
+Lemma all_cells_have_left_neighbor :
+  let cells := edges_to_cells example_bottom example_top example_edge_list in
+  forallb (fun c =>
+            (implb (andb (negb (Qeq_bool (left_limit c)
+                (p_x (seq.head dummy_pt (leftmost_points example_bottom example_top)))))
+                (Nat.ltb 1 (List.length (left_pts c))))
+            (existsb (fun c' => lr_connected c' c) cells))) cells = true.
+Proof. easy. Qed.
+
 Definition example_start_event :=
   seq.head dummy_event (edges_to_events example_edge_list).
 
