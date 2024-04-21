@@ -1,4 +1,23 @@
+From elpi Require Import elpi.
+
+#[projections(primitive)] Record r := { fst : nat -> nat; snd : bool }.
+Axiom t : r.
+Elpi Command test.
+Elpi Query lp:{{
+  coq.say "quotation for primitive fst t" {{ t.(fst) 3 }},
+  coq.say "quotation for compat fst t" {{ fst t 3 }},
+  coq.locate "r" (indt I),
+  coq.env.projections I [some P1,some P2],
+  coq.say "compatibility constants" P1 P2,
+  coq.env.primitive-projections I [some (pr Q1 N1), some (pr Q2 N2)],
+  coq.say "fst primproj" Q1 N1,
+  coq.say "snd primproj" Q2 N2
+}}.
+
+
+
 Require Import Reals.
+From HB Require Import structures.
 From mathcomp Require Import all_ssreflect all_algebra vector reals classical_sets Rstruct.
 From infotheo Require Import convex.
 
@@ -14,7 +33,7 @@ Unset Printing Implicit Defensive.
 Lemma enum_rank_index {T : finType} i :
   nat_of_ord (enum_rank i) = index i (enum T).
 Proof.
-rewrite /enum_rank /enum_rank_in /insubd /odflt /oapp insubT//.
+rewrite /enum_rank [enum_rank_in]unlock /insubd /odflt /oapp insubT//.
 by rewrite cardE index_mem mem_enum.
 Qed.
 
@@ -22,7 +41,9 @@ Qed.
    deep into the library ? *)
 Lemma enum_prodE {T1 T2 : finType} :
   enum [finType of T1 * T2] = prod_enum T1 T2.
-Proof. by rewrite enumT Finite.EnumDef.enumDef. Qed.
+Proof.
+by rewrite /enum_mem unlock /= /prod_enum -(@eq_filter _ predT) ?filter_predT.
+Qed.
 
 Lemma index_allpairs {T1 T2: eqType} (s1: seq T1) (s2: seq T2) x1 x2 :
     x1 \in s1 -> x2 \in s2 ->
@@ -30,7 +51,7 @@ Lemma index_allpairs {T1 T2: eqType} (s1: seq T1) (s2: seq T2) x1 x2 :
     ((index x1 s1) * (size s2) + index x2 s2)%N.
 Proof.
 move=>ins1 ins2.
-elim: s1 ins1=>//= a s1 IHs1 ins1.
+elim: s1 ins1=>//= a s1 IHs1 ins1. (* HERE*)
 rewrite index_cat.
 case ax: (a == x1).
    move: ax=>/eqP ax; subst a; rewrite /muln /muln_rec /addn /addn_rec /=.
@@ -43,11 +64,11 @@ case in12: ((x1, x2) \in [seq (a, x0) | x0 <- s2]).
 by rewrite size_map (IHs1 ins1) addnA.
 Qed.
 
-Lemma enum_rank_prod {T T': finType} i j :
-  (nat_of_ord (@enum_rank [finType of T * T'] (i, j)) = (enum_rank i) * #|T'| + enum_rank j)%N.
+Lemma enum_rank_prod {T T': finType} (i : T) (j : T') :
+  (nat_of_ord (enum_rank (i, j)) = (enum_rank i) * #|T'| + enum_rank j)%N.
 Proof.
 do 3 rewrite enum_rank_index.
-rewrite enumT Finite.EnumDef.enumDef cardE=>/=.
+rewrite enum_prodE cardE /=.
 by apply index_allpairs; rewrite enumT.
 Qed.
 

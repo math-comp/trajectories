@@ -25,3 +25,5 @@ theories/preliminaries_hull.v
 
 -arg -w -arg -notation-overridden
 -arg -w -arg -ambiguous-paths
+theories/smooth_trajectories.v
+theories/generic_trajectories.v
