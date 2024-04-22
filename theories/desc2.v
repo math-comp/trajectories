@@ -197,7 +197,7 @@ have dnz: d != 0 by move: etc; rewrite /d; case s => // s' l' /= /andP [].
 rewrite addnC addnA addnC; move: (hr etc).
 rewrite -sgr_gt0 - (sgr_gt0 (c*b)) - sgr_lt0 ! sgrM.
 rewrite /sgr - if_neg   - (if_neg (c==0))- (if_neg (b==0)) bnz dnz cnz.
-by case (d<0); case (b<0); case (c<0); rewrite ?mulrNN ? mulr1 ?mul1r ?ltr01
+by case: (d<0); case: (b<0); case: (c<0); rewrite ?mulrNN ? mulr1 ?mul1r ?ltr01
     ?ltrN10 ? ltr10 ? ltr0N1 ?addn0 ? addnS ?addn0//=; move => ->.
 Qed.
 
@@ -282,7 +282,9 @@ have q2: all (root q) l.
 have [r qv rq]:= (Hrec q  q0  q1 ul q2).
 exists r => //; rewrite {1} pv {1} qv mulrAC; congr (_ * _).
 rewrite big_cons mulrC; congr (_ * _).
-rewrite 2! (big_nth 0) 2! big_mkord; apply: eq_bigr => i _.
+rewrite (big_nth 0).
+rewrite [RHS](big_nth 0).
+rewrite 2! big_mkord; apply: eq_bigr => i _.
 set b := l`_i;congr (_ ^+ _).
 have rb: root q b by apply /(allP q2); rewrite mem_nth //.
 have nr: ~~ root (('X - a%:P) ^+ \mu_a p) b.

@@ -1,3 +1,4 @@
+From HB Require Import structures.
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq order.
 From mathcomp Require Import choice fintype finfun ssrfun bigop ssralg.
 (*Require Import orderedalg.*)
@@ -34,8 +35,7 @@ Proof.
   rewrite /eqp; case e: ((p ?= q))%positive=> // _; exact: Pcompare_Eq_eq.
 Qed.
 
-Canonical Structure eqp_Mixin := EqMixin eqpP.
-Canonical Structure eqp_eqType := Eval hnf in EqType positive eqp_Mixin.
+HB.instance Definition _ := hasDecEq.Build _ eqpP.
 
 Definition p_unpickle n := Some (Pos.pred (P_of_succ_nat n)).
 
@@ -45,22 +45,19 @@ Proof.
   by rewrite pred_o_P_of_succ_nat_o_nat_of_P_eq_id.
 Qed.
 
-Definition p_countMixin  := CountMixin p_pick_cancel.
-Definition p_choiceMixin := CountChoiceMixin p_countMixin.
+HB.instance Definition _ := @PCanIsCountable _ _ _ _ p_pick_cancel.
 
-Canonical Structure p_choiceType :=
+(*Canonical Structure p_choiceType :=
   Eval hnf in ChoiceType positive p_choiceMixin.
 Canonical Structure p_countType :=
-  Eval hnf in CountType positive p_countMixin.
+  Eval hnf in CountType positive p_countMixin.*)
 
 (* Structures on Z *)
 
 Lemma eqzP : Equality.axiom Zeq_bool.
 Proof. by move=> z1 z2;  apply: (iffP idP); move/Zeq_is_eq_bool. Qed.
 
-Canonical Structure Z_Mixin := EqMixin eqzP.
-Canonical Structure Z_eqType := Eval hnf in EqType Z Z_Mixin.
-
+HB.instance Definition _ := hasDecEq.Build _ eqzP.
 
 Definition z_code (z : Z) :=
   match z with
@@ -99,6 +96,9 @@ Proof.
   by move=> x; rewrite /z_pickle /z_unpickle pickleK z_codeK.
 Qed.
 
+HB.instance Definition _ := @PCanIsCountable _ _ _ _ z_pick_cancel.
+
+(*
 Definition z_countMixin  := CountMixin z_pick_cancel.
 Definition z_choiceMixin := CountChoiceMixin z_countMixin.
 
@@ -106,7 +106,7 @@ Canonical Structure z_choiceType :=
   Eval hnf in ChoiceType Z z_choiceMixin.
 Canonical Structure z_countType :=
   Eval hnf in CountType Z z_countMixin.
-
+*)
 
 Lemma ZplusA : associative Zplus.
 Proof. by exact Zplus_assoc. Qed.
@@ -123,11 +123,7 @@ Proof. exact Zplus_opp_l. Qed.
 Lemma ZplusrN : right_inverse 0%Z Z.opp Zplus.
 Proof. exact Zplus_opp_r. Qed.
 
-Definition Z_zmodMixin :=
-  ZmodMixin ZplusA ZplusC Zplus0 ZplusNr.
-
-Canonical Structure Z_zmodType :=
-  Eval hnf in ZmodType Z Z_zmodMixin.
+HB.instance Definition _ := @GRing.isZmodule.Build Z _ _ _ ZplusA ZplusC Zplus0 ZplusNr.
 
 (* Z Ring *)
 Lemma ZmultA : associative Zmult.
@@ -151,16 +147,12 @@ Proof. exact: Zmult_plus_distr_r. Qed.
 Lemma nonzeroZ1 : 1%Z != 0%Z.
 Proof. by []. Qed.
 
-Definition Z_ringMixin :=
-  RingMixin ZmultA Zmult1q Zmultq1 Zmult_addl Zmult_addr nonzeroZ1.
-
-Canonical Structure Z_ringType :=
-  Eval hnf in RingType Z Z_ringMixin.
+HB.instance Definition _ := @GRing.Zmodule_isRing.Build Z _ _ ZmultA Zmult1q Zmultq1 Zmult_addl Zmult_addr nonzeroZ1.
 
 Lemma ZmultC : commutative Zmult.
 Proof. exact: Zmult_comm. Qed.
 
-Canonical Structure Z_comRingType := ComRingType Z ZmultC.
+HB.instance Definition _ := @GRing.Ring_hasCommutativeMul.Build Z ZmultC.
 
 (* Warning : an antisymmetric an a transitive predicates are
 present in loaded Relations.Relation_Definition *)
@@ -202,12 +194,7 @@ Qed.
 Lemma  Zinv_out : {in predC Zunit, Zinv =1 id}.
 Proof. exact. Qed.
 
-Definition Z_comUnitRingMixin :=  ComUnitRingMixin ZmulV unitZPl Zinv_out.
-
-Canonical Structure Z_unitRingType :=
-  Eval hnf in UnitRingType Z Z_comUnitRingMixin.
-
-Canonical Structure Z_comUnitRing := Eval hnf in [comUnitRingType of Z].
+HB.instance Definition _ := GRing.ComRing_hasMulInverse.Build Z ZmulV unitZPl Zinv_out.
 
 Lemma Z_idomain_axiom : forall x y : Z,
   x * y = 0 -> (x == 0) || (y == 0).
@@ -216,7 +203,7 @@ move=> x y; rewrite -[x * y]/(Zmult x y); move/Zmult_integral; case=> -> //=.
 by rewrite eqxx orbT.
 Qed.
 
-Canonical Structure Z_iDomain := Eval hnf in IdomainType Z Z_idomain_axiom.
+HB.instance Definition _ := @GRing.ComUnitRing_isIntegral.Build Z Z_idomain_axiom.
 
 Lemma Zlt_def (x y : Z) : (x <? y)%Z = (y != x) && (x <=? y)%Z.
 Proof.
@@ -236,13 +223,8 @@ Lemma Z_display : Datatypes.unit. Proof. exact: tt. Qed.
   @LePOrderMixin Z_eqType Z.leb Z.ltb Zlt_def Zle_bool_refl Zle_bool_antisymb Zle_bool_transb.
 Canonical Z_porderType := POrderType Z_display Z Z_OrderedRingMixin.*)
 
-Definition Z_OrderedRingMixin2 :=
-  LeOrderMixin Zlt_def (fun _ _ => erefl) (fun _ _ => erefl) Zle_bool_antisymb Zle_bool_transb Zle_total.
-
-Canonical z_porderType := POrderType Z_display Z Z_OrderedRingMixin2.
-Canonical z_latticeType := LatticeType Z Z_OrderedRingMixin2.
-Canonical z_distrLatticeType := DistrLatticeType Z Z_OrderedRingMixin2.
-Canonical z_orderType := OrderType Z Z_OrderedRingMixin2.
+HB.instance Definition _ :=
+  @Order.isOrder.Build Z_display Z _ _ _ _ Zlt_def (fun _ _ => erefl) (fun _ _ => erefl) Zle_bool_antisymb Zle_bool_transb Zle_total.
 
 (*Canonical Structure Z_OrderedRingType :=
   Eval hnf in OIdomainType Z Z_OrderedRingMixin.

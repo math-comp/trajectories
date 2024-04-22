@@ -724,7 +724,7 @@ have -> // : forall c : R, c != 0 ->
   move=> c hc; rewrite scaleX_polyE size_factor_expr.
   rewrite [(_ * _ + _) ^+ _]exprDn.
   rewrite (reindex_inj rev_ord_inj) /=.
-  rewrite power_monom poly_def; apply: eq_bigr => j _.
+  rewrite power_monom [LHS]poly_def; apply: eq_bigr => j _.
   rewrite coef_poly subSS; have -> : (j < i.+1)%N by case j.
   rewrite subKn; last by case j.
   rewrite exprMn_comm; last by exact: mulrC.
@@ -753,7 +753,7 @@ Qed.
 
 Lemma scaleD (p q : {poly R}) u : (p + q) \shift u = p \shift u + (q \shift u).
 Proof.
-by rewrite /scaleX_poly linearD.
+by apply: linearD.
 Qed.
 
 (* TODO : move to another section and abstract over deg a b, maybe *)
@@ -894,11 +894,15 @@ rewrite [_ \shift 0]/shift_poly addr0 comp_polyXr.
   and lemma about composing scale operations. *)
 rewrite recip_scale_swap // recipK // /sc mul_polyC /scaleX_poly linearZ /=.
 rewrite -comp_polyA comp_polyM comp_polyX comp_polyC -mulrA -polyCM.
-by rewrite mulVf // mulr1 comp_polyXr linearZ /= shift_polyDK.
+rewrite mulVf // mulr1 comp_polyXr.
+transitivity ((b - a) ^+ deg *: ((q \shift a) \shift - a)).
+  exact: linearZ.
+by rewrite /= shift_polyDK.
 Qed.
 
 Lemma relocate0 (p : {poly R}) : (size p <= deg.+1)%N ->
   (relocate p == 0) = (p == 0).
+Proof.
 move=> s; apply/idP/idP; last first.
   move/eqP=> ->; rewrite /relocate /shift_poly /scaleX_poly !linear0.
   by rewrite size_poly0 ltn0 recip0 linear0.
@@ -1048,7 +1052,7 @@ have -> : bernp a b p k =
 have -> : (('X - a%:P) ^+ k * ((b - a) ^- k)%:P) =
            (beta^+k)%:P * (('X - a%:P) ^+ k * ((m - a) ^- k)%:P).
   rewrite /beta expr_div_n polyCM !mulrA -[_ * (_ ^+k)]mulrC !mulrA mulrAC.
-  rewrite -!mulrA -polyCM mulfV ?polyC1 ?mulr1 ?expf_eq0 ?subr_eq0 //.
+  rewrite -!mulrA -polyCM. mulfV. ?polyC1 ?mulr1 ?expf_eq0 ?subr_eq0 //.
   by move/negPf: dma => ->; rewrite andbF.
 rewrite -(exprVn (b - a)) [(_ ^-1 ^+ _)%:P]polyC_exp.
 rewrite -exprMn_comm; last by exact: mulrC.

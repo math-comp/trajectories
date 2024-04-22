@@ -402,7 +402,7 @@ rewrite (big_cat_nat op (n:=n)) // big_nat1 Hn
   [x in (op _ _ = x)](big_cat_nat op (n:=n)) // big_nat1 big_nat1
   (Monoid.mulmA op).
 congr (op _ _).
-rewrite -big_split big_nat [x in (_ = x)]big_nat.
+rewrite -[LHS]big_split big_nat [x in (_ = x)]big_nat.
 apply: eq_bigr => i Hi.
 rewrite [x in (_ = x)](big_cat_nat op (n:=n)) // ?big_nat1 // ltnW//.
 by case/andP: Hi=> _ ->.
@@ -531,9 +531,9 @@ apply/normalP; split=> [k | |k Hk |i Hpqi j Hij Hj].
       \sum_(h.+2 <= j < k.+2) p`_h * q`_(k.-1 - h) * (p`_j * q`_(k.+1 - j)).
     rewrite big_add1 -pred_Sn -!big_split big_nat [x in (_ = x)]big_nat.
     apply: eq_bigr => h Hh.
-    rewrite (big_cat_nat (n:= h.+1) (GRing.add_comoid R) (fun j => true)
+    rewrite (big_cat_nat (n:= h.+1) GRing.add (fun j => true)
       (fun j => p`_h * q`_(k.-1 - h) * (p`_j * q`_(k.+1 - j))) ) //.
-      rewrite (big_cat_nat (n:= h.+2) (m:=h.+1) (GRing.add_comoid R)
+      rewrite (big_cat_nat (n:= h.+2) (m:=h.+1) GRing.add
         (fun j => true)
         (fun j => p`_h * q`_(k.-1 - h) * (p`_j * q`_(k.+1 - j))) ).
           rewrite big_nat1 -pred_Sn /= -/(nth 0 _ (h.+1)) !addrA.
@@ -547,8 +547,8 @@ apply/normalP; split=> [k | |k Hk |i Hpqi j Hij Hj].
   rewrite H {H}
   [x in ((x + _) - _)]addrC -[x in (_ - x)]addrA [x in (_ - (_ + x))]addrC
   !opprD !addrA addrC -sumrN !addrA -big_split.
-  have H : \big[GRing.add_comoid R/0]_(1 <= i < k.+1)
-      (GRing.add_comoid R)
+  have H : \big[GRing.add/0]_(1 <= i < k.+1)
+      GRing.add
         (- (p`_i.-1 * q`_(k - i) * (p`_i * q`_(k.+1 - i))))
         (p`_i * q`_(k - i) * (p`_i.-1 * q`_(k - i.-1))) = 0.
     rewrite big_split sumrN /= addrC.
@@ -586,8 +586,8 @@ apply/normalP; split=> [k | |k Hk |i Hpqi j Hij Hj].
       by rewrite big_add1 -pred_Sn.
     rewrite H {H} [x in (_ + (_ + _) - x - _)]xchange
       -{12}(prednK Hk) [x in (_ + (_ + _) - x - _)]big_nat_recl//.
-    have H :(\big[GRing.add_comoid R/0]_(0 <= i < k.-1)
-         \big[GRing.add_comoid R/0]_(i.+1 <= j < k)
+    have H :(\big[GRing.add/0]_(0 <= i < k.-1)
+         \big[GRing.add/0]_(i.+1 <= j < k)
             (p`_j * q`_(k.-1 - j) * (p`_i.+1 * q`_(k.+1 - i.+1))) =
          \sum_(1 <= h < k)
       \sum_(h <= j < k) p`_h * q`_(k.+1 - h) * (p`_j * q`_(k.-1 - j))).
@@ -602,14 +602,14 @@ apply/normalP; split=> [k | |k Hk |i Hpqi j Hij Hj].
       \sum_(1 <= h < k)
         \sum_(h <= j < k) p`_h.-1 * q`_(k - h) * (p`_j.+1 * q`_(k - j)) +
       \sum_(1 <= i < k.+1) p`_i.-1 * q`_(k - i) * (p`_k.+1 * q`_0).
-      rewrite (big_cat_nat (GRing.add_comoid R) (n:= k)) //
+      rewrite (big_cat_nat GRing.add (n:= k)) //
         big_nat1 big_nat1
-        [x in (_ = _ + x)](big_cat_nat (GRing.add_comoid R) (n:= k)) //
+        [x in (_ = _ + x)](big_cat_nat GRing.add (n:= k)) //
         big_nat1 (addnK k 0%N) Monoid.addmA.
       congr (_ + _).
       rewrite -big_split big_nat [x in (_ = x)]big_nat.
       apply: eq_bigr => i Hi.
-      rewrite  (big_cat_nat (GRing.add_comoid R) (n:= k)) //.
+      rewrite  (big_cat_nat GRing.add (n:= k)) //.
         rewrite big_nat1.
         by rewrite (addnK k 0%N).
       apply: ltnW.
@@ -620,14 +620,14 @@ apply/normalP; split=> [k | |k Hk |i Hpqi j Hij Hj].
        \sum_(1 <= h < k)
          \sum_(h <= j < k) p`_h * q`_(k - h) * (p`_j * q`_(k - j)) +
        \sum_(1 <= i < k.+1) p`_i * q`_(k - i) * (p`_k * q`_0).
-      rewrite (big_cat_nat (GRing.add_comoid R) (n:= k)) //
+      rewrite (big_cat_nat GRing.add (n:= k)) //
         big_nat1 big_nat1
-        [x in (_ = _ + x)](big_cat_nat (GRing.add_comoid R) (n:= k)) //
+        [x in (_ = _ + x)](big_cat_nat GRing.add (n:= k)) //
         big_nat1 (addnK k 0%N) Monoid.addmA.
       congr (_ + _).
       rewrite -big_split big_nat [x in (_ = x)]big_nat.
       apply: eq_bigr => i Hi.
-      rewrite  (big_cat_nat (GRing.add_comoid R) (n:= k)) //.
+      rewrite  (big_cat_nat GRing.add (n:= k)) //.
         by rewrite big_nat1 (addnK k 0%N).
       apply: ltnW.
       by case/andP : Hi.
@@ -637,15 +637,15 @@ apply/normalP; split=> [k | |k Hk |i Hpqi j Hij Hj].
       [x in (((((_ + x) + _) + _) + _) + _)]addrC
       !addrA -big_split
       -addrA [x in (_ + x)]addrC !addrA addrC !addrA -big_split.
-    have H : \big[GRing.add_comoid R/0]_(1 <= i < k)
-      (GRing.add_comoid R)
-        ((GRing.add_comoid R)
+    have H : \big[GRing.add/0]_(1 <= i < k)
+      GRing.add
+        (GRing.add
            (-
             (\sum_(i <= j < k) p`_i * q`_(k.+1 - i) * (p`_j * q`_(k.-1 - j))))
            (-
             (\sum_(i <= j < k) p`_i.-1 * q`_(k - i) * (p`_j.+1 * q`_(k - j)))))
-        ((GRing.add_comoid R)
-           (\big[GRing.add_comoid R/0]_(i <= j < k)
+        (GRing.add
+           (\big[GRing.add/0]_(i <= j < k)
                (p`_j.+1 * q`_(k - j.+1) * (p`_i.-1 * q`_(k - i.-1))))
            (\sum_(i <= j < k) p`_i * q`_(k - i) * (p`_j * q`_(k - j)))) =
         \sum_(1 <= h < k) \sum_(h <= j < k) (p`_h * p`_j - p`_h.-1 * p`_j.+1) *
@@ -848,8 +848,8 @@ Proof.
 move=> p z Hz Hrootz.
 have Hrootzbar : root (toC p) z^*.
   by rewrite -complex_root_conj_polyR.
-have Hp := (factor_complex_roots z).
-rewrite -(dvdp_map ((ComplexField.real_complex_rmorphism R))) /= Hp.
+have /= Hp := (factor_complex_roots z).
+rewrite -(dvdp_map (real_complex R)) /= Hp.
 rewrite Gauss_dvdp.
   apply/andP; split; by rewrite -root_factor_theorem.
 apply: Pdiv.ClosedField.root_coprimep => x.
@@ -868,7 +868,7 @@ Lemma real_root_div_poly_deg1 (p : {poly R}) (z : C) :
 Proof.
 move=>Himz Hroot.
 rewrite root_factor_theorem (@complexE _ z) Himz mulr0 addr0 in Hroot.
-rewrite -(dvdp_map ((ComplexField.real_complex_rmorphism R))) /=.
+rewrite -(dvdp_map (real_complex R)) /=.
 have H : toC ('X - (Re z)%:P) = 'X - ((Re z)%:C)%:P.
   by rewrite map_poly_is_additive map_polyC map_polyX.
 by rewrite H.

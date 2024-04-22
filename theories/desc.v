@@ -1086,7 +1086,7 @@ move: (pol_lip q (z:=y)); set c := (norm_pol q^`()).[y] => cp.
 have cp0 : 0 < c.
   move: (lt_le_trans nega posb'); rewrite - subr_gt0 => dp.
   move: (ltW (le_lt_trans b'y' y'y)) => pb.
-  move: y0; rewrite -oppr_lt0 => yn0.
+  move: y0; rewrite -(oppr_lt0 y) => yn0.
   move: (ltW (lt_trans yn0 (lt_le_trans x10 x1a))) => pa.
   move: (cp _ _ pa (ltW ab) pb); rewrite (gtr0_norm dp) => dp'.
   by move: (lt_le_trans  dp dp'); rewrite pmulr_lgt0 // subr_gt0.
