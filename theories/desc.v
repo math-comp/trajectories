@@ -836,7 +836,7 @@ Lemma desc_l4 (p: {poly R}) :  alternate_1 p -> inv2 p.
 Proof.
 move: p;elim/poly_ind => [| p a ih]; first by rewrite/alternate_1 polyseq0.
 have desc_c: alternate_1 (a%:P) -> inv2 (a%:P).
-  rewrite polyseqC;case (a==0) => //=; case ha: (0< a) => // _.
+  rewrite polyseqC;case: (a==0) => //=; case ha: (0< a) => // _.
   move=> eps eps0; exists (eps / a); split.
       by move => y _ _; rewrite !hornerC.
     by move => y1 y2 _ _ _ ; rewrite !hornerC.

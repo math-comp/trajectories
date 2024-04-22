@@ -230,7 +230,7 @@ From infotheo Require Import fdist.
 Local Open Scope fdist_scope.
 
 Lemma Convn_pair [T U : convType] [n : nat] (g : 'I_n -> T * U) (d : {fdist 'I_n}) :
-  Convn d g = (Convn d (fst \o g), Convn d (snd \o g)).
+  Convn conv d g = (Convn conv d (Datatypes.fst \o g), Convn conv d (Datatypes.snd \o g)).
 Proof.
 elim: n g d => [|n IHn] g d.
    by have := fdistI0_False d.

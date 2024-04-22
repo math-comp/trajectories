@@ -1,3 +1,4 @@
+From HB Require Import structures.
 From mathcomp Require Import all_ssreflect.
 From mathcomp Require Import ssralg poly ssrnum ssrint rat polyrcf.
 From mathcomp Require Import polyorder polydiv.
@@ -73,7 +74,7 @@ Qed.
 
 Lemma double_half x : half x + half x = x.
 Proof.
-by rewrite -mulrDl-mulr2n - mulr_natr -mulrA divrr ?two_unit ?mulr1.
+by rewrite /half -splitr.
 Qed.
 
 Lemma half_inj (x y : R) : half x = half y -> x = y.
@@ -443,10 +444,11 @@ Proof.
 split. move=> x y; exact: comp_polyM. by rewrite /shift_poly comp_polyC.
 Qed.
 
+(*HB.instance Definition _ c := GRing.isLinear.Build _ _ _ _ _ (shift_poly_is_linear c).
+
 Canonical shift_poly_additive c := Additive (shift_poly_is_linear c).
 Canonical shift_poly_linear c := Linear (shift_poly_is_linear c).
-Canonical shift_poly_rmorphism c := AddRMorphism (shift_poly_multiplicative c).
-
+Canonical shift_poly_rmorphism c := AddRMorphism (shift_poly_multiplicative c).*)
 
 Lemma shift_polyD  c1 c2 p:
   p \shift (c2 + c1) = (p\shift c1) \shift c2.
@@ -650,7 +652,7 @@ Qed.
 Lemma reciprocalM p q :
   reciprocal_pol (p * q) = reciprocal_pol p * reciprocal_pol q.
 Proof.
-move: (reciprocalC (GRing.zero R)) => aux.
+move: (reciprocalC 0) => aux.
 case (poly0Vpos p); first by move => ->; rewrite mul0r aux mul0r.
 case (poly0Vpos q); first by move => -> _; rewrite mulr0 aux mulr0.
 set m:=  (size p + size q).-1; move=> pa pb.
@@ -727,7 +729,7 @@ Proof.
 move=> Hp.
 have H0noroot : ~~(root (p %/ 'X^(\mu_0 p)) 0).
   rewrite -mu_gt0.
-    rewrite -eqn0Ngt -(addr0 'X) -(@oppr0 (poly_zmodType R)) -polyC0 mu_div
+    rewrite -eqn0Ngt -(addr0 'X) -(@oppr0 {poly R}) -polyC0 mu_div
       ?subn_eq0; by rewrite leqnn.
   rewrite Pdiv.CommonIdomain.divp_eq0 negb_or Hp /= negb_or.
   rewrite -size_poly_gt0 {1}size_polyXn /= -leqNgt dvdp_leq //.
@@ -1145,7 +1147,8 @@ have : `|p.[b'] - p.[a']| <= eps.
     rewrite mulrA ler_pdivr_mulr ?ltr0Sn // mulrC [eps * _]mulrC.
     rewrite -ler_pdivr_mulr //; apply: (ltW  qn).
 case/ler_normlP => h1 h2.
-rewrite ler_oppl -(ler_add2l p.[b']) (le_trans h2) ? ler_addr //.
+rewrite ler_oppl/= !andbT.
+rewrite -[in X in X && _](ler_add2l p.[b']) (le_trans h2) ? ler_addr //.
 by rewrite -(ler_add2r (- p.[a'])) (le_trans h2) // ler_addl oppr_gte0 ltW.
 Qed.
 
