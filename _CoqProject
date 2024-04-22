@@ -22,7 +22,6 @@ theories/axiomsKnuth.v
 theories/preliminaries_hull.v
 
 -R theories trajectories
--R ../infotheo infotheo 
 
 -arg -w -arg -notation-overridden
 -arg -w -arg -ambiguous-paths
