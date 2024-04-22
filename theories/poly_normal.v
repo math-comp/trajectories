@@ -183,7 +183,7 @@ rewrite exprMn_comm; last first.
   by rewrite -mulNrn mulrC.
 rewrite sqrrN.
 rewrite -natrX.
-rewrite mulr_natl.
+rewrite (mulr_natl _ (2 ^ 2)).
 rewrite [_ ^+2 *+ _]mulrS ler_add2l -mulr_natl -andbA /=.
 apply/idP/idP => [/orP [] | H].
     rewrite eq_sym paddr_eq0 ?sqr_ge0 //.
