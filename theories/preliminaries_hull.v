@@ -36,8 +36,8 @@ elim: m n=>[| m IHm] n.
    rewrite /addn/addn_rec-plus_n_O.
    move:(size_iota n 0)=>/size0nil->/=; apply/esym/negbTE.
    rewrite negb_and orbC -implybE; apply/implyP=>/forallP lmono; rewrite -ltnNge.
-   elim:l a {IHl} lmono=>[| b l IHl] a; first by move=>/(_ 0).
-   by move=>lmono; apply (ltn_trans (lmono 0)); apply IHl=>i/=; apply (lmono (lift ord0 i)).
+   elim:l a {IHl} lmono=>[| b l IHl] a; first by move=>/(_ ord0).
+   by move=>lmono; apply (ltn_trans (lmono ord0)); apply IHl=>i/=; apply (lmono (lift ord0 i)).
 rewrite/iota-/(iota n.+1 m)/subseq.
 case: ifP.
    move=>/eqP an; subst a.
@@ -216,11 +216,13 @@ Variable (R : realDomainType).
 Local Open Scope ereal_scope.
 
 (* PRed to MathComp-Analysis: https://github.com/math-comp/analysis/pull/859 *)
+(*
 Definition ereal_blatticeMixin :
   Order.BLattice.mixin_of (Order.POrder.class (@ereal_porderType R)).
 exists (-oo); exact leNye.
 Defined.
 Canonical ereal_blatticeType := BLatticeType (\bar R) ereal_blatticeMixin.
+
 
 Definition ereal_tblatticeMixin :
   Order.TBLattice.mixin_of (Order.POrder.class (ereal_blatticeType)).
@@ -228,6 +230,7 @@ exists (+oo); exact leey.
 Defined.
 Canonical ereal_tblatticeType := TBLatticeType (\bar R) ereal_tblatticeMixin.
 (* /PRed *)
+*)
 
 (* Note: Should be generalized to tbLatticeType+orderType, but such a structure is not defined. *)
 Lemma ereal_joins_lt

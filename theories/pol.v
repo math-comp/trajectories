@@ -440,9 +440,13 @@ Lemma shift_poly_is_linear c: linear (shift_poly c).
 Proof. by move=> a u v; rewrite /shift_poly comp_polyD comp_polyZ. Qed.
 
 Lemma shift_poly_multiplicative c: multiplicative (shift_poly c).
-Proof.   
+Proof.
 split. move=> x y; exact: comp_polyM. by rewrite /shift_poly comp_polyC.
 Qed.
+
+HB.instance Definition _ (c : R) := GRing.isLinear.Build _ _ _ _ _ (shift_poly_is_linear c).
+
+HB.instance Definition _ c := GRing.isMultiplicative.Build _ _ _ (shift_poly_multiplicative c).
 
 (*HB.instance Definition _ c := GRing.isLinear.Build _ _ _ _ _ (shift_poly_is_linear c).
 

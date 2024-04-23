@@ -1,6 +1,6 @@
 Require Export axiomsKnuth.
 From mathcomp Require Import all_ssreflect ssralg matrix ssrnum vector reals.
-From mathcomp Require Import normedtype order.
+From mathcomp Require Import normedtype order lra.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -24,7 +24,7 @@ Local Open Scope ring_scope.
 
 Section Plane.
 Variable R : realType.
-Definition Plane := pair_vectType (regular_vectType R) (regular_vectType R).
+Definition Plane : vectType _ := (R^o * R^o)%type.
 
 (* ------------------ Definitions ------------------- *)
 
@@ -89,7 +89,11 @@ Definition swap (p : Plane) := (p.2, p.1).
 
 Lemma det_scalar_productE (p q r: Plane):
   det p q r = scalar_product (q-p) (rotate (r-p)).
-Proof. by rewrite develop_det /scalar_product /=; ring. Qed.
+Proof.
+rewrite develop_det /scalar_product /=.
+rewrite /xcoord /ycoord /=.
+ring.
+Qed.
 
 Lemma scalar_productC (p q: Plane): scalar_product p q = scalar_product q p.
 Proof. by rewrite /scalar_product /= [p.1*_]mulrC [p.2*_]mulrC. Qed.
@@ -176,7 +180,7 @@ Lemma scalar_product_swap (p q : Plane) :
 Proof. by rewrite swap_sym swap_swap. Qed.
 
 Lemma det_swap (p q r : Plane) : det (swap p) (swap q) (swap r) = - det p q r.
-Proof. by rewrite 2!develop_det/swap/=; ring. Qed.
+Proof. by rewrite 2!develop_det/swap/= /xcoord/ycoord/=; ring. Qed.
 
 Lemma decompose_base (p q : Plane) : q != 0 ->
   p = (scalar_product p q) / (scalar_product q q) *: q +
@@ -246,7 +250,7 @@ case p0: (p == 0).
    case q0: (q == 0).
       move: q0=>/eqP q0; subst q.
       exists (1, 0); split.
-         by rewrite negb_and; apply/orP; left=>/=; apply oner_neq0.
+         by rewrite negb_and; apply/orP; left=>/=; apply: oner_neq0.
       by rewrite -(scale0r (0 : Plane)) scalar_productZR mul0r.
    exists (rotate q); split.
       apply/eqP=>/pair_equal_spec [q2 /eqP]; rewrite oppr_eq0=>/eqP q1.

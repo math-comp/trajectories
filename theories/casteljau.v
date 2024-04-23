@@ -1051,8 +1051,8 @@ have -> : bernp a b p k =
   by rewrite -invfM -exprD subnKC // !mulrA [_ %:P * _]mulrC.
 have -> : (('X - a%:P) ^+ k * ((b - a) ^- k)%:P) =
            (beta^+k)%:P * (('X - a%:P) ^+ k * ((m - a) ^- k)%:P).
-  rewrite /beta expr_div_n polyCM !mulrA -[_ * (_ ^+k)]mulrC !mulrA mulrAC.
-  rewrite -!mulrA -polyCM. mulfV. ?polyC1 ?mulr1 ?expf_eq0 ?subr_eq0 //.
+  rewrite /beta expr_div_n polyCM !mulrA -[_ * (_ ^+k)]mulrC !mulrA (mulrAC _ (((m - a) ^+ k)%:P)).
+  rewrite -!mulrA -polyCM mulfV ?polyC1 ?mulr1 ?expf_eq0 ?subr_eq0 //.
   by move/negPf: dma => ->; rewrite andbF.
 rewrite -(exprVn (b - a)) [(_ ^-1 ^+ _)%:P]polyC_exp.
 rewrite -exprMn_comm; last by exact: mulrC.
@@ -1817,10 +1817,10 @@ have qh :
                       ((half (a + b) - a)/(b - a)) d [eta nth 0 l] i *:
                   bernp ((a + b) / 2%:R) b d i.
     by move => [i ci] _; rewrite -help -help2 /= nth_mkseq.
-  rewrite (eq_bigr _ qt); apply: dicho_correct => //.
+  rewrite (eq_bigr _ qt); apply: dicho_correct; [exact: anb| |exact: qq].
   rewrite -[X in _ == X]double_half half_lin; apply/negP.
   by move/eqP/half_inj/addIr/eqP; apply/negP.
-apply: (IH) => //.
+apply: (IH); [|exact: dn0|exact: qn0| |exact: qh'| |].
       by case/andP : (mid_between altb) => it _; exact it.
     by rewrite size_mkseq.
   case ts0: (dicho 2%:R^-1 2%:R^-1 d [eta nth 0 l] 0 == 0).

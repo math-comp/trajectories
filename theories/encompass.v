@@ -111,7 +111,7 @@ End spec.
 Module SpecKA (KA : KnuthAxioms).
 Section Dummy.
 Variable R : realType.
-Let plane := pair_vectType (regular_vectType R) (regular_vectType R).
+Let plane : vectType _ := (R^o * R^o)%type.
 
 Let oriented := KA.OT (R:=R).
 Let Ax1 := KA.Axiom1 (R:=R).

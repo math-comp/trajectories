@@ -1,3 +1,4 @@
+From HB Require Import structures.
 From mathcomp Require Import all_ssreflect.
 From mathcomp Require Import ssralg poly polydiv polyorder ssrnum zmodp.
 From mathcomp Require Import polyrcf qe_rcf_th complex.
@@ -153,9 +154,11 @@ Proof.
 split. move=> x y; exact: comp_polyM. by rewrite /scaleX_poly comp_polyC.
 Qed.
 
-Canonical scaleX_poly_additive (c : R) := Additive (scaleX_poly_is_linear c).
-Canonical scaleX_poly_linear c := Linear (scaleX_poly_is_linear c).
-Canonical scaleX_poly_rmorphism c := AddRMorphism (scaleX_poly_multiplicative c).
+HB.instance Definition _ (c : R) := GRing.isLinear.Build _ _ _ _ _ (scaleX_poly_is_linear c).
+
+HB.instance Definition _ c := GRing.isMultiplicative.Build _ _ _ (scaleX_poly_multiplicative c).
+
+(*Canonical scaleX_poly_rmorphism c := AddRMorphism (scaleX_poly_multiplicative c).*)
 
 Lemma scaleX_polyC (c a : R) : a%:P \scale c = a%:P.
 Proof. by rewrite /scaleX_poly comp_polyC. Qed.
@@ -302,7 +305,7 @@ Proof.
 move=> Hp.
 have H0noroot : ~~(root (p %/ 'X^(\mu_0 p)) 0).
   rewrite -mu_gt0.
-    rewrite -eqn0Ngt -(addr0 'X) -(@oppr0 (poly_zmodType R)) -polyC0 mu_div
+    rewrite -eqn0Ngt -(addr0 'X) -(@oppr0 {poly R}) -polyC0 mu_div
       ?subn_eq0; by rewrite leqnn.
   rewrite Pdiv.CommonIdomain.divp_eq0 negb_or Hp /= negb_or.
   rewrite -size_poly_gt0 {1}size_polyXn /= -leqNgt dvdp_leq //.
@@ -583,9 +586,7 @@ rewrite -exprMn -(ler_sqrt (b^+2)).
     rewrite -(pmulr_lge0 (x:=Num.sqrt 3%:R)); last by rewrite sqrtr_gt0 ltr0n.
     by rewrite mulrC (@le_trans _ _ `| b |).
   by rewrite -oppr_ge0 Ha2 /= -(normrN (a-1)) (ger0_norm (x:= -(a-1))).
-rewrite exprMn mulr_gt0 // lt_def sqr_ge0.
-  by rewrite sqrf_eq0 sqrtr_eq0 -ltNge ltr0n.
-by rewrite sqrf_eq0 Ha.
+by rewrite exprMn mulr_ge0 // ?sqr_ge0//.
 Qed.
 
 Lemma Re_invc (z : C) : Re z^-1 = Re z / ((Re z) ^+ 2 + (Im z) ^+2).

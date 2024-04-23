@@ -1,3 +1,4 @@
+From HB Require Import structures.
 From mathcomp Require Import ssreflect ssrbool ssrfun eqtype ssrnat seq choice fintype order.
 From mathcomp Require Import div finfun bigop prime binomial ssralg finset fingroup finalg.
 From mathcomp Require Import mxalgebra perm zmodp matrix ssrint.
@@ -147,7 +148,7 @@ Section count_root_correct.
 
 Variable R : archiFieldType.
 
-Definition R' := RealAlg.alg_of_rcfType R.
+(*TODO(rei, gave up when moving to MathComp 2): Definition R' : archiFieldType := (R : rcfType).*)
 
 (*
 Lemma count_root_correct0 n (l : seq rat) q d (a b: R') :
@@ -318,13 +319,13 @@ case: (In d a ((a + b) / (1+1)) (dicho_l d l) (l1++acc)) => [l2 l2q].
 by exists (l2++l1); rewrite l1q l2q -!catA.
 Qed.*)
 
-Canonical root_info_eqMixin (R : eqType) := EqMixin (root_info_eqP R).
+HB.instance Definition _ := hasDecEq.Build _ (root_info_eqP R).
 
-Canonical root_info_eqType (R : eqType) :=
+(*Canonical root_info_eqType (R : eqType) :=
    Eval hnf in EqType (root_info R) (root_info_eqMixin R).
 
 Arguments root_info_eqP {R x y}.
-Prenex Implicits root_info_eqP.
+Prenex Implicits root_info_eqP.*)
 
 
 (* NB(rei): typing issue with {realclosure _}

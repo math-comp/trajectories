@@ -135,7 +135,7 @@ have p1 : (0 < eps / 2%:R)%R by rewrite divr_gt0// ltr0n.
 have cmp : eps / 2%:R < eps.
    by rewrite ltr_pdivr_mulr// ?ltr0n// ltr_pmulr// ltr1n.
 split => //.
-by rewrite -mulrDr ger_pmulr// -mulr2n -mulr_natr mulVf// pnatr_eq0.
+by rewrite -splitr.
 Qed.
 
 Lemma ler_horner_norm_pol {R : realFieldType} (l : {poly R}) x :

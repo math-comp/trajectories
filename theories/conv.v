@@ -225,7 +225,7 @@ End Conv.
 
 Section between.
 Variable R : realType.
-Let Plane := pair_vectType (regular_vectType R) (regular_vectType R).
+Let Plane : vectType _ := (R^o * R^o)%type.
 
 Lemma det_conv (p p' q r : Plane) (t : R) :
   det (p <| t |> p') q r = (det p q r : R^o) <| t |> det p' q r.
@@ -255,13 +255,21 @@ have [q0|q0] := eqVneq q 0%R; first by left.
 right.
 move:q0; rewrite -pair_eqE /= negb_and => /orP[|] q0.
    exists (1 - xcoord r / xcoord q)=>//.
-   rewrite -convC convrl add0r subr0; apply /eqP; rewrite -pair_eqE; apply /andP; split=>/=; have ->: forall (a: R) (b: (regular_vectType (Real.ringType R))), a *: b = a*b by lazy.
-   - by rewrite -mulrA [_^-1*_]mulrC divff // mulr1.
-   - by rewrite mulrC mulrA -e mulrC mulrA [_^-1*_]mulrC divff // mul1r.
+   rewrite -convC convrl add0r subr0; apply /eqP; rewrite -pair_eqE; apply /andP; split=>/=.
+   - apply/eqP.
+     transitivity ((xcoord r / xcoord q) * q.1) => //.
+     by rewrite -mulrA [_^-1*_]mulrC divff // mulr1.
+   - apply/eqP.
+     transitivity ((xcoord r / xcoord q) * q.2) => //.
+     by rewrite mulrC mulrA -e mulrC mulrA [_^-1*_]mulrC divff // mul1r.
 exists (1 - ycoord r / ycoord q)=>//.
-   rewrite -convC convrl add0r subr0; apply /eqP; rewrite -pair_eqE; apply /andP; split=>/=; have ->: forall (a: R) (b: regular_vectType (Real.ringType R)), a *: b = a*b by lazy.
-- by rewrite mulrC mulrA e mulrC mulrA [_^-1*_]mulrC divff // mul1r.
-- by rewrite -mulrA [_^-1*_]mulrC divff // mulr1.
+   rewrite -convC convrl add0r subr0; apply /eqP; rewrite -pair_eqE; apply /andP; split=>/=.
+   - apply/eqP.
+     transitivity ((ycoord r / ycoord q) * q.1) => //.
+     by rewrite mulrC mulrA e mulrC mulrA [_^-1*_]mulrC divff // mul1r.
+   - apply/eqP.
+     transitivity ((ycoord r / ycoord q) * q.2) => //.
+     by rewrite -mulrA [_^-1*_]mulrC divff // mulr1.
 Qed.
 
 Definition between (x y z : Plane) := [&& (det x y z == 0)%R,
