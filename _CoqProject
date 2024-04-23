@@ -1,27 +1,27 @@
 theories/generic_trajectories.v
 theories/smooth_trajectories.v
-theories/convex.v
-theories/preliminaries.v
-theories/poly_normal.v
-theories/pol.v
-theories/civt.v
-theories/desc.v
-theories/desc1.v
-theories/desc2.v
-theories/infra.v
-theories/bern.v
-theories/bern5.v
-theories/casteljau.v
-theories/isolate.v
-theories/square_free.v
-theories/three_circles.v
-theories/hulls.v
-theories/intersection.v
-theories/conv.v
-theories/encompass.v
-theories/counterclockwise.v
-theories/axiomsKnuth.v
-theories/preliminaries_hull.v
+# theories/convex.v
+# theories/preliminaries.v
+# theories/poly_normal.v
+# theories/pol.v
+# theories/civt.v
+# theories/desc.v
+# theories/desc1.v
+# theories/desc2.v
+# theories/infra.v
+# theories/bern.v
+# theories/bern5.v
+# theories/casteljau.v
+# theories/isolate.v
+# theories/square_free.v
+# theories/three_circles.v
+# theories/hulls.v
+# theories/intersection.v
+# theories/conv.v
+# theories/encompass.v
+# theories/counterclockwise.v
+# theories/axiomsKnuth.v
+# theories/preliminaries_hull.v
 
 -R theories trajectories
 
