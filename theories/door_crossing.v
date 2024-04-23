@@ -1,5 +1,5 @@
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect all_algebra all_real_closed reals.
+From mathcomp Require Import all_ssreflect all_algebra all_real_closed archimedean reals.
 From mathcomp.algebra_tactics Require Import ring lra.
 Require Import casteljau convex counterclockwise intersection.
 
@@ -14,7 +14,7 @@ Local Open Scope ring_scope.
 
 Section sandbox.
 
-Lemma poly_coord {R : rcfType} 
+Lemma poly_coord {R : rcfType}
   (c : (R^o * R^o)%type)
   (p : {poly R}) (t : R) :
   p.[t] *: c = c.1 * p.[t] *: (1, 0) + c.2 * p.[t] *: (0, 1).
@@ -22,7 +22,6 @@ Proof.
 congr (_, _); rewrite /= !scaler0 ?addr0 ?add0r mulrC /GRing.scale /=; ring.
 Qed.
 
-  
 Variable R : reals.Real.type.
 
 (* This version differs from the one in the hulls development to avoid
@@ -48,7 +47,7 @@ Proof. by rewrite /= /conv addrC. Qed.
   bezier c 2 t =  (bernp 0 1 2 0) *: c 0%N. *)
 
 Lemma bezier_bernstein2 c t :
-  bezier c 2 t = 
+  bezier c 2 t =
     \sum_(i < 3) (bernp 0 1 2 i).[t] *: c i.
 Proof.
 rewrite !big_ord_recr big_ord0 /= add0r.
@@ -88,9 +87,9 @@ rewrite -!addrA -!scalerDl.
 congr (_ *: _ + _ *: _); ring.
 Qed.
 
-Record edge := Bedge 
+Record edge := Bedge
   { left_pt : Plane R;
-    right_pt : Plane R; 
+    right_pt : Plane R;
     edge_cond : left_pt.1 < right_pt.1}.
 
 Record cell :=
@@ -178,12 +177,12 @@ end.
 
 Definition cell_safe_exits_left (c : cell) : seq vert_edge :=
   let lx := (seq.head dummy_pt (left_pts c)).1 in
-  map (fun p => Build_vert_edge lx (p.1).2 (p.2).2) 
+  map (fun p => Build_vert_edge lx (p.1).2 (p.2).2)
    (seq_to_intervals (left_pts c)).
 
 Definition cell_safe_exits_right (c : cell) : seq vert_edge :=
   let lx := (seq.head dummy_pt (right_pts c)).1 in
-  map (fun p => Build_vert_edge lx (p.1).2 (p.2).2) 
+  map (fun p => Build_vert_edge lx (p.1).2 (p.2).2)
    (seq_to_intervals (rev (right_pts c))).
 
 Definition dummy_vert_edge :=
@@ -193,7 +192,7 @@ Definition on_vert_edge (p : Plane R) (v : vert_edge) : bool :=
   (p.1 == ve_x v) && (ve_bot v < p.2 < ve_top v).
 
 Check fun (v : vert_edge) (l : seq vert_edge) => v \in l.
-Check fun (v : vert_edge)(c : cell) => 
+Check fun (v : vert_edge)(c : cell) =>
    v \in cell_safe_exits_left c.
 
 Lemma detDM2 (l p1 p2 q1 q2 r1 r2 : R) :
@@ -287,7 +286,7 @@ have vxright : ve_x v = right_limit c.
   elim/last_ind: (right_pts c) rightn0 samexr => [ // | lh e1 Ih] _ /=.
   elim/last_ind: lh Ih => [ // | lh e2 _] Ih samexr.
   rewrite last_rcons !rev_rcons/=.
-  rewrite inE=> /orP[/eqP -> /= | vin]. 
+  rewrite inE=> /orP[/eqP -> /= | vin].
     by rewrite (eqP (samexr e1 _)) // mem_rcons inE eqxx.
   rewrite (eqP (samexr e1 _)); last by rewrite mem_rcons inE eqxx.
   rewrite -(eqP (samexr e2 _)); last by rewrite !(mem_rcons, inE) eqxx ?orbT.
@@ -398,7 +397,7 @@ have vxright : ve_x v = right_limit c.
   elim/last_ind: (right_pts c) rightn0 samexr => [ // | lh e1 Ih] _ /=.
   elim/last_ind: lh Ih => [ // | lh e2 _] Ih samexr.
   rewrite last_rcons !rev_rcons/=.
-  rewrite inE=> /orP[/eqP -> /= | vin]. 
+  rewrite inE=> /orP[/eqP -> /= | vin].
     by rewrite (eqP (samexr e1 _)) // mem_rcons inE eqxx.
   rewrite (eqP (samexr e1 _)); last by rewrite mem_rcons inE eqxx.
   rewrite -(eqP (samexr e2 _)); last by rewrite !(mem_rcons, inE) eqxx ?orbT.
@@ -448,8 +447,8 @@ have -> : head dummy_pt (rcons l e2) = head dummy_pt (rcons (rcons l e2) e1).
   by case lq : l.
 by rewrite rev_rcons 2!headI /=.
 Qed.
-  
-Lemma vert_projr (p q r : Plane R) : 
+
+Lemma vert_projr (p q r : Plane R) :
   p.1 != q.1 -> (det p q r == 0) =
   (r.2 == q.2 + (r.1 - q.1) / (q.1 - p.1) * (q.2 - p.2)).
 Proof.
@@ -467,7 +466,7 @@ rewrite invrN !(mulrN, mulNr).
 rewrite mulfVK //; ring.
 Qed.
 
-Lemma vert_projl (p q r : Plane R) : 
+Lemma vert_projl (p q r : Plane R) :
   p.1 != q.1 -> (det p q r == 0) =
   (r.2 == p.2 + (r.1 - p.1) / (q.1 - p.1) * (q.2 - p.2)).
 Proof.
@@ -499,9 +498,9 @@ move: (cok)=> /andP[] leftn0 /andP[] samexl /andP[] sortl /andP[] lonh _.
 rewrite /point_strictly_under_edge.
 set l := ((right_pt (high c)).1 - p.1) /
             ((right_pt (high c)).1 - (left_pt (high c)).1).
-set q := ((right_pt (high c)).1 - l * 
+set q := ((right_pt (high c)).1 - l *
              ((right_pt (high c)).1 - (left_pt (high c)).1),
-        (right_pt (high c)).1 - l * 
+        (right_pt (high c)).1 - l *
            ((right_pt (high c)).2 - (left_pt (high c)).2)).
 case pq : p => [p1 p2].
 case lq : (left_pt (high c)) => [q1 q2].
@@ -762,7 +761,7 @@ have [P1 | P2] := ltrP t u.
   have t'int : 0 <= t' < 1.
     apply/andP; split.
       rewrite /t'; apply divr_ge0; lra.
-    rewrite /t' ltr_pdivr_mulr; lra.
+    rewrite /t' ltr_pdivrMr; lra.
   have tt' : t = t' * u by rewrite /t' mulfVK.
   have := bezier2_dichotomy_l (f3pt p1 p2 p3) t' u; rewrite -tt' /bzt => ->.
   set p2' := p2 <| u |> p1.
@@ -777,7 +776,7 @@ have [P1 | P2] := ltrP t u.
     have sgp1 : sgz (det p1 (left_pt (high c1)) (right_pt (high c1))) = -1.
       by apply:ltr0_sgz; move: p1in=> /andP[] /andP[].
     have sgp2' : sgz
-             ((det p2 (left_pt (high c1)) (right_pt (high c1)) : R ^o) <|u|> 
+             ((det p2 (left_pt (high c1)) (right_pt (high c1)) : R ^o) <|u|>
              det p1 (left_pt (high c1)) (right_pt (high c1))) = -1.
       apply: conv_num_sg=> //.
       apply: ltr0_sgz; exact p2belh1.
@@ -792,7 +791,7 @@ have [P1 | P2] := ltrP t u.
     have sgp1 : sgz (det p1 (left_pt (low c1)) (right_pt (low c1))) = 1.
        by apply:gtr0_sgz; move: p1in=> /andP[] /andP[] _; rewrite -ltNge.
     have sgp2' : sgz
-             ((det p2 (left_pt (low c1)) (right_pt (low c1)) : R ^o) <|u|> 
+             ((det p2 (left_pt (low c1)) (right_pt (low c1)) : R ^o) <|u|>
              det p1 (left_pt (low c1)) (right_pt (low c1))) = 1.
       apply: conv_num_sg=> //.
       apply: gtr0_sgz; rewrite ltNge; exact p2abol1.
@@ -837,7 +836,7 @@ have [t1 | tn1] := eqVneq t 1.
 have t'int : 0 < t' < 1.
   rewrite /t'; apply/andP; split.
     apply: divr_gt0; lra.
-  by rewrite ltr_pdivr_mulr; lra.
+  by rewrite ltr_pdivrMr; lra.
 set p1' := bezier (f3pt p1 p2 p3) 2 u.
 set p2' := p3 <| u |> p2.
 rewrite [bezier _ 2 _](_ : _ = (p3 <| t' |> p2') <| t' |> (p2' <| t' |> p1'));
@@ -848,7 +847,7 @@ rewrite /point_strictly_under_edge !det_conv.
   have sgp3 : sgz (det p3 (left_pt (high c2)) (right_pt (high c2))) = -1.
     by apply:ltr0_sgz; move: p3in=> /andP[] /andP[].
   have sgp2' : sgz
-           ((det p3 (left_pt (high c2)) (right_pt (high c2)) : R ^o) <|u|> 
+           ((det p3 (left_pt (high c2)) (right_pt (high c2)) : R ^o) <|u|>
              det p2 (left_pt (high c2)) (right_pt (high c2))) = -1.
     apply: conv_num_sg=> //.
     apply: ltr0_sgz; exact p2belh2.
@@ -863,7 +862,7 @@ apply/andP; split.
   have sgp3 : sgz (det p3 (left_pt (low c2)) (right_pt (low c2))) = 1.
      by apply: gtr0_sgz; move: p3in=> /andP[] /andP[] _; rewrite -ltNge.
   have sgp2' : sgz
-             ((det p3 (left_pt (low c2)) (right_pt (low c2)) : R ^o) <|u|> 
+             ((det p3 (left_pt (low c2)) (right_pt (low c2)) : R ^o) <|u|>
              det p2 (left_pt (low c2)) (right_pt (low c2))) = 1.
     apply: conv_num_sg=> //.
     by apply: gtr0_sgz; rewrite ltNge; exact p2abol2.
@@ -905,7 +904,7 @@ Qed.
 
 Definition midpoint (a b : Plane R) := a <| 1/2 |> b.
 
-Definition mkedge_aux (a b : Plane R) : {e : edge | 
+Definition mkedge_aux (a b : Plane R) : {e : edge |
      forall h : a.1 < b.1, e = Bedge h}.
 case (boolP (a.1 < b.1)).
 move=> h; exists (Bedge h)=> h0.
@@ -924,7 +923,7 @@ rewrite /mkedge; case: (mkedge_aux a b)=> v Pv /=; apply: Pv.
 Qed.
 
 Fixpoint check_bezier_ccw (fuel : nat) (v : vert_edge)
-  (a b c : Plane R) : 
+  (a b c : Plane R) :
   option bool :=
 match fuel with
 | O => None
@@ -935,7 +934,7 @@ match fuel with
   else if
      point_under_edge top_edge (mkedge a b) ||
      point_under_edge top_edge (mkedge b c)
-  then 
+  then
     Some false
   else
     let b' := midpoint a b in
@@ -1004,7 +1003,7 @@ rewrite det_scalar_productE /rotate /scalar_product /= mulrN.
 by rewrite mulrC; congr (_ - _); rewrite mulrC.
 Qed.
 
-Lemma height_bezier2 (a b c p : Plane R) t: 
+Lemma height_bezier2 (a b c p : Plane R) t:
   a.1 < b.1 < c.1 ->
   (* p is the vertical projection of bezier ... t on the straight line ab *)
   det a b p = 0 ->
@@ -1035,7 +1034,7 @@ rewrite !tmp tmp1 /=.
 ring.
 Qed.
 
-Lemma safe_bezier_ccw_corner_side (a b c : Plane R) (v : vert_edge) 
+Lemma safe_bezier_ccw_corner_side (a b c : Plane R) (v : vert_edge)
   (u : R):
   ccw a b c ->
   a.1 < b.1 < c.1 ->
@@ -1075,8 +1074,8 @@ set p' := (p.1, (left_pt e).2 + (p.1 - (left_pt e).1) /
 have := diff_vert_y ecnd'=> /(_ p p' erefl) /eqP.
 rewrite subr_eq=> /eqP ->; rewrite /p' /=.
 rewrite addrA (addrC _ (left_pt e).2) -!addrA.
-rewrite ler_add2.
-rewrite addrC -ler_subr_addl mulrAC addrN.
+rewrite lerD2.
+rewrite addrC -lerBrDl mulrAC addrN.
 rewrite pmulr_lle0 // invr_gt0/=.
 by rewrite subr_gt0.
 Qed.

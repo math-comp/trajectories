@@ -333,7 +333,7 @@ rewrite ltNge oppr_le0; apply /negP=>trp.
 suff: 0 < det t q r * det t s p + det t r p * det t s q + det t p q * det t s r.
   by rewrite convex_combination ltxx.
 rewrite addrC.
-apply ltr_paddr; [| by apply mulr_gt0].
+apply ltr_wpDr; [| by apply mulr_gt0].
 by apply addr_ge0; apply mulr_ge0=>//; apply ltW.
 Qed.
 
@@ -351,7 +351,7 @@ Proof.
 rewrite /ccw 3!det_scalar_productE/scalar_product/= !mulrN !subr_gt0 -![(pivot : R *l R) < _]subr_gtlex0 {1 2 3}/lt/=/ProdLexiOrder.lt/= !implybE -!ltNge !le_eqVlt ![(_==_)||_]orbC -!Bool.orb_andb_distrib_r=>/orP; case=>p0.
    move=>/orP; case=>q0.
       move=>/orP; case=>r0.
-         rewrite -(ltr_pdivr_mull _ _ p0) mulrA -(ltr_pdivl_mulr _ _ q0) [_^-1*_]mulrC -(ltr_pdivr_mull _ _ q0) mulrA -(ltr_pdivl_mulr _ _ r0) [_^-1*_]mulrC -(ltr_pdivr_mull _ _ p0) mulrA -(ltr_pdivl_mulr _ _ r0) [_^-1*_]mulrC=>qlt rlt; exact (lt_trans qlt rlt).
+         rewrite -(ltr_pdivrMl _ _ p0) mulrA -(ltr_pdivlMr _ _ q0) [_^-1*_]mulrC -(ltr_pdivrMl _ _ q0) mulrA -(ltr_pdivlMr _ _ r0) [_^-1*_]mulrC -(ltr_pdivrMl _ _ p0) mulrA -(ltr_pdivlMr _ _ r0) [_^-1*_]mulrC=>qlt rlt; exact (lt_trans qlt rlt).
       move:r0=>/andP[/eqP<- r0].
       by rewrite 2!mulr0 pmulr_rgt0// pmulr_rgt0//.
    move:q0=>/andP[/eqP<- q0]/orP; case.

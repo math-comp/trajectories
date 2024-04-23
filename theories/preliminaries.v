@@ -39,8 +39,7 @@ Qed.
 
 (* TODO: do we keep this as more newcomer friendly than having to look
    deep into the library ? *)
-Lemma enum_prodE {T1 T2 : finType} :
-  enum [finType of T1 * T2] = prod_enum T1 T2.
+Lemma enum_prodE {T1 T2 : finType} : enum {: T1 * T2} = prod_enum T1 T2.
 Proof.
 by rewrite /enum_mem unlock /= /prod_enum -(@eq_filter _ predT) ?filter_predT.
 Qed.
@@ -114,10 +113,10 @@ by exists (a' :: s').
 Qed.
 
 Lemma index_enum_cast_ord n m (e: n = m) :
-  index_enum [finType of 'I_m] = [seq (cast_ord e i) | i <- index_enum [finType of 'I_n]].
+  index_enum 'I_m = [seq (cast_ord e i) | i <- index_enum 'I_n].
 Proof.
 subst m.
-rewrite -{1}(map_id (index_enum [finType of 'I_n])).
+rewrite -{1}(map_id (index_enum 'I_n)).
 apply eq_map=>[[x xlt]].
 rewrite /cast_ord; congr Ordinal; apply bool_irrelevance.
 Qed.
@@ -199,7 +198,7 @@ Lemma size_index_enum (T: finType): size (index_enum T) = #|T|.
 Proof. by rewrite cardT enumT. Qed.
 
 Lemma map_nth_ord [T : Type] (x: T) (s : seq T) :
-  [seq nth x s (nat_of_ord i) | i <- index_enum [finType of 'I_(size s)]] = s.
+  [seq nth x s (nat_of_ord i) | i <- index_enum 'I_(size s)] = s.
 Proof.
 rewrite /index_enum; case: index_enum_key=>/=; rewrite -enumT.
 elim: s=>/= [| a s IHs].

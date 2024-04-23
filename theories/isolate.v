@@ -169,9 +169,9 @@ have twon0 : (1 + 1 != 0 :> R').
 have twoV : forall a, a = a/(1 + 1) + a/(1+1) :> R'.
   by move=> y; rewrite -mulrDl -(mulr1 y) -mulrDr mulrK // mulr1.
 have altm : a < (a + b)/(1 + 1).
- by rewrite {1}[a]twoV mulrDl ltr_add2l ltr_pmul2r // invr_gt0.
+ by rewrite {1}[a]twoV mulrDl ltr_add2l ltr_pM2r // invr_gt0.
 have mltb : (a + b)/(1 + 1) < b.
- by rewrite {2}[b]twoV mulrDl ltr_add2r ltr_pmul2r // invr_gt0.
+ by rewrite {2}[b]twoV mulrDl ltr_add2r ltr_pM2r // invr_gt0.
 have mna : (a + b)/(1 + 1) != a.
  by apply/negP => ma; move:altm; rewrite ltr_neqAle eq_sym ma.
 have mnb : (a + b)/(1 + 1) != b.
@@ -354,11 +354,11 @@ have rbman0 : ratr b - ratr a != 0 :> RealAlg.alg_of_rcfType R.
  by rewrite subr_eq0 eq_sym.
 have twogt0 : 0 < 1 + 1 :> rat   by apply: addr_gt0; rewrite ltr01 .
 have a1b1 : (a + b)/(1+1) < b :> rat.
- rewrite -(ltr_pmul2r twogt0) mulfVK.
+ rewrite -(ltr_pM2r twogt0) mulfVK.
   by rewrite mulrDr mulr1 ltr_add2r.
  by move: twogt0; rewrite ltr_neqAle eq_sym=>/andP; case.
 have a2b2 : a < (a + b)/(1+1) :> rat.
- rewrite -(ltr_pmul2r twogt0) mulfVK.
+ rewrite -(ltr_pM2r twogt0) mulfVK.
   by rewrite mulrDr mulr1 ltr_add2l.
  by move: twogt0; rewrite ltr_neqAle eq_sym=>/andP; case.
 have rmbd: (ratr a + ratr b)/(1+1) != ratr b :> RealAlg.alg_of_rcfType R.

@@ -184,7 +184,7 @@ rewrite exprMn_comm; last first.
 rewrite sqrrN.
 rewrite -natrX.
 rewrite (mulr_natl _ (2 ^ 2)).
-rewrite [_ ^+2 *+ _]mulrS ler_add2l -mulr_natl -andbA /=.
+rewrite [_ ^+2 *+ _]mulrS lerD2l -mulr_natl -andbA /=.
 apply/idP/idP => [/orP [] | H].
     rewrite eq_sym paddr_eq0 ?sqr_ge0 //.
     case/andP => /eqP -> /eqP ->.
@@ -350,7 +350,7 @@ case : (leqP k (size p).-1) => Hk2.
   rewrite coefM (bigD1 ord0) //= subn0 (lt_le_trans (y := (p`_0 * q`_k))) //.
     rewrite pmulr_lgt0; first by rewrite Hpcoef.
     by rewrite Hqcoef // (@leq_trans ((size p).-1)).
-  rewrite ler_addl sumr_ge0 //.
+  rewrite lerDl sumr_ge0 //.
   case => /= i Hi Hi2.
   rewrite pmulr_rge0.
     case Hki : (k - i <= (size q).-1)%N.
@@ -370,7 +370,7 @@ rewrite (bigD1 (Ordinal Hk3)) //=
       -[size q]prednK ?size_poly_gt0 // addSn addnS -!pred_Sn in Hk.
   rewrite pmulr_rgt0; first by rewrite Hqcoef.
   by apply: Hpcoef.
-rewrite ler_addl sumr_ge0 //.
+rewrite lerDl sumr_ge0 //.
 case => /= i Hi Hi2.
 apply: mulr_ge0.
   case Hi3 : (i <= (size p).-1)%N.

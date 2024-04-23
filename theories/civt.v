@@ -55,7 +55,7 @@ by rewrite ler_pexpn2r// nnegrE// (le_trans x0).*)
 (*move=> l b; case: l =>[| a l].
 - by exists 0; move=> /= x; rewrite mul0r oppr0 addr0 normr0 lexx.
 - exists (eval_pol (abs_pol l) b) => x px xb /=; rewrite mul0r addr0.
-  rewrite addrC addKr normrM ger0_norm // mulrC ler_wpmul2r//.
+  rewrite addrC addKr normrM ger0_norm // mulrC ler_wpM2r//.
 (* NB(rei): ler_absr_eval_pol? *)
 (*  rewrite (le_trans (ler_absr_eval_pol _ _)) //.
   by rewrite eval_pol_abs_pol_increase // ger0_abs.

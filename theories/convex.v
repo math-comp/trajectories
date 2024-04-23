@@ -233,7 +233,7 @@ split.
   (2*(Prob.p t : R) <= Rdefinitions.IZR (BinNums.Zpos 1%AC)).
       apply/andP; split.
         by apply mulr_ge0=>//.
-      by move:tle=>/(ler_wpmul2l ge20); rewrite divff.
+      by move:tle=>/(ler_wpM2l ge20); rewrite divff.
    move=>/esym xE.
    move: xext=>/(_ (u <| Prob.mk t01 |> v) v).
    rewrite -convA' convmm.
