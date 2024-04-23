@@ -610,8 +610,8 @@ Definition all_edges cells events :=
 Lemma mono_cell_edges s1 s2 : {subset s1 <= s2} ->
   {subset cell_edges s1 <= cell_edges s2}.
 Proof.
-by move=> sub g; rewrite mem_cat => /orP[] /mapP[c cin geq];
-  rewrite /cell_edges geq mem_cat map_f ?orbT // sub.
+by move=> Sub g; rewrite mem_cat => /orP[] /mapP[c cin geq];
+  rewrite /cell_edges geq mem_cat map_f ?orbT // Sub.
 Qed.
 
 Lemma cell_edges_catC s1 s2 :
@@ -1368,9 +1368,9 @@ Qed.
 
 End open_cells_decomposition.
 
-Lemma inside_open_cell_valid c p1 : 
+Lemma inside_open_cell_valid c p1 :
   open_cell_side_limit_ok c ->
-  inside_open_cell p1 c -> 
+  inside_open_cell p1 c ->
   valid_edge (low c) p1 && valid_edge (high c) p1.
 Proof.
 move=> /andP[] ne /andP[] sxl /andP[] _ /andP[] /andP[] _ onh /andP[] _ onl.

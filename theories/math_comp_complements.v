@@ -20,16 +20,16 @@ Fixpoint seq_subst {A : eqType}(l : seq A) (b c : A) : seq A :=
 Lemma mem_seq_subst {A : eqType} (l : seq A) b c x :
   x \in (seq_subst l b c) -> (x \in l) || (x == c).
 Proof.
-elim: l => [// | a l Ih].  
+elim: l => [// | a l Ih].
 rewrite /=.
 by case: ifP => [] ?; rewrite !inE=> /orP[ | /Ih /orP[] ] ->; rewrite ?orbT.
 Qed.
-  
+
 Lemma seq_subst_eq0  {A : eqType} (l : seq A) b c :
   (seq_subst l b c == [::]) = (l == [::]).
 Proof. by case : l => [ | a l] //=; case: ifP. Qed.
 
-Lemma seq_subst_cat {A : eqType} (l1 l2 : seq A) b c : 
+Lemma seq_subst_cat {A : eqType} (l1 l2 : seq A) b c :
   seq_subst (l1 ++ l2) b c = seq_subst l1 b c ++ seq_subst l2 b c.
 Proof.
 elim: l1 => [ // | a l1 Ih] /=.
@@ -163,7 +163,7 @@ Variable exclude : cell -> cell -> Prop.
 Variable close : cell -> cell.
 
 Hypothesis excludeC : forall c1 c2, exclude c1 c2 -> exclude c2 c1.
-Hypothesis exclude_sub : 
+Hypothesis exclude_sub :
   forall c1 c2 c3, exclude c1 c2 -> sub c3 c1 -> exclude c3 c2.
 
 Lemma add_map (s1 : pred cell) (s2 : seq cell) :
@@ -174,7 +174,7 @@ Lemma add_map (s1 : pred cell) (s2 : seq cell) :
     forall c1 c2, c1 = c2 \/ exclude c1 c2}.
 Proof.
 have symcase : forall (s : pred cell) (s' : seq cell),
-  all (predC s) s' -> 
+  all (predC s) s' ->
   {in s', forall c, sub (close c) c} ->
   {in predU s (mem s') &, forall c1 c2, c1 = c2 \/ exclude c1 c2} ->
   forall c1 c2, s c1 -> c2 \in s' -> exclude c1 (close c2).
@@ -243,20 +243,20 @@ Proof. by move=> x. Qed.
 
 Lemma subset_head [T : eqType] [s1 s2 : seq T] [x : T] :
   {subset (x :: s1) <= s2} -> head x s1 \in s2.
-Proof. 
-by move=> sub; apply: sub; case: s1=> [ | a ?] /=; rewrite !inE eqxx ?orbT.
+Proof.
+by move=> Sub; apply: Sub; case: s1=> [ | a ?] /=; rewrite !inE eqxx ?orbT.
 Qed.
 
 End subset_tactic.
 
 Ltac subset_tac :=
-  trivial; 
+  trivial;
   match goal with
   | |- {subset ?x <= ?x} => apply: subset_id
   | |- {subset (_ :: _) <= _} => apply: subset_consl; subset_tac
   | |- {subset (_ ++ _) <= _} => apply: subset_catl; subset_tac
-  | |- {subset _ <= _ ++ _} => 
-     solve[(apply: subset_catrl; subset_tac)] || 
+  | |- {subset _ <= _ ++ _} =>
+     solve[(apply: subset_catrl; subset_tac)] ||
      (apply: subset_catrr; subset_tac)
   | |- {subset _ <= _} =>
     let g := fresh "g" in let gin := fresh "gin" in

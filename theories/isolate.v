@@ -1,6 +1,6 @@
 From HB Require Import structures.
 From mathcomp Require Import ssreflect ssrbool ssrfun eqtype ssrnat seq choice fintype order.
-From mathcomp Require Import div finfun bigop prime binomial ssralg finset fingroup finalg.
+From mathcomp Require Import div finfun bigop prime binomial ssralg finset fingroup finalg archimedean.
 From mathcomp Require Import mxalgebra perm zmodp matrix ssrint.
 (*From mathcomp Require Import (*refinements NB(rei) funperm*).*)
 From mathcomp Require Import seq rat.

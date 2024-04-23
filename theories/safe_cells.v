@@ -150,10 +150,10 @@ have [vlp vhp] : valid_edge (low c) p /\ valid_edge (high c) p.
   move=> _ /andP[] /andP[] _ /andP[] lh _ /andP[] /andP[] _ /andP[] ll _.
   move=> /andP[] rn0 /andP[] rsx /andP[].
   move=> _ /andP[] /andP[] _ /andP[] _ rl /andP[] _ /andP[] _ rh.
-  rewrite (eqP (allP lsx _ (@last_in_not_nil [eqType of pt] dummy_pt _ ln0))) in ll.
-  rewrite (eqP (allP rsx _ (@head_in_not_nil [eqType of pt] dummy_pt _ rn0))) in rl.
-  rewrite (eqP (allP lsx _ (@head_in_not_nil [eqType of pt] dummy_pt _ ln0))) in lh.
-  rewrite (eqP (allP rsx _ (@last_in_not_nil [eqType of pt] dummy_pt _ rn0))) in rh.
+  rewrite (eqP (allP lsx _ (@last_in_not_nil pt dummy_pt _ ln0))) in ll.
+  rewrite (eqP (allP rsx _ (@head_in_not_nil pt dummy_pt _ rn0))) in rl.
+  rewrite (eqP (allP lsx _ (@head_in_not_nil pt dummy_pt _ ln0))) in lh.
+  rewrite (eqP (allP rsx _ (@last_in_not_nil pt dummy_pt _ rn0))) in rh.
   split; rewrite /valid_edge/generic_trajectories.valid_edge.
     by rewrite (ltW (le_lt_trans ll midl)) (ltW (lt_le_trans midr rl)).
   by rewrite (ltW (le_lt_trans lh midl)) (ltW (lt_le_trans midr rh)).
@@ -174,7 +174,7 @@ by apply: right_limit_right_pt_low_cl.
 Qed.
 
 (* I don't know yet if this is going to be used. *)
-Lemma above_low : 
+Lemma above_low :
   {in closed, forall c p, p === high c -> valid_edge (low c) p ->
      p >>= low c}.
 Proof.
@@ -202,7 +202,7 @@ move=> /andP[] rn0 /andP[] rsx /andP[] srt /andP[] _ lon.
 have p'q : p' = last dummy_pt (right_pts c).
   have := on_edge_same_point p'on lon.
   rewrite (allP rsx _ pin)=> /(_ isT)=> samey.
-  by apply/(@eqP [eqType of pt]); rewrite pt_eqE samey (allP rsx _ pin).
+  by apply/(@eqP pt); rewrite pt_eqE samey (allP rsx _ pin).
 move: rn0 p'q pin srt.
 elim/last_ind: (right_pts c) => [| rpts p2 Ih] // _ p'q pin srt.
 move: pin; rewrite mem_rcons inE => /orP[/eqP -> | pin].
@@ -245,18 +245,18 @@ have p'q : p' = head dummy_pt (left_pts c).
   rewrite (eqP (allP lsx _ pin)).
   rewrite (x_left_pts_left_limit cok (head_in_not_nil _ ln0)) eqxx.
   move=> /(_ isT)=> samey.
-  apply/(@eqP [eqType of pt]); rewrite pt_eqE samey andbT.
+  apply/(@eqP pt); rewrite pt_eqE samey andbT.
   rewrite (eqP (allP lsx _ pin)) eq_sym.
   by rewrite (allP lsx _ (head_in_not_nil _ ln0)).
 move: ln0 p'q pin srt.
 case: (left_pts c)=> [| p2 lpts] // _ p'q pin srt.
-move: pin; rewrite (@in_cons [eqType of pt]) => /orP[/eqP -> | pin].
+move: pin; rewrite (@in_cons pt) => /orP[/eqP -> | pin].
   by rewrite p'q.
 apply: ltW; rewrite p'q.
 move: srt=> /=; rewrite (path_sortedE); last first.
   by move=> x y z xy yz; apply: (lt_trans yz xy).
 move=> /andP[] /allP/(_ (p_y p)) + _; apply.
-by rewrite (@map_f [eqType of pt]).
+by rewrite (@map_f pt).
 Qed.
 
 Lemma safe_cell_interior c p :
@@ -278,7 +278,7 @@ rewrite le_eqVlt=> /orP[ /eqP pxq | ].
     move: lpcc; rewrite /= pxq=> /eqP samex.
     have := on_edge_same_point pong (left_on_edge _).
     rewrite samex=> /(_ isT) samey.
-    by apply/(@eqP [eqType of pt]); rewrite pt_eqE samex samey.
+    by apply/(@eqP pt); rewrite pt_eqE samex samey.
   have pin : p \in points.
     apply: obstacles_point_in; rewrite mem_cat; apply/orP; left.
     by rewrite plg map_f.
@@ -458,11 +458,11 @@ have ln0 : leftmost_points bottom top != [::] :> seq pt.
   rewrite /leftmost_points/generic_trajectories.leftmost_points.
   case: ifP=> [lbl | ltl]; rewrite -/(vertical_intersection_point _ _) pvertE //.
       rewrite R_ltb_lt in lbl.
-      rewrite /valid_edge/generic_trajectories.valid_edge. 
+      rewrite /valid_edge/generic_trajectories.valid_edge.
       by rewrite ltW // ?ltW // (lt_trans ltp).
     by rewrite /no_dup_seq /=; case: ifP=> _.
   move: ltl=> /negbT; rewrite R_ltb_lt -leNgt=> ltl.
-  by rewrite /valid_edge/generic_trajectories.valid_edge ltl ltW // (lt_trans lbp).    
+  by rewrite /valid_edge/generic_trajectories.valid_edge ltl ltW // (lt_trans lbp).
 rewrite ln0 /=.
 have samex : all (fun p => p_x p == left_limit (start_open_cell bottom top))
                (leftmost_points bottom top).
@@ -478,13 +478,13 @@ have samex : all (fun p => p_x p == left_limit (start_open_cell bottom top))
   move: ltl=> /negbT; rewrite R_ltb_lt -leNgt=> ltl.
   rewrite -/(vertical_intersection_point _ _).
   rewrite pvertE; last first.
-    by rewrite /valid_edge/generic_trajectories.valid_edge ltl ltW // (lt_trans lbp).    
+    by rewrite /valid_edge/generic_trajectories.valid_edge ltl ltW // (lt_trans lbp).
   set W := (X in no_dup_seq_aux _ X).
   have -> : no_dup_seq_aux (pt_eqb R eq_op) W = no_dup_seq (W : seq pt).
-    by apply/esym/(@no_dup_seq_aux_eq [eqType of pt]).
-  have := (@eq_all_r [eqType of pt] _ _ (@mem_no_dup_seq [eqType of pt] _)).
+    by apply/esym/(@no_dup_seq_aux_eq pt).
+  have := (@eq_all_r pt _ _ (@mem_no_dup_seq pt _)).
   move=> ->.
-  rewrite (@last_no_dup_seq [eqType of pt]).
+  rewrite (@last_no_dup_seq pt).
   by rewrite /W /= !eqxx.
 rewrite samex /=.
 have headin : head dummy_pt (leftmost_points bottom top) === top.
@@ -498,11 +498,11 @@ have headin : head dummy_pt (leftmost_points bottom top) === top.
   move: ltl=> /negbT; rewrite R_ltb_lt -leNgt=> ltl.
   rewrite -/(vertical_intersection_point _ _).
   rewrite pvertE; last first.
-    by rewrite /valid_edge/generic_trajectories.valid_edge ltl ltW // (lt_trans lbp). 
+    by rewrite /valid_edge/generic_trajectories.valid_edge ltl ltW // (lt_trans lbp).
   set W := (X in no_dup_seq_aux _ X).
   have -> : no_dup_seq_aux (pt_eqb R eq_op) W = no_dup_seq (W : seq pt).
-    by apply/esym/(@no_dup_seq_aux_eq [eqType of pt]).
-  rewrite (@head_no_dup_seq [eqType of pt]).
+    by apply/esym/(@no_dup_seq_aux_eq pt).
+  rewrite (@head_no_dup_seq pt).
   rewrite /= pvert_on // /valid_edge/generic_trajectories.valid_edge.
   by rewrite ltl ltW // (lt_trans lbp).
 have lastin : last dummy_pt (leftmost_points bottom top) === bottom.
@@ -516,11 +516,11 @@ have lastin : last dummy_pt (leftmost_points bottom top) === bottom.
   move: ltl=> /negbT; rewrite R_ltb_lt -leNgt=> ltl.
   rewrite -/(vertical_intersection_point _ _).
   rewrite pvertE; last first.
-    by rewrite /valid_edge/generic_trajectories.valid_edge ltl ltW // (lt_trans lbp). 
+    by rewrite /valid_edge/generic_trajectories.valid_edge ltl ltW // (lt_trans lbp).
   set W := (X in no_dup_seq_aux _ X).
   have -> : no_dup_seq_aux (pt_eqb R eq_op) W = no_dup_seq (W : seq pt).
-    by apply/esym/(@no_dup_seq_aux_eq [eqType of pt]).
-  rewrite (@last_no_dup_seq [eqType of pt]).
+    by apply/esym/(@no_dup_seq_aux_eq pt).
+  rewrite (@last_no_dup_seq pt).
   by rewrite /= left_on_edge.
 rewrite headin lastin !andbT.
 have blt : bottom <| top.
@@ -541,10 +541,10 @@ case: ifP => [lbl | ltl].
   have := pvert_on vtb; rewrite abs => lton.
   have lteq : Bpt (p_x (left_pt top))(p_y (left_pt top)) =
         left_pt top.
-    by apply/(@eqP [eqType of pt]); rewrite pt_eqE /= !eqxx.
+    by apply/(@eqP pt); rewrite pt_eqE /= !eqxx.
   rewrite lteq in lton.
   have [bqt |]: inter_at_ext bottom top by apply: noc0; rewrite !inE eqxx ?orbT.
-    by rewrite bqt lt_irreflexive in lbl.       
+    by rewrite bqt lt_irreflexive in lbl.
   move=> /(_ _ lton (left_on_edge _)); rewrite !inE=> /orP[] /eqP same.
     by rewrite same lt_irreflexive in lbl.
   by have := lt_trans ltp prb; rewrite same lt_irreflexive.
@@ -565,7 +565,7 @@ rewrite le_eqVlt=> /orP[/eqP abs | -> //].
 have := pvert_on vbt; rewrite abs => lton.
 have lteq : Bpt (p_x (left_pt bottom))(p_y (left_pt bottom)) =
         left_pt bottom.
-  by apply/(@eqP [eqType of pt]); rewrite pt_eqE /= !eqxx.
+  by apply/(@eqP pt); rewrite pt_eqE /= !eqxx.
 rewrite -abs lteq in lton.
 have [bqt |]: inter_at_ext top bottom by apply: noc0; rewrite !inE eqxx ?orbT.
   by move: pab; rewrite -bqt under_onVstrict // put orbT.
@@ -590,7 +590,7 @@ move=> /andP[] /andP[] pab put /andP[] /andP[] vb1 vb2 /andP[] vt1 vt2.
 have vb : valid_edge bottom p.
   by rewrite /valid_edge/generic_trajectories.valid_edge !ltW.
 have vt : valid_edge top p.
-  by rewrite /valid_edge/generic_trajectories.valid_edge !ltW.  
+  by rewrite /valid_edge/generic_trajectories.valid_edge !ltW.
 have pub := order_edges_strict_viz_point' vt vb abs put.
 by move: pab; rewrite under_onVstrict // pub orbT.
 Qed.
@@ -615,12 +615,12 @@ move=> g; rewrite events_to_edges_cons mem_cat=> /orP[] gin; last first.
 apply/andP; split; first by rewrite (eqP (out_e g gin)).
 move: close_e=> /allP /(_ g gin).
 move/hasP=> [e2 e2in /eqP ->].
-by apply: (@allP [eqType of pt] _ _ inbox_es); rewrite map_f.
+by apply: (@allP pt _ _ inbox_es); rewrite map_f.
 Qed.
 
 Lemma start_yields_safe_cells evs bottom top (open closed : seq cell):
   sorted (fun e1 e2 => p_x (point e1) < p_x (point e2)) evs ->
-  {in [:: bottom, top & 
+  {in [:: bottom, top &
          events_to_edges evs] &, forall e1 e2, inter_at_ext e1 e2} ->
   all (inside_box bottom top) [seq point e | e <- evs] ->
   {in evs, forall ev : event, out_left_event ev} ->
@@ -640,7 +640,7 @@ move=> edges_closed no_event_in_edge outgoing_event_unique start_eq.
 have [e0 e0in] : exists e, e \in evs.
   by case: (evs) evsn0 => [ | a ?] //; exists a; rewrite mem_head.
 have inbox_e : inside_box bottom top (point e0).
-  by apply: (@allP [eqType of pt] _ _ all_points_in); rewrite map_f.
+  by apply: (@allP pt _ _ all_points_in); rewrite map_f.
 have noc0 : {in [:: bottom; top] &, forall g1 g2, inter_at_ext g1 g2}.
   move=> g1 g2 g1in g2in.
   by apply: no_crossing; rewrite -[_ :: _]/([:: _; _] ++ _) mem_cat ?g1in ?g2in.

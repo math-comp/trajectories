@@ -1,15 +1,14 @@
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect.
-From mathcomp Require Import ssralg poly ssrnum ssrint rat polyrcf.
+From mathcomp Require Import all_ssreflect archimedean.
+From mathcomp Require Import ssralg poly ssrnum ssrint rat archimedean polyrcf.
 From mathcomp Require Import polyorder polydiv.
 
-(** * Descartes. 
+(** * Descartes.
    polynomials link with the ssr library *)
 (*
 Copyright INRIA (20112012) Marelle Team (Jose Grimm;  Yves Bertot; Assia Mahboubi).
 $Id: pol.v,v 1.35 2012/12/14 11:59:35 grimm Exp $
 *)
-
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -69,7 +68,7 @@ Proof.  by move=> lta; rewrite mulr_gt0 // invr_gt0 ltr0n. Qed.
 
 Lemma half_ltx x: 0 < x -> half x < x.
 Proof.
-by move=>lta; rewrite ltr_pdivr_mulr ?ltr0n // mulr_natr mulr2n ltrDr.
+by move=>lta; rewrite ltr_pdivrMr ?ltr0n // mulr_natr mulr2n ltrDr.
 Qed.
 
 Lemma double_half x : half x + half x = x.
@@ -96,7 +95,7 @@ Lemma maxS (x y: R) (z := (Num.max x y) +1) : (x<z) && (y <z).
 Proof.
 have p1 : forall u v:R, u <= v -> u < v + 1.
        by move=> u v  h; rewrite (le_lt_trans h) // ltrDl ltr01.
-by rewrite !p1// ?le_maxr// lexx // orbT.
+by rewrite !p1// ?le_max// lexx // orbT.
 Qed.
 
 Lemma pmul2w1 (a b c d : R) : 0 <= a -> 0 <= d -> a <= b -> c <= d ->
@@ -142,7 +141,7 @@ Implicit Types (F: R -> R) (s: seq R) (f g : nat -> R).
 Lemma bigmaxr_ge0 s F: 0 <= \max_(i <- s) F i.
 Proof.
 elim: s; first by rewrite big_nil.
-by move=> s IHs  Hri0; rewrite big_cons le_maxr Hri0 orbT.
+by move=> s IHs  Hri0; rewrite big_cons le_max Hri0 orbT.
 Qed.
 
 Lemma bigmaxr_le s F j:
@@ -150,9 +149,9 @@ Lemma bigmaxr_le s F j:
 Proof.
 elim: s; first by rewrite in_nil.
 move=> i s IHs Hri0; rewrite big_cons.
-case Hi: (j == i); first  by rewrite (eqP Hi) le_maxr lexx.
+case Hi: (j == i); first  by rewrite (eqP Hi) le_max lexx.
 move: Hri0; rewrite in_cons Hi orFb => ins.
-by  apply: le_trans (IHs ins) _; rewrite le_maxr lexx orbT.
+by  apply: le_trans (IHs ins) _; rewrite le_max lexx orbT.
 Qed.
 
 Lemma bigmaxr_le0 s F:
@@ -168,8 +167,8 @@ Lemma bigmaxr_gt0 s F:
   \max_(i <- s) F i > 0 -> { i | i \in s & F i > 0}.
 Proof.
 elim :s => [| a l Hrec]; first by rewrite big_nil ltxx.
-rewrite big_cons lt_maxr.
-case  (ltrP 0 (F a)); first by exists a => //; rewrite in_cons eqxx.
+rewrite big_cons lt_max.
+case (ltrP 0 (F a)); first by exists a => //; rewrite in_cons eqxx.
 rewrite leNgt => /negbTE ->; rewrite orFb => /Hrec [b bl fp0].
 by exists b => //;rewrite in_cons bl orbT.
 Qed.
@@ -227,15 +226,15 @@ Qed.
 Lemma bigmaxf_ge0  f n: 0 <= \max_(i < n) f i.
 Proof.
 elim: n => [| n IHn]; first by rewrite big_ord0.
-by rewrite bigmaxf_rec le_maxr IHn orbT.
+by rewrite bigmaxf_rec le_max IHn orbT.
 Qed.
 
 Lemma bigmaxf_le f n j: (j < n)%N -> f j <= \max_(i < n) f i.
 Proof.
 elim: n => [ //| n IHn]; rewrite bigmaxf_rec.
-case Hi: (j == n); first  by rewrite (eqP Hi) le_maxr lexx.
+case Hi: (j == n); first  by rewrite (eqP Hi) le_max lexx.
 rewrite ltnS leq_eqVlt Hi orFb => aux;apply: (le_trans (IHn aux)).
-by rewrite le_maxr lexx orbT.
+by rewrite le_max lexx orbT.
 Qed.
 
 Lemma bigmaxf_le0 f n: \max_(i < n) f i <= 0 ->
@@ -249,7 +248,7 @@ Lemma bigmaxf_gt0 f n:  \max_(i < n ) f i > 0 -> { i | (i <n)%N  & f i > 0}.
 Proof.
 elim :n => [| a IH]; first by rewrite big_ord0 ltxx.
 case  (ltrP 0 (f a)); first by exists a.
-rewrite bigmaxf_rec lt_maxr leNgt; move /negbTE => ->; rewrite orFb => aux.
+rewrite bigmaxf_rec lt_max leNgt; move /negbTE => ->; rewrite orFb => aux.
 by move: (IH aux) => [b bl fp0]; exists b => //; apply:ltn_trans (ltnSn a).
 Qed.
 
@@ -830,8 +829,8 @@ Qed.
 Lemma CauchyBound1 : `| x | <= 1 + \max_(i < n) (`|E i / E n|).
 Proof.
 move: (bigmaxf_ge0  (fun i => `|E i / E n|) n) => cp.
-case: (lerP `|x| 1)=> cx1; first by rewrite ler_paddr //.
-rewrite addrC -ler_subl_addr.
+case: (lerP `|x| 1)=> cx1; first by rewrite ler_wpDr //.
+rewrite addrC -lerBlDr.
 move: (normr_sumprod (fun i => E i / E n) (fun i =>  x ^+ i) n).
 move: CauchyBound_aux => eq; move: (f_equal (fun z => `| z |) eq).
 rewrite normrN; move => <-;
@@ -843,7 +842,7 @@ move: (sum_powers_of_x (m.+1) `|x|); set aux:= (\sum_(i < m.+1) _) => pa.
 set c := \max_(i < m.+1) `|E i / E m.+1| => cp r1.
 have a1p: 0 < `|x| - 1 by rewrite subr_gt0.
 have r2 : c* aux <= c* ( (`|x| ^+ m.+1) /(`|x| - 1)).
-  by rewrite  (ler_wpM2l cp) // ler_pdivlMr // mulrC pa ger_addl lerN10.
+  by rewrite  (ler_wpM2l cp) // ler_pdivlMr // mulrC pa gerDl lerN10.
 move:  (le_trans r1 r2); rewrite mulrA ler_pdivlMr // mulrC.
 rewrite normrX ler_pM2r //.
 by apply:(lt_trans ltr01); rewrite exprn_egt1.
@@ -902,7 +901,7 @@ Definition norm_pol (p : {poly R}) := map_poly (fun x => `|x|) p.
 Lemma pow_monotone n (x y : R) : 0 <= x <= y ->  0 <= x ^+ n <= y ^+ n.
 Proof.
 move => /andP [xp xy].
-by rewrite ler_expn2r// ?andbT ?exprn_ge0// nnegrE (le_trans _ xy).
+by rewrite lerXn2r// ?andbT ?exprn_ge0// nnegrE (le_trans _ xy).
 Qed.
 
 Lemma diff_xn_ub n (z x y: R): -z  <= x -> x <= y -> y <= z ->
@@ -917,7 +916,7 @@ have l1: 0<=`|x| <=z by rewrite normr_ge0 /= ler_norml zx /= (le_trans xy yz).
 have l2: 0<=`|y| <=z by rewrite normr_ge0 /= ler_norml yz /= (le_trans zx xy).
 have /andP [pa pb] := pow_monotone i l1.
 have /andP [pc pd] := pow_monotone  (n.-1 - i)%N l2.
-by move: (ler_pmul pc pa pd pb); rewrite - exprD subnK //; move: lin; case n.
+by move: (ler_pM pc pa pd pb); rewrite - exprD subnK //; move: lin; case n.
 Qed.
 
 Lemma pol_lip p (z x y: R):  -z <= x -> x <= y -> y <= z ->
@@ -942,8 +941,8 @@ Lemma pol_ucont (p : {poly R}) a b (c := (norm_pol p^`()).[(Num.max (- a) b)]) :
 Proof.
 move => x y ax xy yb.
 apply: pol_lip => //.
-apply: (le_trans _ ax); by rewrite ler_oppl le_maxr lexx.
-apply: (le_trans  yb); by rewrite  le_maxr lexx orbT.
+apply: (le_trans _ ax); by rewrite lerNl le_max lexx.
+apply: (le_trans  yb); by rewrite le_max lexx orbT.
 Qed.
 
 Lemma pol_cont (p : {poly R}) (x eps :R):  0 < eps ->
@@ -958,15 +957,15 @@ have cp: 0<=c.
   move: (hc _ _ pa pb (lexx (x+1))).
   by rewrite  addrAC addrN add0r mulr1; apply: le_trans; rewrite normr_ge0.
 exists (Num.min 1  (eps /(c+1))).
-  rewrite lt_minr ltr01 /= divr_gt0 // ? ep //.
+  rewrite lt_min ltr01 /= divr_gt0 // ? ep //.
   by apply: (lt_le_trans ltr01); move: (lerD2r 1 0 c); rewrite add0r cp.
 move => y.
-rewrite lt_minr; case /andP => xy1 xy2.
+rewrite lt_min; case /andP => xy1 xy2.
 apply: (@le_lt_trans _ _ (c *  `|(y - x)|)); last first.
    move: cp; rewrite le0r; case /orP; first by move /eqP => ->; rewrite mul0r.
    move => cp.
    rewrite -(ltr_pM2l cp) in xy2; apply: (lt_le_trans xy2).
-   rewrite mulrCA  ger_pmulr //.
+   rewrite mulrCA ger_pMr //.
    have c1: c <= c + 1  by move: (lerD2l c 0 1); rewrite ler01 addr0.
    have c1p := (lt_le_trans cp c1).
    by rewrite -(ler_pM2r c1p) mulfVK ? (gt_eqF c1p) // mul1r.
@@ -1041,7 +1040,7 @@ Proof.
 move=> ab nla plb ep.
 move: (pol_ucont p (a:=a) (b:= b)); set c1 := _ .[_ ] => /= pc.
 set c := Num.max 1 c1.
-have lc1: 1 <= c by rewrite le_maxr lexx.
+have lc1: 1 <= c by rewrite le_max lexx.
 have cpos:= (lt_le_trans ltr01 lc1).
 set k := Num.bound ((b - a) * c / eps).
 move: (upper_nthrootP(leqnn k)) => hh.
@@ -1055,15 +1054,15 @@ have hh1: (v-u) * c < eps.
    rewrite mulrAC  -(ltr_pM2r xp) (mulrVK (unitf_gt0 xp)).
    move: hh.
    rewrite -/x.
-   by rewrite ltr_pdivr_mulr// (mulrC _ x).
+   by rewrite ltr_pdivrMr// (mulrC _ x).
 have hh2 : v-u < eps.
   by apply: le_lt_trans hh1; rewrite - {1} (mulr1 (v-u)) (ler_pM2l c2p).
 have dvp: p.[u] < p.[v] by apply (lt_le_trans  pun pvp).
 have hh5: p.[v] - p.[u] <= eps.
   move: (pc _ _ ha (ltW hb) hc);rewrite gtr0_norm ? subr_gt0 // mulrC => hh4.
   apply:(le_trans _ (ltW hh1)); apply: (le_trans hh4).
-  rewrite (ler_pM2l c2p) le_maxr lexx orbT //.
-rewrite eq1 /pair_in_interval pun pvp dvp  (ltW hh2) ler_oppl.
+  rewrite (ler_pM2l c2p) le_max lexx orbT //.
+rewrite eq1 /pair_in_interval pun pvp dvp  (ltW hh2) lerNl.
 rewrite  (le_trans _ hh5) ?(le_trans _ hh5) //.
    by rewrite -{1} (addr0 p.[v]) lerD2l oppr_ge0 ltW.
 by rewrite -{1} (add0r (- p.[u])) lerD2r.
@@ -1097,7 +1096,7 @@ set c := _ .[_ ] => /= pc.
 have cpos : 0 < c.
   rewrite - (ltr_pM2r ba') mul0r.
   by apply: lt_le_trans (pc a b _ _ _) => //; rewrite ? ger0_norm // ltW.
-have pdiv : (0 < (b - a) * c / eps) by rewrite ltr_pdivl_mulr // mul0r mulr_gt0.
+have pdiv : (0 < (b - a) * c / eps) by rewrite ltr_pdivlMr // mul0r mulr_gt0.
 move: (archi_boundP (ltW pdiv)); set n := Num.bound _ => qn.
 have fact1 : (0 : R) < n%:R by exact: lt_trans qn => /=.
 case: n qn fact1 => [|n]; rewrite ?ltxx // => qn _.
@@ -1151,7 +1150,7 @@ have : `|p.[b'] - p.[a']| <= eps.
     rewrite mulrA ler_pdivrMr ?ltr0Sn // mulrC [eps * _]mulrC.
     rewrite -ler_pdivrMr //; apply: (ltW  qn).
 case/ler_normlP => h1 h2.
-rewrite ler_oppl/= !andbT.
+rewrite lerNl/= !andbT.
 rewrite -[in X in X && _](lerD2l p.[b']) (le_trans h2) ? lerDr //.
 by rewrite -(lerD2r (- p.[a'])) (le_trans h2) // lerDl oppr_gte0 ltW.
 Qed.

@@ -1289,7 +1289,7 @@ have ublt : ub < ub' by rewrite ltr_pwDr // ltr01.
 pose x := minr (a - p.[a]/ub') (half (a + b)).
 have xitv2 : a < x < b.
   by case/andP: (mid_between ab)=> A B; rewrite lt_min ltr_pwDr ?A //=
-    ?lt_minl ?B ?orbT // -mulNr mulr_gt0 // ?invr_gt0 // oppr_gt0.
+    ?gt_min ?B ?orbT // -mulNr mulr_gt0 // ?invr_gt0 // oppr_gt0.
 have xitv : a <= x <= b by case/andP: xitv2 => *; rewrite !ltW //.
 have := cp _ xitv2.
 rewrite [X in X.[x]]pq hornerD hornerC hornerM hornerXsubC.

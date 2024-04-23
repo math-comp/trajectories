@@ -1,5 +1,5 @@
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq  choice fintype order.
-From mathcomp Require Import binomial  bigop ssralg poly ssrnum ssrint rat.
+From mathcomp Require Import binomial  bigop ssralg poly ssrnum ssrint rat archimedean.
 From mathcomp Require Import polyrcf.
 Require Import pol.
 
@@ -1093,7 +1093,7 @@ have cp0 : 0 < c.
 set b := Num.min y (b' +(half e1)/c).
 have blty: b <= y by  rewrite /b ge_min lexx.
 have b'b: b' < b.
-  rewrite lt_minr (le_lt_trans b'y' y'y) /= - ltrBlDl addrN.
+  rewrite lt_min (le_lt_trans b'y' y'y) /= - ltrBlDl addrN.
   by rewrite (divr_gt0 (half_gt0 e1p) cp0).
 have clb:c * (b - b') < e1.
   apply: le_lt_trans (half_ltx e1p).
@@ -1169,14 +1169,14 @@ have k2p : k2 = (k * x1 ^+ 2 * y ^-1 ^+ s) by apply: double_half.
 rewrite (_ : k' = k1 + k2); last by rewrite /k1 /k2 addrA addNr add0r.
 have xzi: z^-1 < x^-1 by rewrite ltf_pV2.
 have pa : x1 <=  z^-1.
-  by rewrite (le_trans x1a)// -(invrK a)// lef_pinv// posrE invr_gt0.
+  by rewrite (le_trans x1a)// -(invrK a)// lef_pV2// posrE invr_gt0.
 have pb: x1 <=  x^-1 by rewrite (ltW (le_lt_trans pa xzi)).
 have pc: 0 <= k * (x^-1 - z^-1) by apply: ltW;rewrite(mulr_gt0 kp) // subr_gt0.
 have pdd:(x1 <= z^-1 <= x^-1) by rewrite pa (ltW xzi).
 have pd:= (sl _ _ pdd).
 have t3p:=  le_trans pc pd.
 have pe : 0 <= y^-1 <= z.
-  by rewrite invr_ge0 ltW //= (le_trans _ (ltW xz))// (le_trans _ bvx)// lef_pinv.
+  by rewrite invr_ge0 ltW //= (le_trans _ (ltW xz))// (le_trans _ bvx)// lef_pV2.
 case /andP: (pow_monotone s pe) => _ hh.
 have maj' : t3 * y^-1 ^+ s <= t3 * z^+ s by rewrite ler_wpM2l.
 rewrite mulrDl; apply: lerD; last first.
@@ -1201,11 +1201,11 @@ have xzexp' : (z ^+ s - x ^+ s) >= 0 by rewrite subr_ge0 - subr_le0.
 rewrite /t1 /k1 /k' {maj' t2 t3}.
 case: (lerP 0 ( q.[x^-1])) => sign; last first.
   apply: le_trans  (_ : 0 <= _).
-   by rewrite mulNr lter_oppl oppr0  mulr_ge0 //?(ltW k'p)// subr_gte0 /= ltW.
+   by rewrite mulNr lterNl oppr0 mulr_ge0 //?(ltW k'p)// subr_gte0 /= ltW.
   by rewrite mulr_le0 // ltW.
-rewrite mulNr lter_oppl -mulNr opprD  opprK addrC.
+rewrite mulNr lterNl -mulNr opprD opprK addrC.
 have rpxe : q.[x^-1] <= e.
-  have bvx' : x^-1 <= b by rewrite -(invrK b)// lef_pinv.
+  have bvx' : x^-1 <= b by rewrite -(invrK b)// lef_pV2.
   apply: (@le_trans _ _ q.[b]).
      have aux:(x1 <= x^-1 <= b) by rewrite pb bvx'.
     rewrite -subr_ge0 /= ;apply: le_trans (sl _ _ aux).

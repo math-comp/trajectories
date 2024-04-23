@@ -58,10 +58,10 @@ rewrite Convn_pair/comp/=; congr pair; apply S1_inj; rewrite !S1_Convn big_prod_
   under eq_bigr => j _ do rewrite -[e j * d i]/(h j).
   rewrite scalept_sum; apply eq_big=>// j _.
   rewrite /h /= fdistmapE.
-  have -> : (\sum_(a in [finType of 'I_n * 'I_m] |
+  have -> : (\sum_(a in {: 'I_n * 'I_m} |
                    a \in preim (@unsplit_prod _ m) (pred1 (Ordinal (unsplit_prodp i j))))
               (fdist_prod d (fun=> e)) a =
-             \sum_(a in [finType of 'I_n * 'I_m] | a \in pred1 (i, j))
+             \sum_(a in {: 'I_n * 'I_m} | a \in pred1 (i, j))
               (fdist_prod d (fun=> e)) a)%coqR.
      apply eq_big=>// k; congr andb; rewrite 3!inE.
      by apply: (eqtype.inj_eq _ k (i, j)); exact: (can_inj (@unsplit_prodK _ _)).
@@ -75,14 +75,14 @@ have @h : nneg_fun 'I_n.
 (* BUG HB.pack *)
    exists (fun i => d i * e j)%coqR => i.
    by apply: ssrR.mulR_ge0.
-under eq_bigr => i _ do rewrite -[d i * e j]/(h i).    
+under eq_bigr => i _ do rewrite -[d i * e j]/(h i).
 rewrite scalept_sum; apply: eq_big => // i _.
 rewrite /h/= fdistmapE.
-have -> : (\sum_(a in [finType of 'I_n * 'I_m] |
+have -> : (\sum_(a in {: 'I_n * 'I_m} |
    a \in preim (unsplit_prod (n:=m)) (pred1 (Ordinal (unsplit_prodp i j))))
           (fdist_prod d (fun=> e)) a =
    \sum_(a in
-   [finType of 'I_n * 'I_m] | a \in pred1 (i, j))
+   {: 'I_n * 'I_m} | a \in pred1 (i, j))
        (FDist.f (fdist_prod d (fun=> e))) a)%coqR.
    apply: eq_big=>// k; congr andb; rewrite 3!inE.
    by apply: (eqtype.inj_eq _ k (i, j)); exact (can_inj (@unsplit_prodK _ _)).
@@ -226,7 +226,7 @@ split.
       have [tle|tle] := leP (Prob.p t) (2^-1); first exact: (h u v t).
       rewrite convC.
       apply (h v u (onem t)%:pr)=>//.
-      rewrite -onem_half; apply ler_sub=>//.
+      rewrite -onem_half; apply: lerB=>//.
       exact/ltW.
    move=>tle.
    have t01: ((Rdefinitions.IZR BinNums.Z0) <= 2%:R * (Prob.p t : R)) &&
@@ -306,7 +306,7 @@ split; move=>[hex hface]; split=>//.
          by apply (h f a).
       move: h=>/(_ (f \o (@GRing.opp E)) (- a)).
       have hf' (x : E) : x \in A -> (f \o (@GRing.opp E)) x <= - a.
-        by move=> xA /=; rewrite -scaleN1r linearZZ scaleN1r ler_oppl opprK; apply hf.
+        by move=> xA /=; rewrite -scaleN1r linearZZ scaleN1r lerNl opprK; apply hf.
       have hex': exists x : E, x \in A /\ (f \o (@GRing.opp E)) x = - a.
          by move: hex=>[x [xA fx]]; exists x; split=>//=; rewrite -fx -scaleN1r linearZZ scaleN1r.
       move=>/(_ hex' (or_introl hf') hf'); congr (face A (A `&` _)).
@@ -319,7 +319,7 @@ split; move=>[hex hface]; split=>//.
    have tgt : 0 < (Prob.p t : R) by rewrite lt0r t0=>/=.
    move: tx=>/(f_equal (fun x=> (Prob.p t : R)^-1 *: (x - (onem t) *: v))).
    rewrite -addrA subrr addr0 scalerA mulVf // scale1r=>->.
-   rewrite linearZZ linearD xa -scaleNr linearZZ ler_pdivl_mull// addrC -subr_ge0 -addrA -mulNr -{1}[a]mul1r -mulrDl scaleNr -scalerN -mulrDr; apply mulr_ge0 => //.
+   rewrite linearZZ linearD xa -scaleNr linearZZ ler_pdivlMl// addrC -subr_ge0 -addrA -mulNr -{1}[a]mul1r -mulrDl scaleNr -scalerN -mulrDr; apply mulr_ge0 => //.
    by rewrite addrC Num.Internals.subr_ge0; apply hf.
 have : forall x y, x \in A -> y \in A -> f x < a -> a < f y -> False.
    move=> u v uA vA fua afv.
@@ -328,7 +328,7 @@ have : forall x y, x \in A -> y \in A -> f x < a -> a < f y -> False.
   (((f v - a) / (f v - f u))%R <= Rdefinitions.IZR (BinNums.Zpos 1%AC)).
       apply/andP; split.
          by apply divr_ge0; apply ltW=>//; rewrite subr_gt0.
-         rewrite ler_pdivr_mulr// mul1r -subr_ge0 opprB addrAC addrCA subrr addr0 subr_ge0.
+         rewrite ler_pdivrMr// mul1r -subr_ge0 opprB addrAC addrCA subrr addr0 subr_ge0.
          by apply ltW.
    move: hface=>/face'P [_ _ /(_ (u <| Prob.mk t01 |> v) u v)].
    have inuv: u <| Prob.mk t01 |> v \in segment u v.
@@ -450,7 +450,7 @@ have ->: \sum_(i | true && ~~ (0 < d i)) (t : R) *: (d i *: s i) = \sum_(i | tru
    move:(FDist.ge0 d i)=>->; rewrite orbF=>/eqP->.
    by rewrite 2!scale0r GRing.scaler0.
 rewrite -[\sum_(_ < _ | _) 0 *: 0]scaler_sumr scale0r addr0 -big_filter /=.
-remember [seq i <- index_enum [finType of 'I_n] | 0 < d i] as I; move: HeqI=>/esym HeqI.
+remember [seq i <- index_enum 'I_n | 0 < d i] as I; move: HeqI=>/esym HeqI.
 case: I HeqI=> [| i I] HeqI.
    exfalso; move: (FDist.f1 d) (oner_neq0 R); rewrite (@bigID_idem _ _ _ _ _ _ (fun i=> 0 < d i))/=; [|apply addr0 ].
    rewrite -big_filter HeqI big_nil/=.
@@ -460,7 +460,7 @@ case: I HeqI=> [| i I] HeqI.
    apply congr_big=>// i /= dile; move: (FDist.ge0 d i); rewrite le0r.
    rewrite (negbTE dile) orbF => /eqP ->.
    by rewrite mul0R.
-have: subseq (i::I) (index_enum [finType of 'I_n]) by rewrite -HeqI; apply filter_subseq.
+have: subseq (i::I) (index_enum 'I_n) by rewrite -HeqI; apply filter_subseq.
 case: n s d sA i I HeqI=> [| n] s d sA i I HeqI.
    by inversion i.
 move=> /subseq_incl; move=> /(_ ord0); rewrite size_index_enum card_ord; move=> [f [fn flt]].

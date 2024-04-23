@@ -6,7 +6,7 @@ From mathcomp Require Import polyrcf qe_rcf_th complex.
 (*
 This file consists of 3 sections:
 - introduction of normal polynomials, some lemmas on normal polynomials
-- constructions on sequences, such as all_neq0, all_pos, increasing, mid, seqmul, seqn0 
+- constructions on sequences, such as all_neq0, all_pos, increasing, mid, seqmul, seqn0
 - proof of Proposition 2.44 of [bpr], normal_changes
 *)
 (******************************************************************************)
@@ -195,7 +195,7 @@ case/orP : Hrez => [ | Hrez].
   rewrite eq_sym mulf_eq0 oppr_eq0 pnatr_eq0 orFb =>/eqP Hrez.
   rewrite Hrez expr0n mulr0 exprn_even_le0 //= in H.
   by rewrite Hrez (eqP H) expr0n add0r eqxx.
-rewrite Hrez H ltr_spaddl ?orbT // ?lt_def sqr_ge0 // sqrf_eq0.
+rewrite Hrez H ltr_pwDl ?orbT // ?lt_def sqr_ge0 // sqrf_eq0.
 rewrite lt_def mulf_eq0 oppr_eq0 pnatr_eq0 orFb in Hrez.
 by case/andP : Hrez => ->.
 Qed.
@@ -1579,8 +1579,8 @@ apply/increasingP => k Hk.
 rewrite spseq_size in Hk.
 rewrite (@spseq_coef k) //.
   rewrite (@spseq_coef k.+1) //.
-    rewrite ler_sub // ler_pdivr_mulr.
-      rewrite mulrC mulrA ler_pdivl_mulr.
+    rewrite lerB // ler_pdivrMr.
+      rewrite mulrC mulrA ler_pdivlMr.
         by rewrite -expr2 (H3 k.+1).
       rewrite (normal_0notroot_2 Hpnormal Hp0noroot) //.
       by rewrite -(@addn2 k) addnC -ltn_subRL p_size subn2.
