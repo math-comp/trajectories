@@ -8,7 +8,7 @@
 Makefile.coq
 Makefile.coq.conf
 .Makefile.coq.d
-html/*.cmo
-html/*.cmi
-html/*.bytes
-html/*.js
+www/*.cmo
+www/*.cmi
+www/*.bytes
+www/*.js
