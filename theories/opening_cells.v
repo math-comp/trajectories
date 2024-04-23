@@ -614,7 +614,7 @@ have einfc' : ~~ (point e <<< c').
   apply : onAbove.
   have := outlefte c' cin => /eqP <-.
   apply :  left_on_edge.
-have outq: (forall e0 : edge_eqType R, e0 \in q -> left_pt e0 == point e).
+have outq: (forall e0 : edge, e0 \in q -> left_pt e0 == point e).
   move => e0 ein.
   apply outlefte.
   by rewrite inE ein orbT.

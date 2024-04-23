@@ -763,14 +763,13 @@ case:ifP (o1) (o2) =>[/eqP q1 |enp1];case:ifP=>[/eqP q2 |enp2];
   rewrite -?q1 -?q2 /= ?eqxx ?x2 ?x1 /= => -> -> //; rewrite /= ?andbT.
 - move: x1 x2 ctp=> /eqP/esym x1 /eqP x2 /andP[] _ eh.
   have := (under_edge_strict_lower_y x2 (negbT enp2) eh o2).
-  rewrite q1=> ->; rewrite andbT.
-  by rewrite /right_limit /= x2 eqxx.
+  by rewrite q1=> ->//; rewrite andbT.
 - move: x1 x2 ctp=> /eqP/esym x1 /eqP x2 /andP[] el _.
   have := (above_edge_strict_higher_y x1 _ el).
-  by rewrite eq_sym (negbT enp1)=> /(_ isT); apply.
+  by apply => //; exact: negbT.
 move: x1 x2 ctp=> /eqP/esym x1 /eqP x2 /andP[] el eh.
 rewrite (above_edge_strict_higher_y x1 _ el) //; last first.
-  by rewrite eq_sym enp1.
+  exact: negbT.
 rewrite  (under_edge_strict_lower_y x2 (negbT enp2) eh) //.
 by rewrite -x1 x2 eqxx.
 Qed.

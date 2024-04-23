@@ -20,6 +20,18 @@ theories/encompass.v
 theories/counterclockwise.v
 theories/axiomsKnuth.v
 theories/preliminaries_hull.v
+theories/cells.v
+theories/cells_alg.v
+theories/door_crossing.v
+theories/events.v
+theories/extraction_command.v
+theories/generic_trajectories.v
+theories/math_comp_complements.v
+theories/no_crossing.v
+theories/opening_cells.v
+theories/points_and_edges.v
+theories/safe_cells.v
+theories/smooth_trajectories.v
 
 -R theories trajectories
 

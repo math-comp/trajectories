@@ -1,3 +1,4 @@
+From HB Require Import structures.
 From mathcomp Require Import all_ssreflect all_algebra all_real_closed reals.
 From mathcomp.algebra_tactics Require Import ring lra.
 Require Import casteljau convex counterclockwise intersection.
@@ -14,7 +15,7 @@ Local Open Scope ring_scope.
 Section sandbox.
 
 Lemma poly_coord {R : rcfType} 
-  (c : pair_vectType (regular_vectType R) (regular_vectType R))
+  (c : (R^o * R^o)%type)
   (p : {poly R}) (t : R) :
   p.[t] *: c = c.1 * p.[t] *: (1, 0) + c.2 * p.[t] *: (0, 1).
 Proof.
@@ -161,7 +162,7 @@ Qed.
 
 Fail Check (fun (x : vert_edge) (l : seq vert_edge) => x \in l).
 
-Canonical vert_edge_eqType := EqType vert_edge (EqMixin vert_edge_eqP).
+HB.instance Definition _ := hasDecEq.Build _ vert_edge_eqP.
 
 Fixpoint seq_to_intervals_aux [A : Type] (a : A) (s : seq A) :=
 match s with
@@ -177,12 +178,12 @@ end.
 
 Definition cell_safe_exits_left (c : cell) : seq vert_edge :=
   let lx := (seq.head dummy_pt (left_pts c)).1 in
-  map (fun p => Build_vert_edge lx (fst p).2 (snd p).2) 
+  map (fun p => Build_vert_edge lx (p.1).2 (p.2).2) 
    (seq_to_intervals (left_pts c)).
 
 Definition cell_safe_exits_right (c : cell) : seq vert_edge :=
   let lx := (seq.head dummy_pt (right_pts c)).1 in
-  map (fun p => Build_vert_edge lx (fst p).2 (snd p).2) 
+  map (fun p => Build_vert_edge lx (p.1).2 (p.2).2) 
    (seq_to_intervals (rev (right_pts c))).
 
 Definition dummy_vert_edge :=
@@ -1030,7 +1031,7 @@ have tmp1 : t ^ 2 * c'.2 * (b.1 - a.1) =
   by rewrite /= mulrDl (mulrAC _ _ (b.1 - a.1)) mulfVK.
 rewrite !bezier_step_conv /=.
 have tmp x (y : R^o) : x *: y = x * y by [].
-rewrite !tmp tmp1.
+rewrite !tmp tmp1 /=.
 ring.
 Qed.
 
@@ -1076,7 +1077,8 @@ rewrite subr_eq=> /eqP ->; rewrite /p' /=.
 rewrite addrA (addrC _ (left_pt e).2) -!addrA.
 rewrite ler_add2.
 rewrite addrC -ler_subr_addl mulrAC addrN.
-rewrite pmulr_lle0 // invr_gt0; lra.
+rewrite pmulr_lle0 // invr_gt0/=.
+by rewrite subr_gt0.
 Qed.
 
 Lemma safe_bezier_ccw (a b c : Plane R) (v : vert_edge) (u : R) :
@@ -1128,3 +1130,5 @@ apply: conv_num_ltr=> //.
   by rewrite det_inverse oppr_lte0 -det_cyclique.
 by rewrite mkedgeE /= det_alternate.
 Qed.
+
+End sandbox.

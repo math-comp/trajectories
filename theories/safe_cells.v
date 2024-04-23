@@ -717,8 +717,8 @@ have dif_lh_cl : {in closed, forall c, low c != high c}.
   by move=> c' c'in; have [_ [it _]] := closed_main_properties _ c'in.
 have points_covered' : {in [seq left_pt g0 | g0 <- events_to_edges evs] ++
        [seq right_pt g0 | g0 <- events_to_edges evs],
-     forall p0 : pt_eqType R,
-     exists2 c0 : cell_eqType R,
+     forall p0 : pt,
+     exists2 c0 : cell,
        c0 \in closed & p0 \in (right_pts c0 : seq pt) /\ p0 >>> low c0}.
   by move=> q /sub_ref/mapP[e ein ->]; apply: all_points_covered.
 have puh : p <<< high c.

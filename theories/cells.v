@@ -1,3 +1,4 @@
+From HB Require Import structures.
 From mathcomp Require Import all_ssreflect all_algebra.
 Require Export Field.
 Require Import math_comp_complements generic_trajectories points_and_edges
@@ -54,7 +55,7 @@ have [/eqP <-|/eqP anb] := boolP(lptsa == lptsb :> seq pt).
 by apply: ReflectF=> [][].
 Qed.
 
-Canonical cell_eqType := EqType cell (EqMixin cell_eqP).
+HB.instance Definition _ := hasDecEq.Build _ cell_eqP.
 
 Definition valid_cell c x := valid_edge (low c) x /\ valid_edge (high c) x.
 

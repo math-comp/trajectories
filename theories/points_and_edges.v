@@ -1,3 +1,4 @@
+From HB Require Import structures.
 From mathcomp Require Import all_ssreflect all_algebra.
 Require Export Field.
 Require Import math_comp_complements.
@@ -32,7 +33,7 @@ have [/eqP <-|/eqP anb] := boolP(a_x == b_x).
 by apply: ReflectF=> [][].
 Qed.
 
-Canonical pt_eqType := EqType pt (EqMixin pt_eqP).
+HB.instance Definition _ := hasDecEq.Build _ pt_eqP.
 
 Lemma pt_eqE (p1 p2 : pt) :
    (p1 == p2) = (p_x p1 == p_x p2) && (p_y p1 == p_y p2).
@@ -61,7 +62,7 @@ have [/eqP a1a2 | /eqP a1na2] := boolP(a1 == a2).
 by apply: ReflectF=>[][].
 Qed.
 
-Canonical edge_eqType := EqType edge (EqMixin edge_eqP).
+HB.instance Definition _ := hasDecEq.Build _ edge_eqP.
 
 Definition area3 :=
   area3 R +%R (fun x y => x - y) *%R.

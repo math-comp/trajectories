@@ -1,3 +1,4 @@
+From HB Require Import structures.
 From mathcomp Require Import all_ssreflect all_algebra.
 Require Export Field.
 Require Import math_comp_complements.
@@ -40,7 +41,7 @@ have [/eqP <- | /eqP anb] := boolP (pta == ptb :> pt).
 by apply: ReflectF=> [][].
 Qed.
 
-Canonical event_eqType := EqType event (EqMixin event_eqP).
+HB.instance Definition _ := hasDecEq.Build _ event_eqP.
 
 Notation Bevent := (Bevent _ _).
 (* As in insertion sort, the add_event function assumes that event are
