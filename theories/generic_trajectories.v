@@ -665,6 +665,22 @@ end.
 Definition path_reverse (s : seq (annotated_point * annotated_point)) :=
   List.map (fun p => (snd p, fst p)) (List.rev_append s nil).
 
+Definition strict_inside_closed p c :=
+  negb (point_under_edge p (low c)) &&
+  point_strictly_under_edge p (high c) &&
+ (R_ltb (left_limit c) (p_x p) &&
+ (R_ltb (p_x p) (right_limit c))).
+
+Definition safe_intermediate_point_in_cell (p1 p2 : pt) (c : cell)
+   (ci : nat) :=
+  let new_x := p_x (cell_center c) in
+  let new_y := R_div (R_add (p_y p1) (p_y p2)) R2 in
+  let new_pt := {|p_x := new_x; p_y := new_y|} in
+    if strict_inside_closed new_pt c then
+      Apt new_pt (ci :: nil)
+    else
+      Apt (cell_center c) (ci :: nil).
+
 (* This function creates a safe path from the door between
   c1 and c2 and the door between c2 and c3.  When op1 and op2
   are not provided, midpoints are used as path anchors,
@@ -692,8 +708,7 @@ let p2 := match op2 with
             end
           end in
 if R_eqb (p_x p1) (p_x p2) then
-  let intermediate_point :=
-    Apt (cell_center c2) (c2i :: nil) in
+  let intermediate_point :=  safe_intermediate_point_in_cell p1 p2 c2 c2i in
   (Apt p1 (c1i :: c2i :: nil), intermediate_point) ::
   (intermediate_point, Apt p2 (c2i :: c3i :: nil)) :: nil
 else
@@ -739,12 +754,6 @@ Definition path_adjacent_cells (cells : seq cell) (source target : pt)
                Apt target (target_i :: nil)) :: nil)
   | None => None
   end.
-
-Definition strict_inside_closed p c :=
-  negb (point_under_edge p (low c)) &&
-  point_strictly_under_edge p (high c) &&
- (R_ltb (left_limit c) (p_x p) &&
- (R_ltb (p_x p) (right_limit c))).
 
 (* find_origin_cells returns a list of cell indices. *)
 (* If the list is empty, it should mean that the point is not in the
