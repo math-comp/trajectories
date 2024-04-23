@@ -1,0 +1,46 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Grid</title>
+    <style>
+      body {
+              overflow: hidden;
+              margin: 0px;
+           }
+    </style>
+    <script async
+      src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js">
+    </script>
+
+    <script type="importmap">
+      {
+        "imports": {
+        "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
+        }
+      }
+    </script>
+	</head>
+  <body>
+<input type="radio" id="obstacles" name="modality" value="obstacles" checked="checked">
+<label for="Maze">Obstacles</label>
+<input type="radio" id="positions" name="modality" value="positions">
+<label for="Position">Starting and ending positions</label> 
+<input type="checkbox" id="cell" name="Show Cells">
+<label> Show Cells </label>
+<p>
+  To add an obstacle, click to a first end-point (blue square)
+  then click to the second end-point
+<p>
+  To remove an obstacle, click to a first end-point (blue square)
+  then click to the second end-point
+<p>
+  After giving the starting point and the ending point (positions) the system 
+  gives a path avoiding the obstacles.
+<p> 
+  To see the cells used by the algorithm, tick the Show Cell check-box
+</p>
+  <script defer type="module" src="./SmoothTrajectories.js"></script>
+  <script defer type="module" src="./grid.js"></script>
+  </body>
+</html>
