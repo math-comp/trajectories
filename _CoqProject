@@ -1,5 +1,18 @@
+# code
 theories/generic_trajectories.v
 theories/smooth_trajectories.v
+
+# proof
+theories/math_comp_complements.v
+theories/points_and_edges.v
+theories/events.v
+theories/cells.v
+theories/opening_cells.v
+theories/cells_alg.v
+theories/safe_cells.v
+
+# not relevant to flavor
+
 # theories/convex.v
 # theories/preliminaries.v
 # theories/poly_normal.v
