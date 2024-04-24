@@ -150,6 +150,11 @@ const dmaterial = new THREE.LineDashedMaterial( {
 	gapSize: 0.4,
 } );
 
+const xmaterial = new THREE.LineDashedMaterial( {
+	color: 'red',
+	dashSize: 0.1,
+	gapSize: 0.4,
+} );
 
 // Function to output a value v
 function outVal (v) {
@@ -183,10 +188,15 @@ function getCells() {
   } 
   console.log("boarders " + borders.length + " obstacles " + obstacles.length);
   console.log("val " + val);
-  let res = ocamlLib.cells(val);
+  let stuff = ocamlLib.cells(val);
+  console.log("stuff ", stuff);
+  let res = stuff[0];
+  let extra = stuff[1];
   console.log("res " + res);
+  console.log("extra " + extra);
   let res1 = res.split(' ').map(Number);
-  console.log("res1 length" + res1.length);
+  let res2 = extra.split(' ').map(Number);
+  console.log("res1 length/8" + (res1.length / 8));
   console.log("res1[0]=" + res1[0]);
   console.log("res1[res1.length - 1]=" + res1[res1.length - 1]);
   let i = 0;
@@ -204,6 +214,27 @@ function getCells() {
      epoints.push( new THREE.Vector3(tx, ty, tz));
     let egeometry = new THREE.BufferGeometry().setFromPoints( epoints );
     let sline = new THREE.Line( egeometry, dmaterial );
+    sline.computeLineDistances();
+    cells.push(sline);
+    scene.add( sline );
+    renderer.render( scene, camera );
+    i += 8;
+  };
+  i = 0;
+  while (i < res2.length - 1) {
+    /* Straight line */
+    let fx = res2[i] / res2 [i + 1] * gSize - 0.5 - gSize/2;
+    let fy = 0.3;
+    let fz = res2[i + 2] / res2 [i + 3] * gSize - 0.5 - gSize/2;
+    let tx = res2[i + 4] / res2 [i + 5] * gSize - 0.5 - gSize/2;
+    let ty = 0.3;
+    let tz = res2[i + 6] / res2 [i + 7] * gSize - 0.5 - gSize/2;
+    console.log("Adding RED a dotted line" + fx + " " + fz + " " + tx + " " + tz);
+    let epoints = [];
+     epoints.push( new THREE.Vector3(fx, fy, fz) );
+     epoints.push( new THREE.Vector3(tx, ty, tz));
+    let egeometry = new THREE.BufferGeometry().setFromPoints( epoints );
+    let sline = new THREE.Line( egeometry, xmaterial );
     sline.computeLineDistances();
     cells.push(sline);
     scene.add( sline );

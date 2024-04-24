@@ -116,7 +116,10 @@ let rec cells_elements2n ces =
   match ces with
   |  Cons (ce, ces1) -> cells_element2n (ce.left_pts) @ cells_elements2n ces1 
   |  Nil -> []
-
+let rec cells_elements2n' ces =
+  match ces with
+  |  Cons (ce, ces1) -> cells_element2n (ce.right_pts) @ cells_elements2n' ces1 
+  |  Nil -> []
 let call_cells s = 
   let l = string2ln s in
   match l with
@@ -126,12 +129,12 @@ let call_cells s =
     let es = list2es ls in 
     let v = qedges_to_cells (n2edge e1n1 e1d1 e1n2 e1d2 e1n3 e1d3 e1n4 e1d4)
       (n2edge e2n1 e2d1 e2n2 e2d2 e2n3 e2d3 e2n4 e2d4)
-      es  in 
-    l2stringr (cells_elements2n v)
+      es  in
+    [| Js.string @@ l2stringr (cells_elements2n v) ; Js.string @@ l2stringr (cells_elements2n' v) |]
 
 let _ =
   Js.export "ocamlLib"
     (object%js
       method smooth s = Js.string (call_smooth (Js.to_string s))
-      method cells s = Js.string (call_cells (Js.to_string s))
+      method cells s = Js.array (call_cells (Js.to_string s))
     end)
