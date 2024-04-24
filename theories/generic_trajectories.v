@@ -1078,3 +1078,139 @@ Definition smooth_point_to_point (bottom top : edge) (obstacles : seq edge)
   smooth_from_cells cells initial final.
 
 End generic_implementation.
+
+(***************************************************************************)
+
+Section generic_implementation_polylithic_paving.
+
+Variable R : Type.
+Variables R_eqb R_leb :  R -> R -> bool.
+Variables R_add R_sub R_mul R_div : R -> R -> R.
+
+Local Notation "x * y" := (R_mul x y) .
+Local Notation "x - y" := (R_sub x y) .
+Local Notation "x + y" := (R_add x y) .
+Local Notation "x / y" := (R_div x y) .
+Local Notation "x == y" := (R_eqb x y) : bool_scope.
+Local Notation "x < y"  := (R_ltb R R_eqb R_leb x y) : bool_scope.
+Local Notation "x <= y" := (R_leb x y) : bool_scope.
+Local Notation pt := (pt R).
+Local Notation Bpt := (Bpt R).
+Local Notation p_x := (p_x R).
+Local Notation p_y := (p_y R).
+
+Variable edge : Type.
+Variable Bedge : pt -> pt -> edge.
+Variables left_pt right_pt : edge -> pt.
+
+Local Notation cell := (cell R edge).
+Arguments Bcell : default implicits.
+
+(* this is probably vertical_intersection_point *)
+Definition project_edge e (l r : R) : edge :=
+  let: (left_pt, right_pt) := (left_pt e, right_pt e) in 
+  let h1 := ((p_y right_pt - p_y left_pt) * (l - p_x left_pt) / (p_x right_pt - p_x left_pt)) in
+  let h2 := ((p_y right_pt - p_y left_pt) * (r - l)           / (p_x right_pt - p_x left_pt)) in
+  let base := p_y left_pt in
+  let left_pt := Bpt l (base + h1) in
+  let right_pt := Bpt r (base + h1 + h2) in
+  Bedge left_pt right_pt. 
+
+Definition cmp_point_x p q := p_x p < p_x q.
+Definition cmp_point_y p q := p_y p < p_y q.
+Definition eq_point p q := (p_x p == p_x q) && (p_y p == p_y q).
+Definition cmp_edge_lhs_x e1 e2 := cmp_point_x (left_pt e1) (left_pt e2).
+
+Definition points_x_in_edge l r e : bool :=
+  let: (left_pt, right_pt) := (left_pt e, right_pt e) in 
+  (p_x left_pt <= l) && (r <= p_x right_pt).
+
+Fixpoint break_aux (edges : list edge) (points : list R) : list edge :=
+  match points with
+  | [::] => [::]
+  | [:: _] => [::]
+  | l :: ((r :: _) as rest) =>
+     [seq project_edge e l r | e <- edges & points_x_in_edge l r e] ++ break_aux edges rest
+  end.
+
+Definition break_edges edges :=
+  let points := [seq left_pt x | x <- edges ] ++ [seq right_pt x | x <- edges] in  
+  let points := no_dup_seq_aux R_eqb [seq p_x p | p <- sort cmp_point_x points] in
+  let edges := sort cmp_edge_lhs_x edges in
+  break_aux edges points.
+
+Fixpoint regroup_edges_aux acc (edges : list edge) : list (list edge):=
+  match edges with
+  | [::] => [:: acc]
+  | e :: rest =>
+      match acc with
+      | [::] => regroup_edges_aux [:: e] rest
+      | [:: e' & _] =>
+          if p_x (left_pt e) == p_x (left_pt e')
+          then regroup_edges_aux [:: e & acc] rest
+          else acc :: regroup_edges_aux [:: e] rest
+      end
+  end.
+
+Definition regroup_edges (edges : list edge) : list (list edge) :=
+  let edges := sort cmp_edge_lhs_x edges in
+  regroup_edges_aux [::] edges.
+
+Definition cmp_edge_ys e1 e2 :=
+  let: (pl,pr) := (left_pt e1, right_pt e1) in
+  let: (ql,qr) := (left_pt e2, right_pt e2) in
+  (p_y pl < p_y ql) || (p_y pr < p_y qr).
+
+Definition vertical_sort_group (group : list edge) : list edge :=
+  sort cmp_edge_ys group.
+
+Definition make_cell (low high : edge) : cell := {|
+  high := high;
+  low := low;
+  left_pts := [:: left_pt high ; left_pt low ];
+  right_pts := [:: right_pt low ; right_pt high ];
+|}.
+
+Fixpoint closed_group_to_cells (group : list edge) : list cell :=
+  match group with
+  | [::] => [::]
+  | [:: _] => [::]
+  | e1 :: ((e2 :: _) as rest) => make_cell e1 e2 :: closed_group_to_cells rest
+  end.
+
+Definition make_cells group :=
+  closed_group_to_cells (vertical_sort_group group).
+
+Definition high_of : cell -> edge := fun '{| high := x |} => x.
+Definition low_of : cell -> edge := fun '{| low := x |} => x.
+
+Definition fix_right neighbors '(Bcell lp rp low high) : cell :=
+  let top := p_y (right_pt high) in
+  let bottom := p_y (right_pt low) in
+  let nph := [seq (left_pt (high_of n)) | n <- neighbors ] in
+  let npl := [seq (left_pt (low_of n)) | n <- neighbors ] in
+  let extra := [seq x | x <- npl ++ nph & (bottom < p_y x) && (p_y x < top)] in
+  Bcell lp (no_dup_seq_aux eq_point (sort cmp_point_y (rp ++ extra))) low high.
+
+Definition fix_left neighbors '(Bcell lp rp low high) : cell :=
+  let top := p_y (left_pt high) in
+  let bottom := p_y (left_pt low) in
+  let nph := [seq (right_pt (high_of n)) | n <- neighbors ] in
+  let npl := [seq (right_pt (low_of n)) | n <- neighbors ] in
+  let extra := [seq x | x <- npl ++ nph & (bottom < p_y x) && (p_y x < top)] in
+  Bcell (no_dup_seq_aux eq_point (rev (sort cmp_point_y (lp ++ extra)))) rp low high.
+
+Fixpoint fix_doors (f : list cell -> cell -> cell) groups :=
+  match groups with
+  | g1 :: ((g2 :: _) as rest) => [seq f g2 x| x <- g1] :: fix_doors f rest
+  | x => x
+  end.
+
+Definition edges_to_cells2 top bot edges : list cell :=
+  let edges := break_edges [:: top, bot & edges] in
+  let cilinders := [seq make_cells g | g <- regroup_edges edges] in
+  let cilinders := fix_doors fix_right cilinders in
+  let cilinders := fix_doors fix_left (rev cilinders) in
+  flatten cilinders.
+
+End generic_implementation_polylithic_paving.

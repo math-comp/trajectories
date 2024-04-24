@@ -6952,4 +6952,30 @@ have rfnew : s_right_form (fc ++ nos ++ lno :: lc).
 apply: (@middle_disj_last _ cc lcc)=> //.
 
 *)
+
+(* break_edges *)
+Notation break_edges := (break_edges R eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y)
+edge (@unsafe_Bedge R) (@left_pt R) (@right_pt R)).
+
+Lemma break_edgesP p (edges : list edge) :
+  has [pred e | p === e] edges ->
+  has [pred e | p === e] (break_edges edges).
+Admitted.
+
+Notation edges_to_cells2 := (edges_to_cells2 R eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y)
+edge (@unsafe_Bedge R) (@left_pt R) (@right_pt R)).
+
+Lemma edges_to_cellsP edges top bottom (cells := edges_to_cells2 top bottom edges) :
+  {in cells, forall c, 
+     low c <| high c /\
+     low c != high c /\
+     left_limit c < right_limit c /\
+     closed_cell_side_limit_ok c /\
+    forall p : pt,
+     in_safe_side_left p c || in_safe_side_right p c ->
+     {in edges, forall g, ~ p === g}}
+  /\
+  {subset (cell_edges cells) <= [:: bottom, top & edges]}.
+Admitted.
+
 End working_environment.

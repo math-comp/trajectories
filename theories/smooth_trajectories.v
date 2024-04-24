@@ -19,110 +19,8 @@ Notation event := (event Q edge).
 Notation point := (point Q edge).
 Notation outgoing := (outgoing Q edge).
 
-Arguments Bpt : default implicits.
-
-Definition project_edge '(Bedge left_pt right_pt) (l r : R) : edge :=
-  let h1 := ((p_y right_pt - p_y left_pt) * (l - p_x left_pt) / (p_x right_pt - p_x left_pt)) in
-  let h2 := ((p_y right_pt - p_y left_pt) * (r - l)           / (p_x right_pt - p_x left_pt)) in
-  let base := p_y left_pt in
-  let left_pt := Bpt l (Qred (base + h1)) in
-  let right_pt := Bpt r (Qred (base + h1 + h2)) in
-  Bedge left_pt right_pt. 
-
-Definition cmp_point_x p q := Qlt_bool (p_x p) (p_x q).
-Definition cmp_point_y p q := Qlt_bool (p_y p) (p_y q).
-Definition eq_point p q :=
-  Qeq_bool (p_x p) (p_x q) &&
-  Qeq_bool (p_y p) (p_y q).
-Definition cmp_edge_lhs_x '(Bedge p _) '(Bedge q _) := cmp_point_x p q.
-
-Definition points_x_in_edge l r '(Bedge left_pt right_pt) : bool :=
-  Qle_bool (p_x left_pt) l && Qle_bool r (p_x right_pt).
-
-Fixpoint break_aux (edges : list edge) (points : list Q) : list edge :=
-  match points with
-  | [::] => [::]
-  | [:: _] => [::]
-  | l :: ((r :: _) as rest) =>
-     [seq project_edge e l r | e <- edges & points_x_in_edge l r e] ++ break_aux edges rest
-  end.
-
-Definition break_edges edges :=
-  let points := [seq left_pt x | x <- edges ] ++ [seq right_pt x | x <- edges] in  
-  let points := no_dup_seq_aux Qeq_bool [seq p_x p | p <- sort cmp_point_x points] in
-  let edges := sort cmp_edge_lhs_x edges in
-  break_aux edges points.
-
-Eval compute in break_edges
-  [:: (Bedge (Bpt (-20) 20) (Bpt 20 20)) ; (Bedge (Bpt (-20) (-20)) (Bpt 20 (-20))) ].
-
-Fixpoint regroup_edges_aux acc (edges : list edge) : list (list edge):=
-  match edges with
-  | [::] => [:: acc]
-  | e :: rest =>
-      match acc with
-      | [::] => regroup_edges_aux [:: e] rest
-      | [:: e' & _] =>
-          if Qeq_bool (p_x (left_pt e)) (p_x (left_pt e'))
-          then regroup_edges_aux [:: e & acc] rest
-          else acc :: regroup_edges_aux [:: e] rest
-      end
-  end.
-
-Definition regroup_edges (edges : list edge) : list (list edge) :=
-  let edges := sort cmp_edge_lhs_x edges in
-  regroup_edges_aux [::] edges.
-
-Definition cmp_edge_ys '(Bedge pl pr) '(Bedge ql qr) :=
-  Qlt_bool (p_y pl) (p_y ql) || Qlt_bool (p_y pr) (p_y qr).
-
-Definition vertical_sort_group (group : list edge) : list edge :=
-  sort cmp_edge_ys group.
-
-Definition make_cell (low high : edge) : cell := {|
-  high := high;
-  low := low;
-  left_pts := [:: left_pt high ; left_pt low ];
-  right_pts := [:: right_pt low ; right_pt high ];
-|}.
-
-Fixpoint closed_group_to_cells (group : list edge) : list cell :=
-  match group with
-  | [::] => [::]
-  | [:: _] => [::]
-  | e1 :: ((e2 :: _) as rest) => make_cell e1 e2 :: closed_group_to_cells rest
-  end.
-
-Definition make_cells group :=
-  closed_group_to_cells (vertical_sort_group group).
-
-Check fun x => low.(x).
-
-Definition high_of : cell -> edge := fun '{| high := x |} => x.
-Definition low_of : cell -> edge := fun '{| low := x |} => x.
-
-Definition fix_right neighbors '(Bcell lp rp low high) : cell :=
-  let top := p_y (right_pt high) in
-  let bottom := p_y (right_pt low) in
-  let nph := [seq (left_pt (high_of n)) | n <- neighbors ] in
-  let npl := [seq (left_pt (low_of n)) | n <- neighbors ] in
-  let extra := [seq x | x <- npl ++ nph & Qlt_bool bottom (p_y x) && Qlt_bool (p_y x) top] in
-  Bcell _ _ lp (no_dup_seq_aux eq_point (sort cmp_point_y (rp ++ extra))) low high.
-
-  Definition fix_left neighbors '(Bcell lp rp low high) : cell :=
-    let top := p_y (left_pt high) in
-    let bottom := p_y (left_pt low) in
-    let nph := [seq (right_pt (high_of n)) | n <- neighbors ] in
-    let npl := [seq (right_pt (low_of n)) | n <- neighbors ] in
-    let extra := [seq x | x <- npl ++ nph & Qlt_bool bottom (p_y x) && Qlt_bool (p_y x) top] in
-    Bcell _ _ (no_dup_seq_aux eq_point (rev (sort cmp_point_y (lp ++ extra)))) rp low high.
-
-Fixpoint fix_doors (f : list cell -> cell -> cell) groups :=
-  match groups with
-  | g1 :: ((g2 :: _) as rest) =>
-      [seq f g2 x| x <- g1] :: fix_doors f rest
-  | x => x
-  end.
+Definition Qedges_to_cells :=
+  edges_to_cells2 Q Qeq_bool Qle_bool Qplus Qminus Qmult Qdiv edge Bedge left_pt right_pt.
 
 Notation Bpt := (@Bpt Q).
 Notation low := (low Q edge).
@@ -134,12 +32,7 @@ Definition scan :=
   complete_process Q Qeq_bool Qle_bool 
     Qplus Qminus Qmult Qdiv 0 edge Bedge left_pt right_pt.
 
-Definition Qedges_to_cells top bot edges : list cell :=
-  let cilinders := [seq make_cells g | g <- regroup_edges (break_edges [:: top, bot & edges])] in
-  let cilinders := fix_doors fix_right cilinders in
-  let cilinders := rev cilinders in
-  let cilinders := fix_doors fix_left cilinders in
-  flatten (rev cilinders).
+
 
 Eval compute in
     (Qedges_to_cells
