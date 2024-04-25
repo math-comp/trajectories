@@ -1,6 +1,7 @@
 From mathcomp Require Import all_ssreflect.
 Require Import ZArith QArith List String OrderedType OrderedTypeEx FMapAVL.
 Require Import generic_trajectories.
+Require Import Qabs.
 
 Definition Qlt_bool x y := andb (negb (Qeq_bool x y)) (Qle_bool x y).
 
@@ -27,9 +28,14 @@ Definition scan :=
   complete_process Q Qeq_bool Qle_bool 
     Qplus Qminus Qmult Qdiv 0 edge Bedge left_pt right_pt.
 
+Definition manhattan_distance (p1x p1y p2x p2y : R) :=
+  Qabs (p2x - p1x) + Qabs (p2y - p1y).
+
+Definition pt_distance := manhattan_distance.
+
 Definition Qsmooth_point_to_point :=
  smooth_point_to_point Q Qeq_bool Qle_bool Qplus Qminus Qmult Qdiv
-   1 edge Bedge left_pt right_pt.
+   pt_distance 1 edge Bedge left_pt right_pt.
 
 Definition Qedges_to_cells :=
    edges_to_cells Q Qeq_bool Qle_bool Qplus Qminus Qmult Qdiv 1
@@ -190,7 +196,7 @@ Definition display_smooth_trajectory (tr_x tr_y scale : Q)
 "stroke"%string :: nil).
 
 Definition Qsmooth_from_cells :=
-  smooth_from_cells Q Qeq_bool Qle_bool Qplus Qminus Qmult Qdiv 1 edge
+  smooth_from_cells Q Qeq_bool Qle_bool Qplus Qminus Qmult Qdiv pt_distance 1 edge
   Bedge left_pt right_pt.
 
 Definition display_full_example tr_x tr_y scale
@@ -295,6 +301,7 @@ Definition leftmost_points :=
    that have a vertical left edge have a neighbor on their left
    that has the same vertical edge on the right. *)
 
+(*
 Lemma all_cells_have_left_neighbor :
   forallb (fun edge_list =>
   let cells := Qedges_to_cells example_bottom example_top edge_list in
@@ -305,7 +312,8 @@ Lemma all_cells_have_left_neighbor :
             (existsb (fun c' => lr_connected Q Qeq_bool 1 edge c' c) cells))) cells)
         example_edge_sets = true.
 Proof. easy. Qed.
-
+*)
+(*
 Definition reference_line edge_list p1 p2 :=
    ("[4 4] 0 setdash 3 setlinewidth"%string ::
    (List.map (fun sg => display_segment 300 400 70 (apt_val (fst sg), apt_val (snd sg)))
@@ -315,7 +323,8 @@ Definition reference_line edge_list p1 p2 :=
    Some l => l
    | None => nil
    end ++ "stroke %debug"%string :: nil)).
-
+*)
+(*
 Definition example_test edge_list (p1 p2 : pt) (extra : seq string) :=
   display_full_example 300 400 70 example_bottom example_top
     edge_list p1 p2 extra.
@@ -329,7 +338,7 @@ Definition example_by_index edge_list_index point_pair_index (with_dotted_line :
      reference_line edge_list (fst pp) (snd pp)
    else
      nil).
-
+*)
 (* To display a more elaborate example that shows in a curved dash line
   the result of smoothening the trajectory without repaing, you can
   execute the following text.
@@ -408,3 +417,12 @@ Compute edges_to_events example_edge_list.
 *)
 
 (* Compute example_by_index 0 0 false. *)
+
+(* Definition approx_sqrt  *)
+
+(*
+Definition euclidean_distance (p1 p2 : pt) :=
+   (p_x p2 - p_x p1) ^ 2 + (p_y p2 - p_y p1) ^ 2.
+
+*)
+
