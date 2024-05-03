@@ -49,6 +49,9 @@ Definition Qstraight_point_to_point :=
   point_to_point Q Qeq_bool Qle_bool Qplus Qminus Qmult Qdiv
    pt_distance 1 edge Bedge left_pt right_pt.
 
+Definition Qoptim_three := optim_three Q Qeq_bool Qle_bool Qplus Qminus
+  Qmult Qdiv 1.
+
 Definition Qsmooth_point_to_point :=
  smooth_point_to_point Q Qeq_bool Qle_bool Qplus Qminus Qmult Qdiv
    pt_distance 1 edge Bedge left_pt right_pt.

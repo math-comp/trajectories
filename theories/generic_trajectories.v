@@ -32,8 +32,6 @@ Notation sort := path.sort.
 
 Notation seq := list.
 
-Module natmap := FMapAVL.Make Nat_as_OT.
-
 Section generic_implementation.
 
 (* In the original development R has type numFieldType and the various
@@ -52,6 +50,8 @@ Notation "x * y" := (R_mul x y).
 Notation "x - y" := (R_sub x y).
 
 Notation "x + y" := (R_add x y).
+
+Notation "x / y" := (R_div x y).
 
 Variable pt_distance : R -> R -> R -> R -> R.
 
@@ -693,19 +693,32 @@ Definition cell_center (c : cell) :=
 Record annotated_point :=
   Apt { apt_val : pt; door_index : option nat; cell_indices : seq nat}.
 
+(* This value (1/16) of margin is suitable for the demo environment.  In real
+  life,  this should be a parameter of the algorithm. *)
+Definition margin := R1 / ((R1 + R1) *
+                             (R1 + R1) * (R1 + R1) * (R1 + R1) * (R1 * R1)).
+
+
 (* Given two points p1 and p2 on a side of a cell, this computes a point
    inside the cell that is a sensible intermediate point to move from p1
    to p2 while staying safely inside the cell. *)
-  
 Definition safe_intermediate_point_in_cell (p1 p2 : pt) (c : cell)
    (ci : nat) :=
   let new_x := p_x (cell_center c) in
   let new_y := R_div (R_add (p_y p1) (p_y p2)) R2 in
-  let new_pt := {|p_x := new_x; p_y := new_y|} in
-    if strict_inside_closed new_pt c then
-      Apt new_pt None (ci :: nil)
-    else
-      Apt (cell_center c) None (ci :: nil).
+  if R_ltb new_x (p_x p1) then
+    let new_pt := {|p_x := p_x p1 - margin; p_y := new_y|} in
+      if strict_inside_closed new_pt c then
+        Apt new_pt None (ci :: nil)
+      else
+        Apt (cell_center c) None (ci :: nil)
+  else
+    let new_pt := {|p_x := p_x p1 + margin; p_y := new_y|} in
+      if strict_inside_closed new_pt c then
+        Apt new_pt None (ci :: nil)
+      else
+        Apt (cell_center c) None (ci :: nil).
+
 
 (* When two neighbor doors are aligned vertically, they have a neighboring
    cell in common.  This can be computed by looking at the intersection
@@ -745,6 +758,72 @@ Fixpoint a_shortest_path (cells : seq cell)
 Definition path_reverse (s : seq (annotated_point * annotated_point)) :=
   List.map (fun p => (snd p, fst p)) (List.rev_append s nil).
 
+Definition intersect_vert_edge (p1 p2 : pt) (ve : vert_edge) : pt :=
+  Bpt (ve_x ve)
+    (p_y p1 + (ve_x ve - p_x p1) / (p_x p2 - p_x p1) * (p_y p2 - p_y p1)).
+
+Definition optim_three (doors : seq door) (p1 p2 p3 : annotated_point) :=
+  let p1' := apt_val p1 in
+  let p3' := apt_val p3 in
+  if p2 is Apt p2' (Some d_i) cells then
+    let d := (seq.nth dummy_door doors d_i).1.1 in
+    if R_ltb (p_x p1') (ve_x d) && R_ltb (ve_x d) (p_x p3') then
+      if R_ltb R0 (area3 p1' p2' p3') then
+        if R_ltb R0 (area3 p1' p3' (Bpt (ve_x d) (ve_top d))) then
+          let p2_2 := intersect_vert_edge p1' p3' d in
+            Apt p2_2 (Some d_i) cells
+        else
+          if R_ltb (ve_bot d) (ve_top d - margin) then
+            Apt (Bpt (ve_x d) (ve_top d - margin)) (Some d_i) cells
+          else
+            p2
+      else
+        if R_ltb (area3 p1' p3' (Bpt (ve_x d) (ve_bot d))) R0 then
+          let p2_2 := intersect_vert_edge p1' p3' d in
+            Apt p2_2 (Some d_i) cells
+        else
+          if R_ltb (ve_bot d + margin) (ve_top d) then
+            Apt (Bpt (ve_x d) (ve_bot d + margin)) (Some d_i) cells
+          else
+            p2
+    else if R_ltb (p_x p3') (ve_x d) && R_ltb (ve_x d) (p_x p1') then
+      if R_ltb R0 (area3 p1' p2' p3') then
+        if R_ltb R0 (area3 p1' p3' (Bpt (ve_x d) (ve_bot d))) then
+          let p2_2 := intersect_vert_edge p1' p3' d in
+            Apt p2_2 (Some d_i) cells
+        else
+          if R_ltb (ve_bot d + margin) (ve_top d) then
+            Apt (Bpt (ve_x d) (ve_bot d + margin)) (Some d_i) cells
+          else
+            p2
+      else
+        if R_ltb (area3 p1' p3' (Bpt (ve_x d) (ve_top d))) R0 then
+          let p2_2 := intersect_vert_edge p1' p3' d in
+            Apt p2_2 (Some d_i) cells
+        else
+          if R_ltb (ve_bot d) (ve_top d - margin) then
+            Apt (Bpt (ve_x d) (ve_top d - margin)) (Some d_i) cells
+          else
+            p2
+    else
+      p2
+  else
+    p2.
+
+Fixpoint local_improvements (doors : seq door)
+  (p : seq (annotated_point * annotated_point)) :
+  seq (annotated_point * annotated_point) :=
+match p with
+| (p1, p2) :: ((_ , p3) :: _) as tl =>
+  match local_improvements doors tl with
+  | [::] => p
+  | (_, p3') :: tl' =>
+    let p2' := optim_three doors p1 p2 p3' in
+      (p1, p2') :: (p2', p3') :: tl'
+  end
+| _ => p
+end.
+
 Definition source_to_target
  (cells : seq cell) (source target : pt) :
   option (seq door *
@@ -761,7 +840,10 @@ Definition source_to_target
       match a_shortest_path cells doors source target
                 last_point path with
       | nil => None
-      | a :: tl => Some(doors.1, path_reverse (seq_to_intervals_aux a tl))
+      | a :: tl =>
+         Some(doors.1,
+              local_improvements doors.1
+                (path_reverse (seq_to_intervals_aux a tl)))
     end
   else
     None.
@@ -973,12 +1055,15 @@ end.
 Definition smooth_from_cells (cells : seq cell)
   (initial final : pt) : seq curve_element :=
   match source_to_target cells initial final with
-  | Some (doors, s) => List.concat
-       (List.map (check_curve_element_and_repair fuel_constant doors)
+  | Some (doors, s) =>
+      List.concat
+         (List.map (check_curve_element_and_repair fuel_constant doors)
                               (smoothen (break_segments s)))
   | None => nil
   end.
 
+(* This function only computes the piecewise straight line trajectory,
+  starting from the sequence of edges and the source and target.       *)
 Definition point_to_point (bottom top : edge) (obstacles : seq edge)
   (initial final : pt) : seq curve_element :=
   let cells := edges_to_cells bottom top obstacles in
