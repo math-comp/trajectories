@@ -361,7 +361,7 @@ function setStraight() {
 
 
 var straights = [];
-const smaterial = new THREE.LineBasicMaterial( { color: 'orange' } );
+const smaterial = new THREE.LineBasicMaterial( { color: 'blue' } );
 setStraight();
 
 
