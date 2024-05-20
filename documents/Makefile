@@ -1,4 +1,4 @@
-all : intro_slides.pdf FHG_paper.pdf
+all : intro_slides.pdf FHG_paper.pdf FHG_slides.pdf
 
 PSFILES=bezier_example.ps bezier_example2.ps cells_spiral.ps \
   collision.ps collision2.ps empty_spiral.ps polygon.ps repair2.ps \
@@ -15,6 +15,9 @@ intro_slides.pdf : intro_slides.tex $(PDFFILES)
 FHG_paper.pdf : FHG_paper.tex FHG_paper.bib $(PDFFILES) illustration.png
 	pdflatex FHG_paper.tex; bibtex FHG_paper; pdflatex FHG_paper.tex \
         FHG_paper.tex
+
+FHG_slides.pdf : FHG_slides.tex $(PDFFILES)
+	PDFLATEX FHG_slides.tex; pdflatex FHG_slides.tex
 
 $(PDFFILES): %.pdf: %.ps
 	ps2pdf -sPAPERSIZE=a4 $<

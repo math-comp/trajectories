@@ -3,24 +3,33 @@
 12 scalefont
 setfont
 gsave
+% obtstacle
 200 200 moveto
 300 270 lineto
 stroke
+% blue lines: control segments
 0 0 1 setrgbcolor
-190 270 moveto
+220 270 moveto
 300 310 lineto
-420 100 lineto
+440 100 lineto
 stroke
 grestore
-245 290 moveto
-360 205 lineto
-190 270 moveto
-302.5 247.5 lineto
-420 100 lineto
+% half sum of 220 and 300 : 260
+% half sum of 270 and 310 : 290
+260 290 moveto
+% half sum of 300 and 440 : 370
+% half sum of 310 and 100 : 205
+370 205 lineto
+220 270 moveto
+% half sum of 260 and 370 : 315
+% half sum of 290 and 205 : 247.5
+315 247.5 lineto
+440 100 lineto
 stroke
 gsave
+% door : vertical dashed line
 [6 4] 3 setdash
 300 350 moveto
-300 270 lineto
+300 110 lineto
 stroke
 grestore

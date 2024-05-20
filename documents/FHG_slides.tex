@@ -1,0 +1,192 @@
+\documentclass[compress]{beamer}
+\usepackage[latin1]{inputenc}
+\usepackage{alltt}
+\newdimen\topcrop
+\topcrop=10cm  %alternatively 8cm if the pdf inclusions are in letter format
+\newdimen\topcropBezier
+\topcropBezier=19cm %alternatively 16cm if the inclusions are in letter format
+
+\setbeamertemplate{footline}[frame number]
+\title{Smooth trajectories in straight line mazes}
+\author{Yves Bertot\\
+Joint work with Thomas Portet, Quentin Vermande}
+\date{April 2023}
+\mode<presentation>
+\begin{document}
+
+\maketitle
+\begin{frame}
+\frametitle{The game}
+\begin{itemize}
+\item Apply Type Theory-based verification to a problem understood by a
+  wide audience
+\item Find a smooth path in a maze
+\item Decompose the problem
+\begin{itemize}
+\item Find a discrete approximation of the problem
+\item Construct a piece-wise linear path
+\item smoothen the angles
+\end{itemize}
+\item Prove the correctness of the algorithm
+\begin{itemize}
+\item Safety: absence of collision
+\item work in progress
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Example}
+\includegraphics[trim={0 0 0 \topcrop}, clip, width=\textwidth]{empty_spiral.pdf}
+\end{frame}
+\begin{frame}
+\frametitle{Cell decomposition}
+\begin{itemize}
+\item Decompose the space into simple cells
+\item Each cell is convex
+\item Each cell is free of obstacles
+\item Each cell may have neighbours where moving is safe
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Vertical cell decomposition example}
+\includegraphics[trim={0 0 0 \topcrop}, clip, width=\textwidth]{cells_spiral.pdf}
+\end{frame}
+\begin{frame}
+\frametitle{Cell assumptions}
+\begin{itemize}
+\item Vertical edges are safe passages between two cells
+\item Moving directly from a left-edge to a right-edge is safe
+\begin{itemize}
+\item and vice-versa
+\end{itemize}
+\item Moving from a left-edge to the cell center is safe
+\begin{itemize}
+\item similarly for a right-edge
+\item moving from left-edge to left-edge is safe by going through the
+  cell center
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Finding a path in the cell graph}
+\begin{itemize}
+\item A discrete path from cell to cell is found by breadth-first search
+\item Connected components of the graph are defined by polygons
+\item Special care for points that are already on the common edge of two cells
+\item Recent improvement: take distances into account
+\begin{itemize}
+\item Use a graph of doors instead of cells
+\item Easier to associate a distance between pairs of doors
+\item Dijkstra shortest path algorithm
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Two examples of elementary safe paths}
+\includegraphics[trim={0 0 0 \topcrop}, clip, width=\textwidth]{spiral_safe2.pdf}
+\end{frame}
+\begin{frame}
+\frametitle{piecewise linear path}
+\label{broken-line}
+\includegraphics[trim={0 0 0 \topcrop}, clip, width=\textwidth]{spiral_bline.pdf}
+\end{frame}
+\begin{frame}
+\frametitle{Making corners smooth}
+\begin{itemize}
+\item Using quadratic Bezier curves
+\item Bezier curves are given by a set of control points
+   (3 for a quadratic curve)
+\item Points on the curves are obtained by computing weighted barycenters
+\begin{itemize}
+\item The curve is enclosed in the convex hull of the control points
+\end{itemize}
+\item Given control points \(a_0, a_1, \ldots, a_{n-1}, a_n\), \(a_0, a_1\)
+is tangent to the curve in \(a_0\)
+\begin{itemize}
+\item same for \(a_{n-1}, a_n\) in \(a_n\)
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Bezier curve illustration}
+\begin{itemize}
+\item How the point for ratio \(4/9\) is computed
+\item Control points for the two subcurves are given by the new point,
+the initial starting and end points, and the solid green straight edge tip
+\end{itemize}
+\includegraphics[trim={0 6cm 0 \topcropBezier}, clip, width=\textwidth]{bezier_example2.pdf}
+\end{frame}
+\begin{frame}
+\frametitle{Using Bezier curves for smoothing}
+\begin{itemize}
+\item Add extra points in the middle of each straight line segment
+\item Uses these extra points as first and last control points for Bezier curves
+\item Use the angle point as the middle control point
+\item Check the Bezier curve for collision and repair if need be
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Collision checking, graphically}
+\includegraphics[trim={0 4cm 0 17cm}, clip, width=\textwidth]{collision.pdf}
+\end{frame}
+\begin{frame}
+\frametitle{Not passing in the top door}
+\includegraphics[trim={0 4cm 0 17cm}, clip, width=\textwidth]{collision2.pdf}
+\end{frame}
+\begin{frame}
+\frametitle{Final trajectories}
+\label{final-spiral}
+\includegraphics[trim={0 0 0 \topcrop}, clip, width=\textwidth]{smooth_spiral2.pdf}
+\end{frame}
+\begin{frame}
+\frametitle{Proof tools}
+\begin{itemize}
+\item Convex hulls (Pichardie \& B. 2001)
+\begin{itemize}
+\item Orientation predicate
+\item point below or above edge
+\end{itemize}
+\item Linear arithmetic
+\begin{itemize}
+\item Algorithms only use rational numbers
+\item Bezier curve intersections rely on algebraic numbers
+\end{itemize}
+\item Convex spaces and Bezier Curve
+\begin{itemize}
+\item Internship by Q. Vermande
+\item Using {\tt infotheo}, especially convex and conical spaces
+         (Affeldt \& Garrigue \& Saikawa 2020)
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Vertical cell decomposition proofs}
+\begin{itemize}
+\item Use of semi-closed vertical cells
+\item Show disjoint property
+\item Show that obstacles are covered by cell tops
+\item This proof is complete
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Future work}
+\begin{itemize}
+\item Intend to prove only safety
+\item Produce concrete code from abstract models
+\begin{itemize}
+\item Move from exact computation to approximations
+\item Efficient implementation of graphs
+\end{itemize}
+\item Already usable in \textcolor{blue}{\href{https://stamp.gitlabpages.inria.fr/trajectories.html}{web-base demonstration}.}
+\begin{itemize}
+\item Extracted code to Ocaml, then compile to JavaScript
+\end{itemize}
+\end{itemize}
+\end{frame}
+\end{document}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
