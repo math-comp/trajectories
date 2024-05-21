@@ -180,12 +180,13 @@ Lemma no_dup_seq_aux_eq {A : eqType} (s : seq A) :
   no_dup_seq s = no_dup_seq_aux eq_op s.
 Proof. by elim: s => [ | a s /= ->]. Qed.
 
+(* TODO : remove duplication with generic_trajectories *)
 Definition close_cell (p : pt) (c : cell) :=
   match vertical_intersection_point p (low c),
         vertical_intersection_point p (high c) with
   | None, _ | _, None => c
   | Some p1, Some p2 => 
-    Bcell (left_pts c) (no_dup_seq [:: p1; p; p2]) (low c) (high c)
+    Bcell (left_pts c) (no_dup_seq [:: p2; p; p1]) (low c) (high c)
   end.
 
 Definition closing_cells (p : pt) (contact_cells: seq cell) : seq cell :=
@@ -947,9 +948,9 @@ Definition closed_cell_side_limit_ok c :=
    last dummy_pt (left_pts c) === low c,
     right_pts c != [::] :> seq pt,
    all (fun p : pt => p_x p == right_limit c) (right_pts c),
-   sorted <%R [seq p_y p | p <- right_pts c],
-   head dummy_pt (right_pts c) === low c &
-   last dummy_pt (right_pts c) === high c].
+   sorted >%R [seq p_y p | p <- right_pts c],
+   head dummy_pt (right_pts c) === high c &
+   last dummy_pt (right_pts c) === low c].
 
 Lemma closed_right_imp_open c:
   closed_cell_side_limit_ok c -> right_limit c <= open_limit c.

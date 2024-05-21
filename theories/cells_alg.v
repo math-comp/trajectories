@@ -760,18 +760,18 @@ rewrite -?(eq_sym (point e)).
    failed at porting time. *)
 case:ifP (o1) (o2) =>[/eqP q1 |enp1];case:ifP=>[/eqP q2 |enp2];
   rewrite ?q1 ?q2;
-  rewrite -?q1 -?q2 /= ?eqxx ?x2 ?x1 /= => -> -> //; rewrite /= ?andbT.
-- move: x1 x2 ctp=> /eqP/esym x1 /eqP x2 /andP[] _ eh.
-  have := (under_edge_strict_lower_y x2 (negbT enp2) eh o2).
-  by rewrite q1=> ->//; rewrite andbT.
+  rewrite -?q1 -?q2 /= ?eqxx ?x2 ?x1 /= => -> -> //=; rewrite ?andbT.
 - move: x1 x2 ctp=> /eqP/esym x1 /eqP x2 /andP[] el _.
-  have := (above_edge_strict_higher_y x1 _ el).
-  by apply => //; exact: negbT.
+  have := (above_edge_strict_higher_y x1 (negbT enp2) el).
+  by rewrite /right_limit /= x1 eqxx /=; apply.
+- move: x1 x2 ctp=> /eqP/esym x1 /eqP x2 /andP[] _ eh.
+  have := (under_edge_strict_lower_y x2 (negbT enp1) eh o2).
+  rewrite /right_limit /= x2 eqxx /=; apply.
 move: x1 x2 ctp=> /eqP/esym x1 /eqP x2 /andP[] el eh.
 rewrite (above_edge_strict_higher_y x1 _ el) //; last first.
   exact: negbT.
-rewrite  (under_edge_strict_lower_y x2 (negbT enp2) eh) //.
-by rewrite -x1 x2 eqxx.
+rewrite  (under_edge_strict_lower_y x2 (negbT enp1) eh) //.
+by rewrite !andbT /right_limit /= -x1 -x2 eqxx.
 Qed.
 
 Lemma closing_cells_side_limit' cc :
@@ -4826,7 +4826,7 @@ rewrite /right_pts/close_cell (pvertE vlcc1) (pvertE vhcc1) /=.
 rewrite !pt_eqE !eqxx /=.
 rewrite (on_pvert eonhcc1) eqxx.
 rewrite -leq; move: (pal).
-rewrite (under_pvert_y vle) -ltNge lt_neqAle=> /andP[] /negbTE -> _.
+rewrite (under_pvert_y vle) -ltNge lt_neqAle eq_sym => /andP[] /negbTE -> _.
 have ppaly : (p_y pp == pvert_y (point e) le) = false.
   apply/negbTE; move: (ppal).
   rewrite (under_pvert_y vpple) -ltNge lt_neqAle eq_sym=> /andP[] + _.

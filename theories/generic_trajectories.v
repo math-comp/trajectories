@@ -206,7 +206,7 @@ Definition close_cell (p : pt) (c : cell) :=
         vertical_intersection_point p (high c) with
   | None, _ | _, None => c
   | Some p1, Some p2 =>
-    Bcell (left_pts c) (no_dup_seq (p1 :: p :: p2 :: nil)) (low c) (high c)
+    Bcell (left_pts c) (no_dup_seq (p2 :: p :: p1 :: nil)) (low c) (high c)
   end.
 
 Definition closing_cells (p : pt) (contact_cells: seq cell) : seq cell :=
@@ -469,7 +469,7 @@ Definition cell_safe_exits_left (c : cell) : seq vert_edge :=
 Definition cell_safe_exits_right (c : cell) : seq vert_edge :=
   let lx := p_x (head dummy_pt (right_pts c)) in
   map (fun p => Build_vert_edge lx (p_y (fst p)) (p_y (snd p)))
-   (seq_to_intervals (rev (right_pts c))).
+   (seq_to_intervals (right_pts c)).
 
 (* The index_seq function is a trick to circumvent the absence of a mapi
   function in Coq code.  It makes it possible to build a list of pairs,

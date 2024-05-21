@@ -95,8 +95,8 @@ Lemma right_limit_right_pt_high_cl (c : cell) :
   right_limit c <= p_x (right_pt (high c)).
 Proof.
 move=> /andP[] _ /andP[] _ /andP[] _ /andP[] _ /andP[] _.
-move=> /andP[] rn0 /andP[] rsx /andP[] _ /andP[] _ /andP[] _ /andP[] _. 
-by rewrite (eqP (allP rsx _ (last_in_not_nil _ rn0))).
+move=> /andP[] rn0 /andP[] rsx /andP[] _ /andP[] /andP[] _ /andP[] _ + _.
+by rewrite (eqP (allP rsx _ (head_in_not_nil _ rn0))).
 Qed.
 
 Lemma left_limit_left_pt_low_cl (c : cell) :
@@ -113,8 +113,8 @@ Lemma right_limit_right_pt_low_cl (c : cell) :
   right_limit c <= p_x (right_pt (low c)).
 Proof.
 move=> /andP[] _ /andP[] _ /andP[] _ /andP[] _ /andP[] _.
-move=> /andP[] rn0 /andP[] rsx /andP[] _ /andP[] /andP[] _ /andP[] _ + _.
-by rewrite (eqP (allP rsx _ (head_in_not_nil _ rn0))).
+move=> /andP[] rn0 /andP[] rsx /andP[] _ /andP[] _ /andP[] _ /andP[] _ +.
+by rewrite (eqP (allP rsx _ (last_in_not_nil _ rn0))).
 Qed.
 
 Lemma right_valid :
@@ -155,8 +155,8 @@ have [vlp vhp] : valid_edge (low c) p /\ valid_edge (high c) p.
   rewrite (eqP (allP lsx _ (@head_in_not_nil pt dummy_pt _ ln0))) in lh.
   rewrite (eqP (allP rsx _ (@last_in_not_nil pt dummy_pt _ rn0))) in rh.
   split; rewrite /valid_edge/generic_trajectories.valid_edge.
-    by rewrite (ltW (le_lt_trans ll midl)) (ltW (lt_le_trans midr rl)).
-  by rewrite (ltW (le_lt_trans lh midl)) (ltW (lt_le_trans midr rh)).
+    by rewrite (ltW (le_lt_trans ll midl)) (ltW (lt_le_trans midr rh)).
+  by rewrite (ltW (le_lt_trans lh midl)) (ltW (lt_le_trans midr rl)).
 rewrite under_onVstrict // negb_or.
 move: noclh=> [abs | noclh]; first by rewrite abs eqxx in dif.
 apply/andP; split; last first.
@@ -198,18 +198,25 @@ have p'on : p' === high c by apply: pvert_on vph.
 rewrite (under_edge_lower_y sx) //.
 have := cok.
 do 5 move=> /andP[] _.
-move=> /andP[] rn0 /andP[] rsx /andP[] srt /andP[] _ lon.
-have p'q : p' = last dummy_pt (right_pts c).
+move=> /andP[] rn0 /andP[] rsx /andP[] srt /andP[] lon _.
+have p'q : p' = head dummy_pt (right_pts c).
   have := on_edge_same_point p'on lon.
-  have /eqP -> := allP rsx _ pin => /(_ erefl) samey.
-  by apply/(@eqP pt); rewrite pt_eqE samey (allP rsx _ pin)/=; exact/eqP.
+  have /eqP -> := allP rsx _ (head_in_not_nil dummy_pt rn0).
+  have /eqP -> := allP rsx _ pin=> /(_ erefl) samey.
+  apply/(@eqP pt).
+  rewrite pt_eqE samey eqxx andbT.
+  rewrite (eqP (allP rsx _ pin))/=.
+  by rewrite (eqP (allP rsx _ (head_in_not_nil dummy_pt rn0))).
 move: rn0 p'q pin srt.
-elim/last_ind: (right_pts c) => [| rpts p2 Ih] // _ p'q pin srt.
-move: pin; rewrite mem_rcons inE => /orP[/eqP -> | pin].
-  by rewrite p'q last_rcons.
-apply: ltW; rewrite p'q last_rcons.
-move: srt; rewrite map_rcons=> srt.
-by have := (allP (sorted_rconsE lt_trans srt)); apply; rewrite map_f.
+elim: (right_pts c) => [| p2 rpts Ih] // rn0 p'1 pin srt.
+move: pin; rewrite inE => /orP[/eqP -> | pin].
+  by rewrite p'1.
+rewrite /= in srt.
+have gt_trans : transitive (>%R : rel R).
+  by move=> x y z xy yz ; apply: (lt_trans yz xy).
+move: (srt); rewrite (path_sortedE gt_trans)=> /andP[] srt' _.
+apply: ltW; rewrite p'1.
+by apply: (allP srt'); rewrite map_f.
 Qed.
 
 Lemma in_bound_closed_valid (c : cell) p :
@@ -292,17 +299,19 @@ rewrite le_eqVlt=> /orP[ /eqP pxq | ].
   rewrite inside_closed'E p'al.
   have c'ok := closed_ok ccl'.
   have /andP[_ /andP[_ /andP[_ /andP[_ /andP[_ ]]] ]] := c'ok.
-  move=> /andP[rn0 /andP[samex /andP[srt /andP[onlow onhigh]]]].
+  move=> /andP[rn0 /andP[samex /andP[srt /andP[onhigh onlow]]]].
   have prlq : p_x p = right_limit c' by apply/eqP/(allP samex).
-  rewrite (under_edge_lower_y prlq onhigh).
-  have -> /= : p_y p <= p_y (last dummy_pt (right_pts c')).
-    elim/last_ind:{-1} (right_pts c') (erefl (right_pts c'))=>[| ps pn _] psq.
-      by rewrite psq in rn0.
-    move: pc'r; rewrite psq mem_rcons inE => /orP[/eqP -> | pps].
-      by rewrite last_rcons.
-    move: (srt); rewrite psq map_rcons => srt'.
-    have := sorted_rconsE lt_trans srt'=> /allP/(_ _ (map_f _ pps))/ltW.
-    by rewrite last_rcons.
+  rewrite (under_edge_lower_y _ onhigh) /=; last first.
+    rewrite (eqP (allP samex _ pc'r)).
+    by rewrite (eqP (allP samex _ (head_in_not_nil dummy_pt rn0))).
+  have -> /= : p_y p <= p_y (head dummy_pt (right_pts c')).
+    case psq : (right_pts c') => [ | p1 ps]; first by rewrite psq in rn0.
+    move: pc'r; rewrite psq inE=> /orP[/eqP -> | pps]; first by [].
+    apply: ltW.
+    have gt_trans : transitive (>%R : rel R).
+      by move=> x y z xy yz; apply: (lt_trans yz xy).
+    move: (srt); rewrite psq /= (path_sortedE gt_trans)=> /andP[] + _.
+    by move=> /allP /(_ _ (map_f _ pps)).
   by rewrite prlq le_refl andbT (non_empty_closed ccl').
 elim: pcc pc1 pcccl highs conn rpcc {lpcc pccn0} =>
   [ | pc2 pcc Ih] pc1 pcccl highs conn rpcc pc1lp.
