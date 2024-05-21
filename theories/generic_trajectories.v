@@ -282,9 +282,7 @@ Record scan_state :=
 
 Definition update_closed_cell (c : cell) (p : pt) : cell :=
   let ptseq := right_pts c in
-  let newptseq :=
-    (belast (head dummy_pt ptseq) (behead ptseq)) ++
-    [:: p; seq.last dummy_pt ptseq] in
+  let newptseq := seq.head dummy_pt ptseq :: p :: behead ptseq in
   Bcell (left_pts c) newptseq (low c) (high c).
 
 Definition set_left_pts (c : cell) (l : seq pt) :=

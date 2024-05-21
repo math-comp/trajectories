@@ -643,7 +643,7 @@ Hypothesis closed_right_limit :
 Hypothesis uniq_closed : uniq (rcons cls lstc).
 Hypothesis non_empty_closed :
   {in rcons cls lstc, forall c, exists p, inside_closed' p c}.
-Hypothesis non_empty_right : right_pts lstc != [::] :> seq pt.
+Hypothesis non_empty_right : (1 < size (right_pts lstc))%N.
 Hypothesis uniq_out : uniq (outgoing e).
 Hypothesis high_inj : {in open &, injective high}.
 Hypothesis btm_left : bottom_left_cells_lex open (point e).
@@ -2436,16 +2436,27 @@ rewrite /inside_closed' /set_right_pts /inside_closed_cell /contains_point /=.
 by rewrite /right_limit /= => ->.
 Qed.
 
+Lemma update_closed_cell_keeps_right_limit c pt :
+  (1 < size (right_pts c))%N ->
+  closed_cell_side_limit_ok c ->
+  right_limit (update_closed_cell c pt) =
+  right_limit c.
+Proof.
+move=> non_empty.
+do 5 move=> /andP[_]; move=> /andP[ptsn0 /andP[/allP allx _]].
+rewrite /update_closed_cell /right_limit /=.
+move: non_empty.
+by case: (right_pts c) => [ | hr [ | r2 rpts]].
+Qed.
+
 Lemma inside_closed'_update q1 q:
   inside_closed' q lstc = inside_closed' q (update_closed_cell lstc q1).
 Proof.
 have samer : last dummy_pt (right_pts lstc) =
-             last dummy_pt (belast (head dummy_pt (right_pts lstc))
-                             (behead (right_pts lstc)) ++
-                           [:: q1; last dummy_pt (right_pts lstc)]).
+             last dummy_pt (head dummy_pt (right_pts lstc) :: q1 ::
+                  (behead (right_pts lstc))).
   move: non_empty_right.
-  elim/last_ind : (right_pts lstc) => [ // | rpts lr _] _ /=.
-  by rewrite !last_cat /=.
+  by case : (right_pts lstc) => [ // | hr [ // | r2 rpts]].
 rewrite /update_closed_cell.
 have := inside_closed_set_right_pts q samer.
 rewrite /set_right_pts /=.
@@ -3169,18 +3180,6 @@ rewrite /close_cell (pvertE vlc) (pvertE vhc) /=.
 by case: ifP; case: ifP.
 Qed.
 
-Lemma update_closed_cell_keeps_right_limit c pt :
-  closed_cell_side_limit_ok c ->
-  right_limit (update_closed_cell c pt) =
-  right_limit c.
-Proof.
-do 5 move=> /andP[_]; move=> /andP[ptsn0 /andP[/allP allx _]].
-rewrite /update_closed_cell /right_limit /=.
-elim/last_ind: {-1} (right_pts c) (erefl (right_pts c))
-     ptsn0=> [ // | [ // | pt0 pts] ptf _] ptsq _ /=.
-  by rewrite last_cat.
-Qed.
-
 Lemma step_keeps_closed_to_the_left :
   let s' := step (Bscan fop lsto lop cls lstc lsthe lstx) e in
   {in state_closed_seq s', forall c, right_limit c <= p_x (point e)}.
@@ -3219,12 +3218,9 @@ case: ifP => [ebelow_st {ebelow} | eonlsthe].
   case uoc_eq : (update_open_cell _ _) => [nos lno].
   rewrite /state_closed_seq /=.
   move=> x; rewrite mem_rcons inE => /orP[/eqP -> | ].
-    rewrite /update_closed_cell /right_limit /=.
-    have := non_empty_right; case pts_eq: (right_pts lstc) => [| p1 rpts] // _.
-    rewrite /= last_cat /=.
-    have /closed_right_limit: lstc \in rcons cls lstc.
-      by rewrite mem_rcons inE eqxx.
-    by rewrite /right_limit pts_eq.
+    rewrite update_closed_cell_keeps_right_limit //; last first.
+      by apply: (allP close_side_limit); rewrite mem_rcons inE eqxx.
+    by apply: closed_right_limit; rewrite mem_rcons inE eqxx.
   move=> xin.
   suff /closed_right_limit : x \in rcons cls lstc by [].
   by rewrite mem_rcons inE xin orbT.
@@ -3720,15 +3716,16 @@ by rewrite /= ab.
 Qed.
 
 Lemma edge_covered_update_closed_cell g l1 l2 c pt :
+  (1 < size (right_pts c))%N ->
   closed_cell_side_limit_ok c ->
   edge_covered g l1 (rcons l2 c) ->
   edge_covered g l1 (rcons l2 (update_closed_cell c pt)).
 Proof.
-move=> cok ecg.
+move=> szpts cok ecg.
 have lq : left_limit (update_closed_cell c pt) = left_limit c.
   by case: (c).
 have rq : right_limit (update_closed_cell c pt) = right_limit c.
-  by rewrite update_closed_cell_keeps_right_limit.
+  rewrite update_closed_cell_keeps_right_limit //.
 case: ecg => [[oc [pcc [ocP1 [hP [cP [ocin conn]]]]]] | ].
   left; exists oc, (seq_subst pcc c (update_closed_cell c pt)).
   split.
@@ -3873,9 +3870,8 @@ case: ifP => [ebelow_st {ebelow} | eonlsthe].
     rewrite /state_open_seq /= cats0 /state_closed_seq /=.
     apply: edge_covered_set_left_pts.
       by rewrite /left_limit ptsq.
-    apply: edge_covered_update_closed_cell.
-      by apply: (allP close_side_limit); rewrite mem_rcons inE eqxx.
-    by exact: ecg.
+    apply: edge_covered_update_closed_cell=> //.
+    by apply: (allP close_side_limit); rewrite mem_rcons inE eqxx.
   rewrite -/(opening_cells_aux _ _ _ _).
   case oca_eq : (opening_cells_aux _ _ _ _) => [[ | fno nos] lno]  /=.
     have outn0 : fog :: ogs != nil by [].
@@ -3914,7 +3910,7 @@ case: ifP => [ebelow_st {ebelow} | eonlsthe].
         rewrite (opening_cells_left oute vlo vho).
           by rewrite pxhere lstxq /left_limit ptsq.
         by rewrite /opening_cells ogq oca_eq mem_rcons !inE eqxx !orbT.
-      apply: edge_covered_update_closed_cell.
+      apply: edge_covered_update_closed_cell=> //.
         by apply: (allP close_side_limit); rewrite mem_rcons inE eqxx.
       left; exists lno, pcc.
       split; first by [].
@@ -3947,13 +3943,13 @@ case: ifP => [ebelow_st {ebelow} | eonlsthe].
       by rewrite mem_rcons !inE eqxx !orbT.
     apply: edge_covered_set_left_pts.
       by rewrite left_fno lstxq /left_limit ptsq.
-    apply: edge_covered_update_closed_cell.
+    apply: edge_covered_update_closed_cell=> //.
       by apply: (allP close_side_limit); rewrite mem_rcons inE eqxx.
     left; exists oc, pcc; repeat (split; first by []); split; last by [].
     by rewrite !(mem_cat, inE); move: inold=> /orP[] ->; rewrite ?orbT.
   move=> [pcc [P1 [P2 [P3 [P4 P5]]]]].
   rewrite /state_open_seq /state_closed_seq /=.
-  apply: edge_covered_update_closed_cell.
+  apply: edge_covered_update_closed_cell => //.
     by apply: (allP close_side_limit); rewrite mem_rcons inE eqxx.
   by right; exists pcc; repeat (split; first by []); done.
 rewrite -/(open_cells_decomposition _ _).
