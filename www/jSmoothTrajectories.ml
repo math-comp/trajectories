@@ -91,7 +91,7 @@ let call_smooth s =
     l2stringr (curve_elements2n v)
 
 
-let call_smooth1 s = 
+let call_straight s = 
   let l = string2ln s in
   match l with
   | p1n1 :: p1d1 :: p1n2 :: p1d2 :: p2n1 :: p2d1 :: p2n2 ::p2d2 ::
@@ -99,11 +99,13 @@ let call_smooth1 s =
     e2n1 :: e2d1 :: e2n2 :: e2d2 :: e2n3 :: e2d3 :: e2n4 :: e2d4 ::
     ls ->
     let es = list2es ls in 
- ((n2edge e1n1 e1d1 e1n2 e1d2 e1n3 e1d3 e1n4 e1d4),
-  (n2edge e2n1 e2d1 e2n2 e2d2 e2n3 e2d3 e2n4 e2d4),
-      es ,
-      (n2pt p1n1 p1d1 p1n2 p1d2),
-      (n2pt p2n1 p2d1 p2n2 p2d2)) 
+    let v = qstraight_point_to_point (n2edge e1n1 e1d1 e1n2 e1d2 e1n3 e1d3 e1n4 e1d4)
+      (n2edge e2n1 e2d1 e2n2 e2d2 e2n3 e2d3 e2n4 e2d4)
+      es 
+      (n2pt p1n1 p1d1 p1n2 p1d2)
+      (n2pt p2n1 p2d1 p2n2 p2d2) in 
+    l2stringr (curve_elements2n v)
+
 
 let rec cells_element2n ce =
   match ce with
@@ -132,6 +134,7 @@ let call_cells s =
 let _ =
   Js.export "ocamlLib"
     (object%js
+      method straight s = Js.string (call_straight (Js.to_string s))
       method smooth s = Js.string (call_smooth (Js.to_string s))
       method cells s = Js.string (call_cells (Js.to_string s))
     end)

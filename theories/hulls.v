@@ -40,7 +40,7 @@ Implicit Types X Y : set A.
 Lemma subset_hull X : X `<=` hull X.
 Proof.
 move=> x xX; rewrite /hull; exists 1%N, (fun=> x), (fun=>1%R).
-split=> //; first by move=>_; exact ler01.
+split=> //.
 - by rewrite big_ord_recl big_ord0 addr0.
 - by move=> d [i _ <-].
 - by rewrite big_ord_recl big_ord0 scale1r addr0.
@@ -256,14 +256,14 @@ wlog: l lu ls ll f f0 f1 i ilt / l`_i == 0%R.
    move=>h.
    set l' := [seq x - l`_i | x <- l].
    have subl': forall a b, (a < size l) -> (b < size l) -> l'`_a - l'`_b = l`_a - l`_b.
-      by move=>a b al bl; rewrite (nth_map (GRing.zero _))// (nth_map (GRing.zero _))// opprD [-_ - - _]addrC -!addrA; congr GRing.add; rewrite addrA subrr add0r.
+      by move=>a b al bl; rewrite (nth_map 0)// (nth_map 0)// opprD [-_ - - _]addrC -!addrA; congr GRing.add; rewrite addrA subrr add0r.
    suff: (0%:R <= det l'`_i l'`_(Zp_succ (Ordinal ilt)) (\sum_(i0 < size l) f i0 *: l'`_i0))%R.
       congr (_ <= _)%R; rewrite 2!det_scalar_productE; congr (scalar_product _ (rotate _)).
       - by apply subl'=>//; case: (Zp_succ (Ordinal ilt)).
-      - rewrite [l'`_i](nth_map (GRing.zero _))// subrr subr0 -[l`_i]scale1r.
+      - rewrite [l'`_i](nth_map 0)// subrr subr0 -[l`_i]scale1r.
       have->: (1 = 1%:R)%R by [].
       rewrite -f1 scaler_suml -sumrB; apply congr_big=>// [[j jlt]] _.
-      by rewrite -scalerBr (nth_map (GRing.zero _)).
+      by rewrite -scalerBr (nth_map 0).
    move:h=>/(_ l'); rewrite size_map; apply.
       - rewrite map_inj_uniq=>//; apply addIr.
       - by [].
@@ -280,7 +280,7 @@ wlog: l lu ls ll f f0 f1 i ilt / l`_i == 0%R.
       by move:ll; rewrite Spec.encompassll_spec=>// /andP[_] /forallP /(_ (Ordinal alt)) /forallP /(_ (Ordinal blt)) /forallP /(_ (Ordinal clt)) /implyP /(_ abc); rewrite /ccw_KA.OT /ccw det_scalar_productE.
       - apply f0.
       - exact f1.
-      - by rewrite (nth_map (GRing.zero _))// subrr.
+      - by rewrite (nth_map 0)// subrr.
 move=>/eqP li0; rewrite li0 det_sum; apply sumr_ge0=>[[j jlt]] _.
 rewrite det_scalar_productE 2!subr0 rotateZ scalar_productZR; apply mulr_ge0.
    apply f0.

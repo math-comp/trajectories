@@ -3,21 +3,25 @@
 12 scalefont
 setfont
 gsave
+% obstacle
 200 200 moveto
 300 270 lineto
 stroke
+% blue lines: control segments
 0 0 1 setrgbcolor
-190 270 moveto
+220 270 moveto
 300 310 lineto
-420 100 lineto
+440 100 lineto
 stroke
 grestore
-420 100 moveto
-340 240 270 307 190 270 curveto
+% Bezier curve
+440 100 moveto
+340 240 270 307 220 270 curveto
 stroke
 gsave
+% door: vertical dashed line
 [6 4] 3 setdash
 300 350 moveto
-300 270 lineto
+300 110 lineto
 stroke
 grestore

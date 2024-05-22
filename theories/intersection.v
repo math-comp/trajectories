@@ -56,7 +56,7 @@ Proof. by rewrite/intersect separateCr; congr andb; apply separateCl. Qed.
 Lemma intersect_correct a b c d : intersect a b c d ->
   exists p, between p a b && between p c d.
 Proof.
-have sm t u : t *: (u : regular_lmodType R) = t * u by [].
+have sm t u : t *: (u : R^o) = t * u by [].
 wlog abc0: a b c d / 0 <= det a b c.
    move=>h.
    case ge0: (0 <= det a b c); first by apply h.
@@ -109,7 +109,7 @@ Qed.
 Lemma intersect_complete a b c d :
   (exists p, between p a b && between p c d) -> intersect a b c d.
 Proof.
-have sm: forall t u, t *: (u : regular_lmodType R) = t*u by [].
+have sm: forall t u, t *: (u : R^o) = t*u by [].
 move:a b c d.
 suff: forall a b c d, (exists p : counterclockwise.Plane R, between p a b && between p c d) -> separate a b c d.
    move=> h a b c d abcd; apply/andP; split; apply h=>//.
@@ -232,8 +232,8 @@ wlog : a b t u lab t01 ltab u01 luab / (t == 0) && (u == 1).
      apply/negP => /intersect_correct[p]/andP[pl pab].
      move: (lab i) => /negP; apply; apply intersect_complete.
      exists p; apply/andP; split=>//; refine (between_trans _ _ pab).
-       by apply between_conv; eexists; apply/andP; split => //.
-     by apply between_conv; eexists; apply/andP; split => //.
+       by apply between_conv; exists u; apply/andP; split => //.
+     by apply between_conv; exists t; apply/andP; split => //.
    - by apply in010.
    - by rewrite conv0.
    - by apply in011.
@@ -299,7 +299,7 @@ have : [exists i : 'I_(size l), det l`_i l`_i.+1mod (b <| sup I |> a) <= 0].
   have tfin : (fine (mine t 1%:E))%:E = mine t 1%:E.
     apply/(@fineK R)/fin_numP; split; apply/negP=>/eqP tinf.
       suff : (-oo < mine t 1)%E by rewrite tinf ltxx.
-      rewrite ltxI; apply/andP; split; last by apply ltNye.
+      rewrite ltxI; apply/andP; split; last by apply: ltNye.
       by apply ereal_meets_gt=>// i _; apply ltNye.
     suff : (mine t 1 < +oo)%E by rewrite tinf ltxx.
     by rewrite ltIx [(1 < +oo)%E]ltey orbT.
@@ -307,7 +307,7 @@ have : [exists i : 'I_(size l), det l`_i l`_i.+1mod (b <| sup I |> a) <= 0].
   have t01: in01 (fine (mine t 1%E)).
     apply/andP; split; rewrite -lee_fin tfin; last by rewrite lteIx le_refl orbT.
     rewrite ltexI; apply/andP; split; last by rewrite lee_fin ler01.
-    apply: meets_ge => i abgt; rewrite lee_fin; apply: (mulr_ge0 (la _)).
+    apply: Order.TLatticeTheory.meets_ge => i abgt; rewrite lee_fin; apply: (mulr_ge0 (la _)).
     by apply ltW; rewrite invr_gt0 -2![det l`_i _ _]det_cyclique.
   apply: sup_upper_bound => //; apply/andP; split => //.
   rewrite encompass_all_index l0/=; apply/forallP => i.
@@ -318,7 +318,7 @@ have : [exists i : 'I_(size l), det l`_i l`_i.+1mod (b <| sup I |> a) <= 0].
     rewrite -subr_ge0 -(pmulr_lge0 _ abgt0) mulrBl subr_ge0 -mulrA divff// mulr1.
     rewrite -lee_fin tfin leIx; apply/orP; left.
     rewrite ![det _ l`_i _]det_cyclique /t.
-    by move:abgt0; rewrite invr_gt0=>abgt; exact: meets_inf.
+    by move:abgt0; rewrite invr_gt0=>abgt; exact: Order.TLatticeTheory.meets_inf.
   rewrite {2}[det a _ _]det_cyclique (le_trans _ (la i))// mulr_ge0_le0 //.
   by move:t01 => /andP[].
 move=> /existsP[i] iable0.

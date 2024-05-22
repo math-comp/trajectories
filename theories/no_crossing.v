@@ -104,7 +104,7 @@ Definition have_crossing (e1 e2 : edge) : bool :=
   else
    (* The two edges are parallel.  They may still touch. *)
    if negb (Qeq_bool 
-             (area3 (left_pt e1) (left_pt e2) (right_pt e2)) 0) then
+             (area3 _ Qplus Qminus Qmult (left_pt e1) (left_pt e2) (right_pt e2)) 0) then
      true
    else
      (Qlt_bool (p_x (left_pt e2)) (p_x (left_pt e1)) &&
@@ -256,8 +256,10 @@ Lemma cnt14 :
 Proof. easy. Qed.
 
 Import String.
+(*
 Compute example_test (List.concat (List.map outgoing evs14))
              (Bpt 1.2 (-0.8)) (Bpt (-1) (0.4)) nil.
+*)
 Compute (concat "
 " (postscript_header ++
    display_edge 300 400 70 example_bottom ::

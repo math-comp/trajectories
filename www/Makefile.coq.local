@@ -1,0 +1,40 @@
+post-all::
+	$(MAKE) -f $(SELF) SmoothTrajectories.mli
+
+post-all::
+	$(MAKE) -f $(SELF) SmoothTrajectories.cmi
+
+clean::
+	rm -f SmoothTrajectories.cmi SmoothTrajectories.cmo jSmoothTrajectories.cmi jSmoothTrajectories.cmo
+
+
+SmoothTrajectories.ml SmoothTrajectories.mli : ../theories/smooth_trajectories.vo
+	cd ../theories; echo 'Require Import QArith smooth_trajectories. Extraction "SmoothTrajectories.ml" Qsmooth_point_to_point Qstraight_point_to_point Qedges_to_cells Qreduction.Qred.' | coqtop -R . trajectories
+	cp ../theories/SmoothTrajectories.ml ../theories/SmoothTrajectories.mli .
+
+SmoothTrajectories.cmi : SmoothTrajectories.mli
+	ocamlfind ocamlc SmoothTrajectories.mli
+
+post-all::
+	$(MAKE) -f $(SELF) jSmoothTrajectories.cmi
+clean::
+	rm -f jSmoothTrajectories.cmi
+
+jSmoothTrajectories.cmi :  jSmoothTrajectories.ml
+	ocamlfind ocamlc jSmoothTrajectories.mli
+
+post-all::
+	$(MAKE) -f $(SELF) SmoothTrajectories.bytes
+clean::
+	rm -f SmoothTrajectories.bytes
+
+SmoothTrajectories.bytes :  jSmoothTrajectories.cmi jSmoothTrajectories.ml SmoothTrajectories.ml SmoothTrajectories.cmi
+	ocamlfind ocamlc -package js_of_ocaml -package js_of_ocaml-ppx -linkpkg -o SmoothTrajectories.bytes SmoothTrajectories.ml jSmoothTrajectories.ml
+
+post-all::
+	$(MAKE) -f $(SELF) SmoothTrajectories.js
+clean::
+	rm -f SmoothTrajectories.js
+
+SmoothTrajectories.js :  SmoothTrajectories.bytes
+	js_of_ocaml --opt=3 SmoothTrajectories.bytes

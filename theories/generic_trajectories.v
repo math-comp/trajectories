@@ -1,5 +1,6 @@
 From mathcomp Require Import all_ssreflect.
-Require Import ZArith List String OrderedType OrderedTypeEx FMapAVL.
+Require Import ZArith (* List *) String OrderedType OrderedTypeEx FMapAVL.
+Require Import shortest_path.
 
 Notation head := seq.head.
 Notation sort := path.sort.
@@ -31,8 +32,6 @@ Notation sort := path.sort.
 
 Notation seq := list.
 
-Module natmap := FMapAVL.Make Nat_as_OT.
-
 Section generic_implementation.
 
 (* In the original development R has type numFieldType and the various
@@ -51,6 +50,10 @@ Notation "x * y" := (R_mul x y).
 Notation "x - y" := (R_sub x y).
 
 Notation "x + y" := (R_add x y).
+
+Notation "x / y" := (R_div x y).
+
+Variable pt_distance : R -> R -> R -> R -> R.
 
 Variable R1 : R.
 
@@ -79,7 +82,7 @@ Definition dummy_pt := ({| p_x := R1; p_y := R1|}).
 
 Definition dummy_edge := Bedge dummy_pt dummy_pt.
 
-Definition dummy_cell := 
+Definition dummy_cell :=
   {| left_pts := nil; right_pts := nil; low := dummy_edge; high := dummy_edge|}.
 
 Definition dummy_event :=
@@ -146,11 +149,11 @@ Definition valid_edge e p := (R_leb (p_x (left_pt e)) (p_x p)) &&
 (* TODO: check again the mathematical formula after replacing the infix     *)
 (* operations by prefix function calls. *)
 Definition vertical_intersection_point (p : pt) (e : edge) : option pt :=
-  if valid_edge e p then 
+  if valid_edge e p then
     Some(Bpt (p_x p) (R_add
        (R_mul (R_sub (p_x p) (p_x (left_pt e)))
       (R_div (R_sub (p_y (right_pt e)) (p_y (left_pt e)))
-    (R_sub (p_x (right_pt e)) (p_x (left_pt e))))) 
+    (R_sub (p_x (right_pt e)) (p_x (left_pt e)))))
      (p_y (left_pt e))))
     else None.
 
@@ -190,9 +193,9 @@ Notation "p <<< g" := (point_strictly_under_edge p g)
   (at level 70, no associativity).
 
 Definition edge_below (e1 : edge) (e2 : edge) : bool :=
-(point_under_edge (left_pt e1) e2 && 
+(point_under_edge (left_pt e1) e2 &&
  point_under_edge (right_pt e1) e2)
-|| (negb (point_strictly_under_edge (left_pt e2) e1) && 
+|| (negb (point_strictly_under_edge (left_pt e2) e1) &&
    negb (point_strictly_under_edge (right_pt e2) e1)).
 
 Definition contains_point (p : pt) (c : cell)  : bool :=
@@ -202,8 +205,8 @@ Definition close_cell (p : pt) (c : cell) :=
   match vertical_intersection_point p (low c),
         vertical_intersection_point p (high c) with
   | None, _ | _, None => c
-  | Some p1, Some p2 => 
-    Bcell (left_pts c) (no_dup_seq (p1 :: p :: p2 :: nil)) (low c) (high c)
+  | Some p1, Some p2 =>
+    Bcell (left_pts c) (no_dup_seq (p2 :: p :: p1 :: nil)) (low c) (high c)
   end.
 
 Definition closing_cells (p : pt) (contact_cells: seq cell) : seq cell :=
@@ -215,7 +218,7 @@ Definition pvert_y (p : pt) (e : edge) :=
   | None => R0
   end.
 
-Fixpoint opening_cells_aux (p : pt) (out : seq edge) (low_e high_e : edge) 
+Fixpoint opening_cells_aux (p : pt) (out : seq edge) (low_e high_e : edge)
   : seq cell * cell :=
   match out with
   | [::] =>
@@ -249,7 +252,7 @@ if open_cells is c :: q then
 else
   None.
 
-Fixpoint open_cells_decomposition_rec open_cells pt : 
+Fixpoint open_cells_decomposition_rec open_cells pt :
   seq cell * seq cell * cell * seq cell :=
 if open_cells is c :: q then
   if contains_point pt c then
@@ -279,9 +282,7 @@ Record scan_state :=
 
 Definition update_closed_cell (c : cell) (p : pt) : cell :=
   let ptseq := right_pts c in
-  let newptseq :=
-    (belast (head dummy_pt ptseq) (behead ptseq)) ++
-    [:: p; seq.last dummy_pt ptseq] in
+  let newptseq := seq.head dummy_pt ptseq :: p :: behead ptseq in
   Bcell (left_pts c) newptseq (low c) (high c).
 
 Definition set_left_pts (c : cell) (l : seq pt) :=
@@ -337,7 +338,7 @@ Definition step (st : scan_state) (e : event) : scan_state :=
    let p := point e in
    let '(Bscan op1 lsto op2 cls cl lhigh lx) := st in
    if negb (same_x p lx) then
-     let '(first_cells, contact_cells, last_contact, last_cells, 
+     let '(first_cells, contact_cells, last_contact, last_cells,
            lower_edge, higher_edge) :=
        open_cells_decomposition (op1 ++ lsto :: op2) p in
      simple_step first_cells contact_cells last_cells last_contact
@@ -349,7 +350,7 @@ Definition step (st : scan_state) (e : event) : scan_state :=
      let first_cells := op1 ++ lsto :: fc' in
      simple_step first_cells contact_cells last_cells last_contact
        low_edge higher_edge cls cl e
-   else if p <<< lhigh then 
+   else if p <<< lhigh then
      let new_closed := update_closed_cell cl (point e) in
      let (new_opens, new_lopen) := update_open_cell lsto e in
      Bscan (op1 ++ new_opens) new_lopen op2 cls new_closed lhigh lx
@@ -427,79 +428,8 @@ Definition edges_to_cells bottom top edges :=
   complete_process (edges_to_events edges) bottom top.
 
 (* SECOND PART : computing a path in the cell graph *)
-(* This code is taken from github.com/ybertot/breadth_first_search.
-   the proof of this code is probably complete in that repository. *)
-
-Section bfs.
-
-Variable (state move : Type).
-Variable (state_fmap : Type).
-Variable find : state_fmap -> state -> option move.
-Variable add : state_fmap -> state -> move -> state_fmap.
-Variable (step : state -> list (state * move)).
-Variable (state_eq_dec : forall s1 s2 : state, {s1 = s2}+{s1 <> s2}).
-
-Variable map_order : state_fmap -> state_fmap -> Prop.
-Hypothesis map_order_wf : well_founded map_order.
-Hypothesis add_order : forall map s v,
-  find map s = None -> map_order (add map s v) map.
-Hypothesis map_order_trans : forall map2 map1 map3,
-  map_order map1 map2 -> map_order map2 map3 -> map_order map1 map3.
-
-Fixpoint bfs_aux (w w2 : list (state * move))
-  (sufficient : state)
-  (settled : state_fmap) : (list (state * move) * state_fmap) :=
-match w with
-| (s, m) :: w' =>
-  match find settled s with
-  | Some _ => bfs_aux w' w2 sufficient settled
-  | None =>
-    if state_eq_dec s sufficient then
-      (nil, add settled s m)
-    else
-    bfs_aux w' (step s ++ w2) sufficient (add settled s m)
-  end
-| nil => (w2, settled)
-end.
-
-Fixpoint bfs (fuel : nat) (w : list (state * move)) (settled : state_fmap) 
-  (sufficient : state)
-  (round : nat) :
-  (state_fmap * nat) + (list (state * move) * state_fmap) :=
-  match fuel with
-  | O => inr (w, settled)
-  | S p =>
-    match bfs_aux w nil sufficient settled with
-    | (nil, s) => inl (s, round)
-    | (w, s) => bfs p w s sufficient (round + 1)
-    end
-  end.
-
-  (* We then explain how we build a path using the database. *)
-Fixpoint make_path (db : state_fmap)
-(targetb : state -> bool) (play : state -> move -> option state)
-(x : state) (fuel : nat) :=
-match fuel with
-| O => None
-| S p =>
-if targetb x then
-  Some nil
-else
-  match find db x with
-  | None => None
-  | Some m =>
-    match play x m with
-    | Some y =>
-      match make_path db targetb play y p with
-      | None => None
-      | Some l => Some (m :: l)
-      end
-   | None => None
-   end
-  end
-end.
-
-End bfs.
+(* To compute a path that has reasonable optimzation, we compute a shortest *)
+(* path between reference points chosen inside doors. *)
 
 (* defining the connection relation between adjacent cells.  Two cells
   are adjacent when it is possible to move from one cell directly to the
@@ -513,6 +443,9 @@ Definition vert_edge_eqb (v1 v2 : vert_edge) :=
   let: Build_vert_edge v2x v2t v2b := v2 in
   R_eqb v1x v2x && R_eqb v1t v2t && R_eqb v1b v2b.
 
+(* the lists of points left_pts and right_pts for each cell define the
+  extremities of the doors, but we wish to have a list of all doors,
+  obtained by making intervals between two points. *)
 Fixpoint seq_to_intervals_aux [A : Type] (a : A) (s : seq A) :=
 match s with
 | nil => nil
@@ -528,217 +461,76 @@ end.
 (* Vertical edges are collected from the left_pts and right_pts sequences. *)
 Definition cell_safe_exits_left (c : cell) : seq vert_edge :=
   let lx := p_x (head dummy_pt (left_pts c)) in
-  map (fun p => Build_vert_edge lx (p_y (fst p)) (p_y (snd p))) 
+  map (fun p => Build_vert_edge lx (p_y (fst p)) (p_y (snd p)))
    (seq_to_intervals (left_pts c)).
 
 Definition cell_safe_exits_right (c : cell) : seq vert_edge :=
   let lx := p_x (head dummy_pt (right_pts c)) in
-  map (fun p => Build_vert_edge lx (p_y (fst p)) (p_y (snd p))) 
-   (seq_to_intervals (rev (right_pts c))).
+  map (fun p => Build_vert_edge lx (p_y (fst p)) (p_y (snd p)))
+   (seq_to_intervals (right_pts c)).
 
-Definition all_doors (cells : seq cell) : seq (vert_edge * nat) :=
-  List.concat
-    (List.map (fun i => List.map (fun v => (v, i))
-                  (cell_safe_exits_right (nth i cells dummy_cell)))
-         (seq.iota 0 (List.length cells))).
+(* The index_seq function is a trick to circumvent the absence of a mapi
+  function in Coq code.  It makes it possible to build a list of pairs,
+  where each element is annotated with its position in the list. *)
+Definition index_seq {T : Type} (s : list T) : list (nat * T) :=
+  zip (iota 0 (size s)) s.
 
-Definition door_right_cell (cells : seq cell) (v : vert_edge) :=
-  find (fun i => existsb (fun v' => vert_edge_eqb v v')
-           (cell_safe_exits_left (nth i cells dummy_cell)))
-     (seq.iota 0 (List.length cells)).
+(* Given a set of cells (given as a sequence), we wish to construct all
+  the vertical edges (called doors) connecting two cells, and we wish each
+  door to contain information about the cells they are connected to, here
+  their rank in the sequence of cells. *)
 
-Definition vert_edge_midpoint (ve : vert_edge) : pt :=
-  {|p_x := ve_x ve; p_y := R_div ((R_add (ve_top ve) (ve_bot ve))) R2|}.
+Definition door := (vert_edge * nat * nat)%type.
 
-(* connection from left to right is obtained by computing an intersection. *)
-Definition lr_connected (c1 c2 : cell) : bool :=
-  existsb (fun v => existsb (fun v' => vert_edge_eqb v v')
-                       (cell_safe_exits_left c2))
-       (cell_safe_exits_right c1).
-
-Definition bi_connected c1 c2 :=
-  lr_connected c1 c2 || lr_connected c2 c1.
-
-Definition dummy_vert_edge :=
-  {| ve_x := R0; ve_top := R0; ve_bot := R0|}.
-
-Definition bfs_find : natmap.t nat -> nat -> option nat :=
-  (fun m k => natmap.find k m).
-
-Definition bfs_add : natmap.t nat -> nat -> nat -> natmap.t nat :=
-  (fun m k v => natmap.add k v m).
-
-Definition reverse_step cells cell_i : seq (nat * nat) :=
-  map (fun i => (i, cell_i))
-    (filter (fun c_i => bi_connected (nth c_i cells dummy_cell)
-                       (nth cell_i cells dummy_cell))
-     (seq.iota 0 (List.length cells))).
-
-(* To compute a path between two cells we use as input the list of cells
-   and indices of two cells in this list (source and target).  This builds
-   a table.  This table construction is interrupted as soon as a path
-   from source_i to target_i is found, and this path is guaranteed to be
-   of minimal length in terms of numbers of cells encountered. The result
-   is in a sum type, where only the right variant would mean that no path
-   has been found before exhaustion of some fuel.  But here, it is assumed
-   that the fuel (length of cells) is going to be enough to find all cells
-   connected to target_i. *)
-Definition cell_connection_table (cells : seq cell) (source_i target_i : nat) :=
-    bfs _ _ _ bfs_find bfs_add (reverse_step cells) eq_nat_dec
-    (List.length cells) ((target_i, target_i) :: nil) (natmap.empty nat)
-    source_i 0.
-
-Definition cell_path (cells : seq cell) (source_i target_i : nat) :
-  option (seq nat) :=
-  match cell_connection_table cells source_i target_i with
-  | inr _ => None
-  | inl (table, _) =>
-    make_path _ _ _ bfs_find table (fun c_i => Nat.eqb c_i target_i)
-      (fun n1 n2 => Some n2) source_i (List.length cells)
-  end.
-
-(* Given two cells, we define the door from one cell to the other to
-  be the common edge between these cells.  In example known so far, there
-  is only one such door, but this may change in the future.  For now, we
-  take arbitrarily the first one we find (the top one or the bottom one
-  depending on the exits are ordered).  If the two cells are not adjacent,
-  dummy_vert_edge is returned.  Maybe this should be made safer by returning
-  an option type. *)
-Definition lr_door (c1 c2 : cell) : vert_edge :=
-  head dummy_vert_edge
-     (filter (fun x => existsb (fun x' => vert_edge_eqb x x')
-                  (cell_safe_exits_left c2)) (cell_safe_exits_right c1)).
-
-Definition left_limit (c : cell) := p_x (seq.last dummy_pt (left_pts c)).
-
-Definition right_limit c := p_x (seq.last dummy_pt (right_pts c)).
-
-(* This function is like lr_door, but it is more precise, as it
-  can be applied when the doors are connected but not lr_connected as it
-  returns None in case the two given cells are not adjacent. *)
-Definition common_vert_edge (c1 c2 : cell) : option vert_edge:=
-  if R_eqb (right_limit c1) (left_limit c2) then
-    find (fun v => existsb (fun v' => vert_edge_eqb v v')
-                      (cell_safe_exits_left c2))
-      (cell_safe_exits_right c1)
-  else
-    find (fun v => existsb (fun v' => vert_edge_eqb v v')
-                      (cell_safe_exits_left c1))
-      (cell_safe_exits_right c2).
-
-Definition midpoint (p1 p2 : pt) : pt :=
- {| p_x := R_div (R_add (p_x p1) (p_x p2)) R2;
-    p_y := R_div (R_add (p_y p1) (p_y p2)) R2|}.
-
-Definition cell_center (c : cell) :=
-  midpoint
-    (midpoint (seq.last dummy_pt (left_pts c)) 
-              (head dummy_pt (right_pts c)))
-    (midpoint (head dummy_pt (left_pts c))
-              (seq.last dummy_pt (right_pts c))).
-
-Record annotated_point :=
-  Apt { apt_val : pt; cell_indices : seq nat}.
+Definition cells_to_doors (s : list cell) :=
+  let indexed_s := index_seq s in
+  let vert_edges_and_right_cell :=
+    flatten (map (fun '(i, c) =>
+                   (map (fun v => (v, i))) (cell_safe_exits_left c))
+      indexed_s) in
+  let vert_edges_and_both_cells :=
+    flatten (map (fun '(v, i) =>
+          (map (fun '(i', c') => (v, i, i'))
+               (filter (fun '(i', c') =>
+                   existsb (vert_edge_eqb v) (cell_safe_exits_right c'))
+                   indexed_s)))
+           vert_edges_and_right_cell) in
+      vert_edges_and_both_cells.
 
 Definition on_vert_edge (p : pt) (v : vert_edge) : bool :=
   R_eqb (p_x p) (ve_x v) && R_ltb (ve_bot v) (p_y p) &&
   R_ltb (p_y p) (ve_top v).
 
-(* This function assumes a straight line to the door is safe.  For annotations
-  it supposes the first cell index corresponds to the cell containing p.
-  It returns nil if there is no door, and nil or a faulty edge if
-  the other conditions are not met. *)
-Definition point_to_door (cells : seq cell) (p : annotated_point) (c1i c2i : nat) :
-   seq (annotated_point * annotated_point) :=
-let c1 := nth c1i cells dummy_cell in
-let c2 := nth c2i cells dummy_cell in
-match common_vert_edge c1 c2 with
-  Some v =>
-    if (R_eqb (p_x (apt_val p)) (ve_x v)) && negb (on_vert_edge (apt_val p) v) then
-      (p, Apt (cell_center c1) (c1i::nil)) ::
-      (Apt (cell_center c1) (c1i :: nil), Apt (vert_edge_midpoint v) (c1i :: c2i :: nil)) :: nil
-    else
-      (p, Apt (vert_edge_midpoint v) (c1i :: c2i :: nil)) :: nil
-| None => nil
-end.
+Definition vert_edge_midpoint (ve : vert_edge) : pt :=
+  {|p_x := ve_x ve; p_y := R_div ((R_add (ve_top ve) (ve_bot ve))) R2|}.
+ 
+(* When a vertical edge contains the source or the target, we wish this
+  point to be considered as the reference point for that edge. *)
+Definition vert_edge_to_reference_point (s t : pt) (v : vert_edge) :=
+  if on_vert_edge s v then s
+  else if on_vert_edge t v then t
+  else vert_edge_midpoint v.
 
-Definition path_reverse (s : seq (annotated_point * annotated_point)) :=
-  List.map (fun p => (snd p, fst p)) (List.rev_append s nil).
-
-(* This function creates a safe path from the door between
-  c1 and c2 and the door between c2 and c3.  When op1 and op2
-  are not provided, midpoints are used as path anchors,
-  when p1 and p2 are provided they are used instead.
-  This function assumes that p1 and p2 are members of the
-  respective doors (c1-c2) and (c2-c3) *)
-Definition to_next_door (op1 op2 : option pt)
-  (cells : seq cell)
-  (c1i c2i c3i : nat) : seq (annotated_point * annotated_point) :=
-let c2 := nth c2i cells dummy_cell in
-let p1 := match op1 with
-          | Some p1 => p1
-          | None =>
-            match common_vert_edge (nth c1i cells dummy_cell) c2 with
-            | Some v => vert_edge_midpoint v
-            | None => dummy_pt
-            end
-          end in
-let p2 := match op2 with
-          | Some p2 => p2
-          | None =>
-            match common_vert_edge c2 (nth c3i cells dummy_cell) with
-            | Some v => vert_edge_midpoint v
-            | None => dummy_pt
-            end
-          end in
-if R_eqb (p_x p1) (p_x p2) then
-  let intermediate_point :=
-    Apt (cell_center c2) (c2i :: nil) in
-  (Apt p1 (c1i :: c2i :: nil), intermediate_point) ::
-  (intermediate_point, Apt p2 (c2i :: c3i :: nil)) :: nil
-else
-  (Apt p1 (c1i :: c2i :: nil), Apt p2 (c2i :: c3i :: nil)) :: nil.
-
-(* Given a sequence of cells c_i, and a sequence of indices i1, i2, ... 
-   (where the ... are refered to as tl), we want to create a list of
-   points, making it possible to move from door to door so that the all
-   all list of points is describes a broken line moving from the door
-   between i1 and i2 to the door between the last two elements of
-   (i1, i2, & tl).  Adding paths to the first and last doors will make it
-   easy to have a path from any point in cell i1 to any point in the last
-   cell of (i1, i2, & tl). when optional points are provided, they
-   are points in the first and last door. *)
-Fixpoint door_to_door (cells : seq cell)
-  (i1 i2 : nat) (opt_source opt_target : option pt)(tl : seq nat) :
-  seq (annotated_point * annotated_point) :=
-  match tl with
-  | nil => nil
-  | i3 :: nil =>
-    to_next_door opt_source opt_target cells i1 i2 i3
-  | i3 :: tl' =>
-    let tail_path := door_to_door cells i2 i3 None opt_target tl' in
-    to_next_door opt_source None cells i1 i2 i3 ++ tail_path
+(* Each door has one or two neighboring cells, the neighboring doors
+  are those doors that share one of these neighboring cells.  Here we only
+  want to know the index of the neighbors.  We make sure to avoid including
+  the current door in the neighbors. *)
+Definition one_door_neighbors
+  (indexed_doors : seq (nat * door))
+  (i_d : nat * door) : list nat :=
+  match i_d with
+  | (j, (v0, i0, i'0)) =>
+    map fst
+      (filter (fun '(vi, (v, i, i')) => (Nat.eqb i i0  || Nat.eqb i i'0 ||
+              Nat.eqb i' i0 || Nat.eqb i' i'0) && (negb (Nat.eqb j vi)))
+          indexed_doors)
   end.
 
-(* This function computes a path (broken line) between a point
-  in a cell and a point in another cell, going through the midpoint of
-  the door between the two cells.  the points are annotated with the
-  constraint they have to satisfied: the cells of which they have to
-  be members of. This annotation is important because smoothing will
-  replace these points with other points that have to satisfy the same
-  constraint. *)
-Definition path_adjacent_cells (cells : seq cell) (source target : pt)
-  (source_i target_i : nat) : option (seq (annotated_point * annotated_point)) :=
-  let source_cell := nth source_i cells dummy_cell in
-  let target_cell := nth target_i cells dummy_cell in
-  match common_vert_edge source_cell target_cell with
-  | Some v => 
-    Some ((Apt source (source_i :: nil), 
-           Apt (vert_edge_midpoint v) (source_i :: target_i :: nil)) ::
-              (Apt (vert_edge_midpoint v) (source_i :: target_i :: nil),
-               Apt target (target_i :: nil)) :: nil)
-  | None => None
-  end.
+Definition left_limit (c : cell) := p_x (seq.head dummy_pt (left_pts c)).
+
+Definition right_limit c := p_x (seq.head dummy_pt (right_pts c)).
+
+Definition cmp_option := cmp_option _ R_ltb.
 
 Definition strict_inside_closed p c :=
   negb (point_under_edge p (low c)) &&
@@ -746,100 +538,313 @@ Definition strict_inside_closed p c :=
  (R_ltb (left_limit c) (p_x p) &&
  (R_ltb (p_x p) (right_limit c))).
 
-(* find_origin_cells returns a list of cell indices. *)
-(* If the list is empty, it should mean that the point is not in the
-  safe part of the work space (it is either outside the box or on
-  one of the obstacle edges).  If the list has only one element,
-  the point is inside the indexed cell.  If the list has two
-  elements, this means that the point is in the door between the
-  two indexed cells. *)
-Definition find_origin_cells (cells : seq cell) (p : pt) : seq nat :=
-  match find (fun i => strict_inside_closed p (nth i cells dummy_cell))
-         (seq.iota 0 (List.length cells)) with
-  | Some n => n :: nil
-  | None =>
-    head nil
-    (List.map (fun av => snd av ::
-                match door_right_cell cells (fst av) with
-                | Some rc => rc :: nil
-                | None => nil
-                end)
-      (filter (fun av => on_vert_edge p (fst av)) (all_doors cells)))
+(* For each extremity, we check whether it is already inside an existing
+  door.  If it is the case, we need to remember the index of that door.
+  If the extremity is not inside a door, then we create a fictitious door,
+  where the neighboring cells both are set to the one cell containing this
+  point. *)
+Definition add_extremity_reference_point
+  (indexed_cells : seq (nat * cell))
+  (p : pt) (doors : seq door) :=
+  let purported_index :=
+    seq.find (fun '(v, _, _) => on_vert_edge p v) doors in
+  if purported_index < size doors then
+    (doors, purported_index)
+  else 
+    let '(i, c) :=
+      head (size indexed_cells, dummy_cell)
+        (filter (fun '(i', c') => strict_inside_closed p c')  indexed_cells) in
+      (rcons doors ({|ve_x := p_x p; ve_top := p_y p; ve_bot := p_y p|}, i, i), size doors).
+
+(* This function makes sure that the sequence of doors contains a door
+  for each of the extremities, adding new doors when needed.  It returns
+  the updated sequence of doors and the indexes for the doors containing
+  each of the extremities. *)
+Definition doors_and_extremities (indexed_cells : seq (nat * cell))
+  (doors : seq door) (s t : pt) : seq door * nat * nat :=
+  let '(d_s, i_s) :=
+     add_extremity_reference_point indexed_cells s doors in
+  let '(d_t, i_t) :=
+     add_extremity_reference_point indexed_cells t d_s in
+  (d_t, i_s, i_t).
+
+(* In the end the door adjacency map describes the graph in which we
+  want to compute paths. *)
+Definition door_adjacency_map (doors : seq door) :
+  seq (seq nat) :=
+  let indexed_doors := index_seq doors in
+  map (fun i_d => one_door_neighbors indexed_doors i_d) indexed_doors.
+
+Definition dummy_vert_edge :=
+  {| ve_x := R0; ve_top := R0; ve_bot := R0|}.
+
+Definition dummy_door := (dummy_vert_edge, 0, 0).
+
+(* To compute the distance between two doors, we compute the distance
+  between the reference points. TODO: this computation does not take
+  into account the added trajectory to go to a safe point inside the
+  cell where the doors are vertically aligned.  *)
+Definition distance (doors : seq door) (s t : pt) 
+  (i j : nat) :=
+  let '(v1, _, _) := seq.nth dummy_door doors i in
+  let '(v2, _, _) := seq.nth dummy_door doors j in
+  let p1 := vert_edge_to_reference_point s t v1 in
+  let p2 := vert_edge_to_reference_point s t v2 in
+  pt_distance (p_x p1) (p_y p1) (p_x p2) (p_y p2).
+
+(* The function cells_too_doors_graph constructs the graph with
+  weighted edges. *)
+Definition cells_to_doors_graph (cells : seq cell) (s t : pt) :=
+  let regular_doors := cells_to_doors cells in
+  let indexed_cells := index_seq cells in
+  let '(full_seq_of_doors, i_s, i_t) :=
+    doors_and_extremities indexed_cells regular_doors s t in
+  let adj_map := door_adjacency_map full_seq_of_doors in
+  let neighbors_and_distances :=
+    [seq [seq (j, distance full_seq_of_doors s t i j) | j <- neighbors]
+        | '(i, neighbors) <- index_seq adj_map] in
+      (full_seq_of_doors, neighbors_and_distances, i_s, i_t).
+
+(* We can now call the shortest path algorithm, where the nodes are
+  door indices. *)
+Definition node := nat.
+
+Definition empty := @nil (node * seq node * option R).
+
+(* The shortest graph algorithm relies on a priority queue.  We implement
+  such a queue by maintaining a sorted list of nodes. *)
+Notation priority_queue := (list (node * seq node * option R)).
+
+Definition node_eqb := Nat.eqb.
+
+(* To find a element in the priority queue, we just traverse the list
+  until we find one node that that the same index. *)
+Fixpoint gfind (q : priority_queue) n :=
+  match q with
+  | nil => None
+  | (n', p, d) :: tl => if node_eqb n' n then Some (p, d) else gfind tl n
   end.
 
-Definition intersection (s1 s2 : seq nat) :=
-  filter (fun e => existsb (fun e' => Nat.eqb e e')
-                      s2) s1.
+(* To remove an element, we traverse the list.  Note that we only remove
+  the first instance. *)
+Fixpoint remove (q : priority_queue) n :=
+  match q with
+  | nil => nil
+  | (n', p', d') :: tl =>
+    if node_eqb n' n then
+      tl
+    else
+      (n', p', d') :: remove tl n
+  end.
 
-Definition point_to_point
- (cells : seq cell) (source target : pt) :
-  option (seq (annotated_point * annotated_point)) :=
-let source_is := find_origin_cells cells source in
-let target_is := find_origin_cells cells target in
-if Nat.ltb 0 (List.length source_is) && Nat.ltb 0 (List.length target_is) then
-  if Nat.ltb 0 (List.length (intersection source_is target_is)) then
-    Some ((Apt source source_is, Apt target target_is) :: nil)
-  else
-    let ocp := cell_path cells (head 0%nat source_is) (head 0%nat target_is) in
-    match ocp with
-    Some cp =>
-      (* The first element of the path is (head 0 source_is), *)
-      if 2 <=? List.length cp then
-      (* looking
-         at a length larger than 2 actually means the path has at least 3 fenceposts
-         and at least 2 intervals:
-         head source_is (nth 0 cp 0)  (nth 1 cp 0)
-         so there are (at least) 2 doors. *)
-        if existsb (Nat.eqb (nth 0 cp 0%nat)) source_is then
-        (* It can only be the case that the source is on a door, and
-         that the two cells concerned with the first hop are the
-         two cells of this door.  In this case, there is no need
-         to draw a first path element from from the source point to the
-         vertical edge midpoint, since the first point is already
-         on the door, and that the target is not in the second cell
-         of the path, so the length of cp is strictly larger than 2 *)
-           if existsb (Nat.eqb (nth (List.length cp - 2) cp 0%nat)) target_is then
-             (* Here target_is is in the penultimate cell of the path *)
-             Some (door_to_door cells (head 0%nat source_is) (nth 0 cp 0%nat)
-                 (Some source) (Some target) (seq.behead cp (* (seq.behead cp) *)))
-           else
-             Some (door_to_door cells (head 0%nat source_is) (nth 0 cp 0%nat) (Some source) None
-                 (seq.behead cp) ++
-                 path_reverse (point_to_door cells (Apt target target_is)
-                    (nth (List.length cp - 1) cp 0%nat)
-                    (nth (List.length cp - 2) cp 0%nat)))
-        else
-          if existsb (Nat.eqb (nth ((List.length cp) - 2) cp 0%nat)) target_is then
-             Some ((point_to_door cells (Apt source source_is) (head 0%nat source_is)
-                        (nth 0 cp 0%nat)) ++
-             door_to_door cells (head 0%nat source_is) (nth 0 cp 0%nat) None (Some target)
-                 (seq.behead cp))
-          else
-             Some (point_to_door cells (Apt source source_is) (head 0%nat source_is) (nth 0 cp 0%nat) ++
-             door_to_door cells (head 0%nat source_is) (nth 0 cp 0%nat) None None
-                 (seq.behead cp) ++
-                 path_reverse (point_to_door cells (Apt target target_is)
-                    (nth (List.length cp - 1) cp 0%nat)
-                    (nth (List.length cp - 2) cp 0%nat)))
+(* To insert a new association in the priority queue, we are careful to
+  insert the node in the right place comparing the order. *)
+Fixpoint insert (q : priority_queue) n p d :=
+  match q with
+  | nil => (n, p, d) :: nil
+  | (n', p', d') :: tl =>
+    if cmp_option d d' then
+      (n, p, d) :: q
+    else
+      (n', p', d') :: insert tl n p d
+  end.
+
+Definition update q n p d :=
+  insert (remove q n) n p d.
+
+Definition pop  (q : priority_queue) :
+   option (node * seq node * option R * priority_queue) :=
+  match q with
+  | nil => None
+  | v :: tl => Some (v, tl)
+  end.
+
+(* This function takes as input the sequence of cells, the source and
+  target points.  It returns a tuple containing:
+  - the graph of doors,
+      this graph is a sequence of pairs, where the first component is
+         is door, and the second component is the sequence of nodes
+  - the path, when it exists,
+  - the index of the doors containing the source and targt points *)
+Definition c_shortest_path cells s t :=
+  let '(adj, i_s, i_t) := cells_to_doors_graph cells s t in
+  (adj, shortest_path R R0 R_ltb R_add node node_eqb
+         (seq.nth [::] adj.2) i_s i_t _ empty
+         gfind update pop (iota 0 (size adj.2)), i_s, i_t).
+
+Definition midpoint (p1 p2 : pt) : pt :=
+ {| p_x := R_div (R_add (p_x p1) (p_x p2)) R2;
+    p_y := R_div (R_add (p_y p1) (p_y p2)) R2|}.
+
+(* The center of the cell is computed using the middle of the high edge
+   the middle of the low edge, and their middle. *)
+Definition cell_center (c : cell) :=
+  midpoint
+    (midpoint (seq.last dummy_pt (left_pts c)) 
+              (head dummy_pt (right_pts c)))
+    (midpoint (head dummy_pt (left_pts c))
+              (seq.last dummy_pt (right_pts c))).
+
+(* Each point used in the doors is annotated with the doors on which they
+  are and the cells they connect.  The last information may be useless
+  since we have now door information. *)
+Record annotated_point :=
+  Apt { apt_val : pt; door_index : option nat; cell_indices : seq nat}.
+
+(* This value (1/16) of margin is suitable for the demo environment.  In real
+  life,  this should be a parameter of the algorithm. *)
+Definition margin := R1 / ((R1 + R1) *
+                             (R1 + R1) * (R1 + R1) * (R1 + R1) * (R1 * R1)).
+
+
+(* Given two points p1 and p2 on a side of a cell, this computes a point
+   inside the cell that is a sensible intermediate point to move from p1
+   to p2 while staying safely inside the cell. *)
+Definition safe_intermediate_point_in_cell (p1 p2 : pt) (c : cell)
+   (ci : nat) :=
+  let new_x := p_x (cell_center c) in
+  let new_y := R_div (R_add (p_y p1) (p_y p2)) R2 in
+  if R_ltb new_x (p_x p1) then
+    let new_pt := {|p_x := p_x p1 - margin; p_y := new_y|} in
+      if strict_inside_closed new_pt c then
+        Apt new_pt None (ci :: nil)
       else
-      (* if cp has length 1, then there is only one door. if one of the
-         point is on the door, it can be connected to the other, *)
-         match common_vert_edge (nth (head 0%nat source_is) cells dummy_cell)
-                                (nth (head 0%nat target_is) cells dummy_cell) with
-         | Some v =>
-           if on_vert_edge source v || on_vert_edge target v then
-              Some ((Apt source source_is, Apt target target_is) :: nil)
-           else
-              Some (point_to_door cells (Apt source source_is) (head 0%nat source_is)
-                 (head 0%nat target_is) ++
-                   path_reverse (point_to_door cells (Apt target target_is)
-                        (head 0%nat source_is) (head 0%nat target_is)))
-         | None => None
-         end
-  | None => None
+        Apt (cell_center c) None (ci :: nil)
+  else
+    let new_pt := {|p_x := p_x p1 + margin; p_y := new_y|} in
+      if strict_inside_closed new_pt c then
+        Apt new_pt None (ci :: nil)
+      else
+        Apt (cell_center c) None (ci :: nil).
+
+
+(* When two neighbor doors are aligned vertically, they have a neighboring
+   cell in common.  This can be computed by looking at the intersection
+   between their lists of neighboring cells. *)
+Definition intersection (s1 s2 : seq nat) :=
+  [seq x | x <- s1 & existsb (fun y => Nat.eqb x y) s2].
+
+Definition common_index (s1 s2 : seq nat) :=
+  let intersect := intersection s1 s2 in
+  seq.head 0 intersect.
+
+Definition door_to_annotated_point s t (d : door) 
+  (door_index : nat) :=
+  let p' := vert_edge_to_reference_point s t d.1.1 in
+  let annot :=
+    if Nat.eqb d.1.2 d.2 then [:: d.2] else [:: d.1.2 ; d.2] in
+  Apt p' (Some door_index) annot.
+
+Fixpoint a_shortest_path (cells : seq cell)
+  (doors : seq door * seq (seq (nat * R)))
+  s t (p : annotated_point) (path : seq node) :=
+  match path with
+  | nil => [:: p]
+  | p'i :: tlpath =>
+    let d' := seq.nth dummy_door doors.1 p'i in
+    let a_p' := door_to_annotated_point s t d' p'i in
+    if R_eqb (p_x (apt_val p)) (p_x (apt_val a_p')) then
+       let ci := common_index (cell_indices p) (cell_indices a_p') in
+       let p_extra : annotated_point :=
+         safe_intermediate_point_in_cell (apt_val p) (apt_val a_p')
+           (seq.nth dummy_cell cells ci) ci in
+       p :: p_extra :: a_shortest_path cells doors s t a_p' tlpath
+    else
+       p :: a_shortest_path cells doors s t a_p' tlpath
+  end.
+
+Definition path_reverse (s : seq (annotated_point * annotated_point)) :=
+  List.map (fun p => (snd p, fst p)) (List.rev_append s nil).
+
+Definition intersect_vert_edge (p1 p2 : pt) (ve : vert_edge) : pt :=
+  Bpt (ve_x ve)
+    (p_y p1 + (ve_x ve - p_x p1) / (p_x p2 - p_x p1) * (p_y p2 - p_y p1)).
+
+Definition optim_three (doors : seq door) (p1 p2 p3 : annotated_point) :=
+  let p1' := apt_val p1 in
+  let p3' := apt_val p3 in
+  if p2 is Apt p2' (Some d_i) cells then
+    let d := (seq.nth dummy_door doors d_i).1.1 in
+    if R_ltb (p_x p1') (ve_x d) && R_ltb (ve_x d) (p_x p3') then
+      if R_ltb R0 (area3 p1' p2' p3') then
+        if R_ltb R0 (area3 p1' p3' (Bpt (ve_x d) (ve_top d))) then
+          let p2_2 := intersect_vert_edge p1' p3' d in
+            Apt p2_2 (Some d_i) cells
+        else
+          if R_ltb (ve_bot d) (ve_top d - margin) then
+            Apt (Bpt (ve_x d) (ve_top d - margin)) (Some d_i) cells
+          else
+            p2
+      else
+        if R_ltb (area3 p1' p3' (Bpt (ve_x d) (ve_bot d))) R0 then
+          let p2_2 := intersect_vert_edge p1' p3' d in
+            Apt p2_2 (Some d_i) cells
+        else
+          if R_ltb (ve_bot d + margin) (ve_top d) then
+            Apt (Bpt (ve_x d) (ve_bot d + margin)) (Some d_i) cells
+          else
+            p2
+    else if R_ltb (p_x p3') (ve_x d) && R_ltb (ve_x d) (p_x p1') then
+      if R_ltb R0 (area3 p1' p2' p3') then
+        if R_ltb R0 (area3 p1' p3' (Bpt (ve_x d) (ve_bot d))) then
+          let p2_2 := intersect_vert_edge p1' p3' d in
+            Apt p2_2 (Some d_i) cells
+        else
+          if R_ltb (ve_bot d + margin) (ve_top d) then
+            Apt (Bpt (ve_x d) (ve_bot d + margin)) (Some d_i) cells
+          else
+            p2
+      else
+        if R_ltb (area3 p1' p3' (Bpt (ve_x d) (ve_top d))) R0 then
+          let p2_2 := intersect_vert_edge p1' p3' d in
+            Apt p2_2 (Some d_i) cells
+        else
+          if R_ltb (ve_bot d) (ve_top d - margin) then
+            Apt (Bpt (ve_x d) (ve_top d - margin)) (Some d_i) cells
+          else
+            p2
+    else
+      p2
+  else
+    p2.
+
+Fixpoint local_improvements (doors : seq door)
+  (p : seq (annotated_point * annotated_point)) :
+  seq (annotated_point * annotated_point) :=
+match p with
+| (p1, p2) :: ((_ , p3) :: _) as tl =>
+  match local_improvements doors tl with
+  | [::] => p
+  | (_, p3') :: tl' =>
+    let p2' := optim_three doors p1 p2 p3' in
+      (p1, p2') :: (p2', p3') :: tl'
   end
-else
-None.
+| _ => p
+end.
+
+Definition source_to_target
+ (cells : seq cell) (source target : pt) :
+  option (seq door *
+          seq (annotated_point * annotated_point)) :=
+  let '(doors, opath, i_s, i_t) :=
+       c_shortest_path cells source target in
+  if Nat.eqb i_s i_t then
+    Some (doors.1, [:: (Apt source None [::], Apt target None [::])])
+  else
+    let last_point :=
+       door_to_annotated_point source target
+           (seq.nth dummy_door doors.1 i_t) i_t in
+    if opath is Some path then
+      match a_shortest_path cells doors source target
+                last_point path with
+      | nil => None
+      | a :: tl =>
+         Some(doors.1,
+              local_improvements doors.1
+                (path_reverse (seq_to_intervals_aux a tl)))
+    end
+  else
+    None.
 
 (* THIRD PART: Producing a smooth trajectory. *)
 (* We produce a smooth trajectory by replacing every angle by a Bezier curve.
@@ -857,9 +862,9 @@ None.
 Fixpoint break_segments (s : seq (annotated_point * annotated_point)) :
   seq (annotated_point * annotated_point) :=
   match s with
-  | (Apt p1 a1, Apt p2 a2) :: tl =>
-    (Apt p1 a1, Apt (midpoint p1 p2) (intersection a1 a2)) ::
-    (Apt (midpoint p1 p2) (intersection a1 a2), Apt p2 a2) ::
+  | (Apt p1 door_index1 a1, Apt p2 door_index2 a2) :: tl =>
+    (Apt p1 door_index1 a1, Apt (midpoint p1 p2) None (intersection a1 a2)) ::
+    (Apt (midpoint p1 p2) None (intersection a1 a2), Apt p2 door_index2 a2) ::
         break_segments tl
   | nil => nil
   end. 
@@ -923,12 +928,12 @@ Fixpoint check_bezier_ccw (fuel : nat) (v : vert_edge)
 match fuel with
 | O => None
 | S p =>
-  let top_edge := Bpt (ve_x v)  (ve_top v) in
-  if negb (point_under_edge top_edge (Bedge a c)) then
+  let top_of_edge := Bpt (ve_x v)  (ve_top v) in
+  if negb (point_under_edge top_of_edge (Bedge a c)) then
     Some true
   else if
-     point_under_edge top_edge (Bedge a b) ||
-     point_under_edge top_edge (Bedge b c)
+     point_under_edge top_of_edge (Bedge a b) ||
+     point_under_edge top_of_edge (Bedge b c)
   then 
     Some false
   else
@@ -955,12 +960,12 @@ Fixpoint check_bezier_cw (fuel : nat) (v : vert_edge)
 match fuel with
 | O => None
 | S p =>
-  let bot_edge := Bpt (ve_x v)  (ve_bot v) in
-  if point_strictly_under_edge bot_edge (Bedge a c) then
+  let bot_of_edge := Bpt (ve_x v)  (ve_bot v) in
+  if point_strictly_under_edge bot_of_edge (Bedge a c) then
     Some true
   else if
-     negb (point_strictly_under_edge bot_edge (Bedge a b)) ||
-     negb (point_strictly_under_edge bot_edge (Bedge b c))
+     negb (point_strictly_under_edge bot_of_edge (Bedge a b)) ||
+     negb (point_strictly_under_edge bot_of_edge (Bedge b c))
   then 
     Some false
   else
@@ -996,19 +1001,14 @@ end.
 Definition fuel_constant := 20.
 
 Fixpoint check_curve_element_and_repair
-  (fuel : nat) (cells : seq cell) (e : curve_element) :
+  (fuel : nat) doors (e : curve_element) :
    seq curve_element :=
 match e with
 | straight p1 p2 => straight p1 p2 :: nil
 | bezier p1 p2 p3 =>
-  if Nat.eqb (List.length (cell_indices p2)) 2 then
-    let i1 := nth 0 (cell_indices p2) 0%nat in
-    let i2 := nth 1 (cell_indices p2) 0%nat in
-    let vedge := match common_vert_edge 
-         (nth i1 cells dummy_cell) (nth i2 cells dummy_cell) with
-      Some v => v
-      | None => dummy_vert_edge
-      end in
+  if door_index p2 is Some n then
+    let vedge :=
+       (seq.nth dummy_door doors n).1.1 in
     let e' :=
       (if R_ltb (p_x (apt_val p1)) (p_x (apt_val p2)) then
         bezier p1 p2 p3
@@ -1030,16 +1030,17 @@ match e with
           match fuel with
           | S p =>
             straight p1 
-               (Apt (midpoint (apt_val p1) (apt_val p2)) (cell_indices p1))
+               (Apt (midpoint (apt_val p1) (apt_val p2)) 
+                    None (cell_indices p1))
               ::
-              check_curve_element_and_repair p cells
-                (bezier (Apt (midpoint (apt_val p1) (apt_val p2))
+              check_curve_element_and_repair p doors
+                (bezier (Apt (midpoint (apt_val p1) (apt_val p2)) None
                        (cell_indices p1))
                  p2
-                 (Apt (midpoint (apt_val p2) (apt_val p3)) (cell_indices p3)))
+                 (Apt (midpoint (apt_val p2) (apt_val p3)) None (cell_indices p3)))
               ++
               straight (Apt (midpoint (apt_val p2) (apt_val p3))
-                    (cell_indices p3)) p3 :: nil
+                    None (cell_indices p3)) p3 :: nil
           | _ =>
             straight p1 p2 :: straight p2 p3 :: nil
           end
@@ -1051,10 +1052,22 @@ end.
 
 Definition smooth_from_cells (cells : seq cell)
   (initial final : pt) : seq curve_element :=
-  match point_to_point cells initial final with
-  | Some s => List.concat
-       (List.map (check_curve_element_and_repair fuel_constant cells)
+  match source_to_target cells initial final with
+  | Some (doors, s) =>
+      List.concat
+         (List.map (check_curve_element_and_repair fuel_constant doors)
                               (smoothen (break_segments s)))
+  | None => nil
+  end.
+
+(* This function only computes the piecewise straight line trajectory,
+  starting from the sequence of edges and the source and target.       *)
+Definition point_to_point (bottom top : edge) (obstacles : seq edge)
+  (initial final : pt) : seq curve_element :=
+  let cells := edges_to_cells bottom top obstacles in
+  match source_to_target cells initial final with
+  | Some (doors, s) => 
+    List.map (fun '(a, b) => straight a b) s
   | None => nil
   end.
 

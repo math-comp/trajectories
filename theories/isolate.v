@@ -1,5 +1,6 @@
+From HB Require Import structures.
 From mathcomp Require Import ssreflect ssrbool ssrfun eqtype ssrnat seq choice fintype order.
-From mathcomp Require Import div finfun bigop prime binomial ssralg finset fingroup finalg.
+From mathcomp Require Import div finfun bigop prime binomial ssralg finset fingroup finalg archimedean.
 From mathcomp Require Import mxalgebra perm zmodp matrix ssrint.
 (*From mathcomp Require Import (*refinements NB(rei) funperm*).*)
 From mathcomp Require Import seq rat.
@@ -147,7 +148,7 @@ Section count_root_correct.
 
 Variable R : archiFieldType.
 
-Definition R' := RealAlg.alg_of_rcfType R.
+(*TODO(rei, gave up when moving to MathComp 2): Definition R' : archiFieldType := (R : rcfType).*)
 
 (*
 Lemma count_root_correct0 n (l : seq rat) q d (a b: R') :
@@ -168,9 +169,9 @@ have twon0 : (1 + 1 != 0 :> R').
 have twoV : forall a, a = a/(1 + 1) + a/(1+1) :> R'.
   by move=> y; rewrite -mulrDl -(mulr1 y) -mulrDr mulrK // mulr1.
 have altm : a < (a + b)/(1 + 1).
- by rewrite {1}[a]twoV mulrDl ltr_add2l ltr_pmul2r // invr_gt0.
+ by rewrite {1}[a]twoV mulrDl ltr_add2l ltr_pM2r // invr_gt0.
 have mltb : (a + b)/(1 + 1) < b.
- by rewrite {2}[b]twoV mulrDl ltr_add2r ltr_pmul2r // invr_gt0.
+ by rewrite {2}[b]twoV mulrDl ltr_add2r ltr_pM2r // invr_gt0.
 have mna : (a + b)/(1 + 1) != a.
  by apply/negP => ma; move:altm; rewrite ltr_neqAle eq_sym ma.
 have mnb : (a + b)/(1 + 1) != b.
@@ -318,13 +319,13 @@ case: (In d a ((a + b) / (1+1)) (dicho_l d l) (l1++acc)) => [l2 l2q].
 by exists (l2++l1); rewrite l1q l2q -!catA.
 Qed.*)
 
-Canonical root_info_eqMixin (R : eqType) := EqMixin (root_info_eqP R).
+HB.instance Definition _ := hasDecEq.Build _ (root_info_eqP R).
 
-Canonical root_info_eqType (R : eqType) :=
+(*Canonical root_info_eqType (R : eqType) :=
    Eval hnf in EqType (root_info R) (root_info_eqMixin R).
 
 Arguments root_info_eqP {R x y}.
-Prenex Implicits root_info_eqP.
+Prenex Implicits root_info_eqP.*)
 
 
 (* NB(rei): typing issue with {realclosure _}
@@ -353,11 +354,11 @@ have rbman0 : ratr b - ratr a != 0 :> RealAlg.alg_of_rcfType R.
  by rewrite subr_eq0 eq_sym.
 have twogt0 : 0 < 1 + 1 :> rat   by apply: addr_gt0; rewrite ltr01 .
 have a1b1 : (a + b)/(1+1) < b :> rat.
- rewrite -(ltr_pmul2r twogt0) mulfVK.
+ rewrite -(ltr_pM2r twogt0) mulfVK.
   by rewrite mulrDr mulr1 ltr_add2r.
  by move: twogt0; rewrite ltr_neqAle eq_sym=>/andP; case.
 have a2b2 : a < (a + b)/(1+1) :> rat.
- rewrite -(ltr_pmul2r twogt0) mulfVK.
+ rewrite -(ltr_pM2r twogt0) mulfVK.
   by rewrite mulrDr mulr1 ltr_add2l.
  by move: twogt0; rewrite ltr_neqAle eq_sym=>/andP; case.
 have rmbd: (ratr a + ratr b)/(1+1) != ratr b :> RealAlg.alg_of_rcfType R.

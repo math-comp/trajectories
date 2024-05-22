@@ -1,4 +1,23 @@
+From elpi Require Import elpi.
+
+#[projections(primitive)] Record r := { fst : nat -> nat; snd : bool }.
+Axiom t : r.
+Elpi Command test.
+Elpi Query lp:{{
+  coq.say "quotation for primitive fst t" {{ t.(fst) 3 }},
+  coq.say "quotation for compat fst t" {{ fst t 3 }},
+  coq.locate "r" (indt I),
+  coq.env.projections I [some P1,some P2],
+  coq.say "compatibility constants" P1 P2,
+  coq.env.primitive-projections I [some (pr Q1 N1), some (pr Q2 N2)],
+  coq.say "fst primproj" Q1 N1,
+  coq.say "snd primproj" Q2 N2
+}}.
+
+
+
 Require Import Reals.
+From HB Require Import structures.
 From mathcomp Require Import all_ssreflect all_algebra vector reals classical_sets Rstruct.
 From infotheo Require Import convex.
 
@@ -14,15 +33,16 @@ Unset Printing Implicit Defensive.
 Lemma enum_rank_index {T : finType} i :
   nat_of_ord (enum_rank i) = index i (enum T).
 Proof.
-rewrite /enum_rank /enum_rank_in /insubd /odflt /oapp insubT//.
+rewrite /enum_rank [enum_rank_in]unlock /insubd /odflt /oapp insubT//.
 by rewrite cardE index_mem mem_enum.
 Qed.
 
 (* TODO: do we keep this as more newcomer friendly than having to look
    deep into the library ? *)
-Lemma enum_prodE {T1 T2 : finType} :
-  enum [finType of T1 * T2] = prod_enum T1 T2.
-Proof. by rewrite enumT Finite.EnumDef.enumDef. Qed.
+Lemma enum_prodE {T1 T2 : finType} : enum {: T1 * T2} = prod_enum T1 T2.
+Proof.
+by rewrite /enum_mem unlock /= /prod_enum -(@eq_filter _ predT) ?filter_predT.
+Qed.
 
 Lemma index_allpairs {T1 T2: eqType} (s1: seq T1) (s2: seq T2) x1 x2 :
     x1 \in s1 -> x2 \in s2 ->
@@ -30,7 +50,7 @@ Lemma index_allpairs {T1 T2: eqType} (s1: seq T1) (s2: seq T2) x1 x2 :
     ((index x1 s1) * (size s2) + index x2 s2)%N.
 Proof.
 move=>ins1 ins2.
-elim: s1 ins1=>//= a s1 IHs1 ins1.
+elim: s1 ins1=>//= a s1 IHs1 ins1. (* HERE*)
 rewrite index_cat.
 case ax: (a == x1).
    move: ax=>/eqP ax; subst a; rewrite /muln /muln_rec /addn /addn_rec /=.
@@ -43,11 +63,11 @@ case in12: ((x1, x2) \in [seq (a, x0) | x0 <- s2]).
 by rewrite size_map (IHs1 ins1) addnA.
 Qed.
 
-Lemma enum_rank_prod {T T': finType} i j :
-  (nat_of_ord (@enum_rank [finType of T * T'] (i, j)) = (enum_rank i) * #|T'| + enum_rank j)%N.
+Lemma enum_rank_prod {T T': finType} (i : T) (j : T') :
+  (nat_of_ord (enum_rank (i, j)) = (enum_rank i) * #|T'| + enum_rank j)%N.
 Proof.
 do 3 rewrite enum_rank_index.
-rewrite enumT Finite.EnumDef.enumDef cardE=>/=.
+rewrite enum_prodE cardE /=.
 by apply index_allpairs; rewrite enumT.
 Qed.
 
@@ -93,10 +113,10 @@ by exists (a' :: s').
 Qed.
 
 Lemma index_enum_cast_ord n m (e: n = m) :
-  index_enum [finType of 'I_m] = [seq (cast_ord e i) | i <- index_enum [finType of 'I_n]].
+  index_enum 'I_m = [seq (cast_ord e i) | i <- index_enum 'I_n].
 Proof.
 subst m.
-rewrite -{1}(map_id (index_enum [finType of 'I_n])).
+rewrite -{1}(map_id (index_enum 'I_n)).
 apply eq_map=>[[x xlt]].
 rewrite /cast_ord; congr Ordinal; apply bool_irrelevance.
 Qed.
@@ -178,7 +198,7 @@ Lemma size_index_enum (T: finType): size (index_enum T) = #|T|.
 Proof. by rewrite cardT enumT. Qed.
 
 Lemma map_nth_ord [T : Type] (x: T) (s : seq T) :
-  [seq nth x s (nat_of_ord i) | i <- index_enum [finType of 'I_(size s)]] = s.
+  [seq nth x s (nat_of_ord i) | i <- index_enum 'I_(size s)] = s.
 Proof.
 rewrite /index_enum; case: index_enum_key=>/=; rewrite -enumT.
 elim: s=>/= [| a s IHs].
@@ -209,7 +229,7 @@ From infotheo Require Import fdist.
 Local Open Scope fdist_scope.
 
 Lemma Convn_pair [T U : convType] [n : nat] (g : 'I_n -> T * U) (d : {fdist 'I_n}) :
-  Convn d g = (Convn d (fst \o g), Convn d (snd \o g)).
+  Convn conv d g = (Convn conv d (Datatypes.fst \o g), Convn conv d (Datatypes.snd \o g)).
 Proof.
 elim: n g d => [|n IHn] g d.
    by have := fdistI0_False d.

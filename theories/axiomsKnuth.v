@@ -7,7 +7,7 @@ Module Type KnuthAxioms.
 Section Dummy.
 
 Variable R : realType.
-Definition Plane := pair_vectType (regular_vectType R) (regular_vectType R).
+Definition Plane : vectType _ := (R^o * R^o)%type.
 Parameter OT : Plane -> Plane -> Plane -> bool.
 
 (*Knuth's axioms are given by the following variables.  But axiom 4 is not used in Jarvis' algorithm and axiom 3 is a property of the data, not of the

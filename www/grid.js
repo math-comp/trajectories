@@ -256,6 +256,10 @@ function cleanCurve () {
 }
 
 function getCurve() {
+  console.log("getCurve\n");
+  if ((fromValid == false) || (toValid == false)) {
+    return;
+  }
   let val = "";
   val += outVal(positions.fX) + outVal(positions.fZ) + 
          outVal(positions.tX) + outVal(positions.tZ);
@@ -332,6 +336,105 @@ function getCurve() {
   }
 }
 
+/* The straight */
+
+var straightFlag = true;
+
+const straightButtons = 
+  document.querySelectorAll('input[name="Show Straight"]');
+
+for (const straightButton of straightButtons) {
+    straightButton.addEventListener("click", setStraight, false);
+}
+
+function setStraight() {
+    straightFlag = straightButtons[0].checked;
+    cleanStraight();
+    cleanCurve();
+    if (straightFlag) {
+      getStraight();
+    } else {
+      getCurve();
+    }
+    renderer.render( scene, camera );
+}
+
+
+var straights = [];
+const smaterial = new THREE.LineBasicMaterial( { color: 'blue' } );
+setStraight();
+
+
+function cleanStraight () {
+    let i = 0; 
+    console.log("straights " + straights);
+    while (i < straights.length)
+    for (const straight of straights) {
+        scene.remove(straight);
+        i++;
+    }
+    renderer.render( scene, camera ); 
+    straights = [];
+}
+
+function getStraight() {
+  console.log("getStraight\n");
+  if ((fromValid == false) || (toValid == false)) {
+    return;
+  }
+  let val = "";
+  val += outVal(positions.fX) + outVal(positions.fZ) + 
+         outVal(positions.tX) + outVal(positions.tZ);
+  if (borders.length != 2) {
+    return;
+  }
+  if (borders[0].fZ <= borders[1].fZ) {
+    val += outVal(borders[0].fX) + outVal(borders[0].fZ) + 
+           outVal(borders[0].tX) + outVal(borders[0].tZ);  
+    val += outVal(borders[1].fX) + outVal(borders[1].fZ) + 
+           outVal(borders[1].tX) + outVal(borders[1].tZ);  
+  } else {
+    val += outVal(borders[1].fX) + outVal(borders[1].fZ) + 
+           outVal(borders[1].tX) + outVal(borders[1].tZ);  
+    val += outVal(borders[0].fX) + outVal(borders[0].fZ) + 
+           outVal(borders[0].tX) + outVal(borders[0].tZ);  
+  }
+  for (const obstacle of obstacles) {
+    val += outVal(obstacle.fX) + outVal(obstacle.fZ)
+            + outVal(obstacle.tX) + outVal(obstacle.tZ);  
+  } 
+  console.log("boarders " + borders.length + " obstacles " + obstacles.length);
+  console.log("val " + val);
+  let res = ocamlLib.straight(val);
+  console.log("res " + res);
+  let res1 = res.split(' ').map(Number);
+  let i = 0;
+  while (i < res1.length) {
+    if (res1[i] == 1) {
+        /* Straight line */
+        let fx = res1[i + 2] / res1 [i + 3] * gSize - 0.5 - gSize/2;
+        let fy = 0.3;
+        let fz = res1[i + 4] / res1 [i + 5] * gSize - 0.5 - gSize/2;
+        let tx = res1[i + 6] / res1 [i + 7] * gSize - 0.5 - gSize/2;
+        let ty = 0.3;
+        let tz = res1[i + 8] / res1 [i + 9] * gSize - 0.5 - gSize/2;
+        console.log("Adding a line" + fx + " " + fz + " " + tx + " " + tz);
+        let epoints = [];
+        epoints.push( new THREE.Vector3(fx, fy, fz) );
+        epoints.push( new THREE.Vector3(tx, ty, tz));
+        let egeometry = new THREE.BufferGeometry().setFromPoints( epoints );
+        let sline = new THREE.Line( egeometry, smaterial );
+        straights.push(sline);
+        scene.add( sline );
+        renderer.render( scene, camera );
+        i += 10;
+    } else if (res1[i] == 2) {
+        i += 14;
+    } else {
+        i++;
+    }
+  }
+}
 
 /* The modality */
 
@@ -346,6 +449,7 @@ for (const radioButton of radioButtons) {
 
 function setModality() {
     cleanCurve();
+    cleanStraight();
     fromValid = false;  
     toValid = false;         
     fromCube.position.y = -0.2;
@@ -400,6 +504,7 @@ function onDocumentMouseDown( event ) {
         fromCube.position.y = -0.2;
         toCube.position.y = -0.2;
         cleanCurve();
+        cleanStraight();
         renderer.render( scene, camera );  
     }
     if (fromValid) {
@@ -419,6 +524,7 @@ function onDocumentMouseDown( event ) {
                 return;
             }
             cleanCurve();
+            cleanStraight();
             addObstacle(fromX, fromZ, toX, toZ);
         }
         if (modality == "positions") {
@@ -430,7 +536,12 @@ function onDocumentMouseDown( event ) {
             renderer.render( scene, camera );
             positions = {fX : fromX, fZ : fromZ, tX : toX, tZ : toZ }
             cleanCurve();
-            getCurve();
+            cleanStraight();
+            if (straightFlag) {
+                getStraight();
+            } else {
+                getCurve();
+            }
         }
     } else {
         fromValid = true;         
@@ -441,6 +552,102 @@ function onDocumentMouseDown( event ) {
         fromCube.position.x = fromX;
         toCube.position.y = -0.2;
         cleanCurve();
+        cleanStraight();
         renderer.render( scene, camera );
     }
 }
+
+
+document.getElementById('loadButton').addEventListener('click', function() { 
+  let input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'text/*'
+  input.onchange = _ => {
+    // you can use this method to get file and perform respective operations
+            let files =   Array.from(input.files);
+            if (files.length < 1) {
+                return;
+            }
+            let file = files[0];
+            var reader = new FileReader();
+            reader.onload = function(progressEvent) {
+                fromValid = false;         
+                toValid = false;         
+                fromCube.position.y = -0.2;
+                toCube.position.y = -0.2;
+                for (const obstacle of obstacles) {
+                    scene.remove(obstacle.line);
+                }
+                obstacles = [];
+                renderer.render( scene, camera );
+                // Entire file
+                const text = this.result;
+                // By lines
+                var lines = text.split('\n');
+                var i = 0;
+                if (lines[i].indexOf('Obstacles') != -1) {
+                    i++;
+                    while ((i < lines.length) && (lines[i].length != 0) && 
+                           (lines[i].indexOf("Positions") == -1)) {
+                        var fX = parseFloat(lines[i]);
+                        var fZ = parseFloat(lines[i+1]);
+                        var tX = parseFloat(lines[i+2]);
+                        var tZ = parseFloat(lines[i+3]);
+                        addObstacle(fX, fZ, tX, tZ);
+                        i += 4;
+                    }
+                }
+                if (lines[i].indexOf("Positions") != -1) {
+                    document.getElementById('positions').checked = true;
+                    setModality();
+                    var fX = parseFloat(lines[i+1]);
+                    var fZ = parseFloat(lines[i+2]);
+                    var tX = parseFloat(lines[i+3]);
+                    var tZ = parseFloat(lines[i+4]);
+                    i += 5;
+                    fromValid = true;         
+                    toValid = true;         
+                    fromCube.position.z = fZ;
+                    fromCube.position.y = fromY;
+                    fromCube.position.x = fX;
+                    toCube.position.z = tZ;
+                    toCube.position.y = toY;
+                    toCube.position.x = tX;
+                    renderer.render( scene, camera );
+                    positions = {fX : fX, fZ : fZ, tX : tX, tZ : tZ }
+                    cleanCurve();
+                    cleanStraight();
+                    if (straightFlag) {
+                        getStraight();
+                    } else {
+                        getCurve();
+                    }
+                    renderer.render( scene, camera );
+                }
+            };
+            reader.readAsText(file);
+        };
+   input.click();
+}); 
+
+document.getElementById('saveButton').addEventListener('click', function() { 
+   const link = document.createElement("a");
+   let val = "";
+   if (obstacles.length != 0) {
+        val += "Obstacles\n";
+                for (const obstacle of obstacles) {
+                    val += obstacle.fX + "\n" + obstacle.fZ + "\n" 
+                            + obstacle.tX + "\n"  + obstacle.tZ + "\n";  
+                    } 
+        if (positions != null) {
+                val += "Positions\n";
+                val += positions.fX + "\n" + positions.fZ + "\n";
+                val += positions.tX + "\n" + positions.tZ + "\n";
+        }
+   }
+   const file = new Blob([val], { type: 'text/plain' });
+   link.href = URL.createObjectURL(file);
+   link.download = "sample.txt";
+   link.click();
+   URL.revokeObjectURL(link.href);
+}); 
