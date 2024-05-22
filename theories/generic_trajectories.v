@@ -526,9 +526,9 @@ Definition one_door_neighbors
           indexed_doors)
   end.
 
-Definition left_limit (c : cell) := p_x (seq.last dummy_pt (left_pts c)).
+Definition left_limit (c : cell) := p_x (seq.head dummy_pt (left_pts c)).
 
-Definition right_limit c := p_x (seq.last dummy_pt (right_pts c)).
+Definition right_limit c := p_x (seq.head dummy_pt (right_pts c)).
 
 Definition cmp_option := cmp_option _ R_ltb.
 

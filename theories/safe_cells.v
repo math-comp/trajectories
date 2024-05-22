@@ -212,6 +212,7 @@ elim: (right_pts c) => [| p2 rpts Ih] // rn0 p'1 pin srt.
 move: pin; rewrite inE => /orP[/eqP -> | pin].
   by rewrite p'1.
 rewrite /= in srt.
+(* TODO : use rev_trans here. *)
 have gt_trans : transitive (>%R : rel R).
   by move=> x y z xy yz ; apply: (lt_trans yz xy).
 move: (srt); rewrite (path_sortedE gt_trans)=> /andP[] srt' _.
@@ -308,6 +309,7 @@ rewrite le_eqVlt=> /orP[ /eqP pxq | ].
     case psq : (right_pts c') => [ | p1 ps]; first by rewrite psq in rn0.
     move: pc'r; rewrite psq inE=> /orP[/eqP -> | pps]; first by [].
     apply: ltW.
+    (* TODO : use rev_trans here. *)
     have gt_trans : transitive (>%R : rel R).
       by move=> x y z xy yz; apply: (lt_trans yz xy).
     move: (srt); rewrite psq /= (path_sortedE gt_trans)=> /andP[] + _.
