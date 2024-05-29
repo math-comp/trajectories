@@ -44,7 +44,7 @@ Joint work with Thomas Portet, Quentin Vermande}
 \item Decompose the space into simple cells
 \item Each cell is convex
 \item Each cell is free of obstacles
-\item Each cell may have neighbours where moving is safe
+\item Each cell may have safely reachable neighbors
 \end{itemize}
 \end{frame}
 \begin{frame}
@@ -52,7 +52,7 @@ Joint work with Thomas Portet, Quentin Vermande}
 \includegraphics[trim={0 0 0 \topcrop}, clip, width=\textwidth]{cells_spiral.pdf}
 \end{frame}
 \begin{frame}
-\frametitle{Cell assumptions}
+\frametitle{Cell properties}
 \begin{itemize}
 \item Vertical edges are safe passages between two cells
 \item Moving directly from a left-edge to a right-edge is safe
@@ -79,6 +79,7 @@ Joint work with Thomas Portet, Quentin Vermande}
 \item Easier to associate a distance between pairs of doors
 \item Dijkstra shortest path algorithm
 \end{itemize}
+\item In the end, a path from door to door
 \end{itemize}
 \end{frame}
 \begin{frame}
@@ -165,7 +166,6 @@ the initial starting and end points, and the solid green straight edge tip
 \item Use of semi-closed vertical cells
 \item Show disjoint property
 \item Show that obstacles are covered by cell tops
-\item This proof is complete
 \end{itemize}
 \end{frame}
 \begin{frame}
