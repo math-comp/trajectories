@@ -31,10 +31,6 @@ supported_coq_versions:
   opam: '{ (>= "8.17" & < "8.20~") | (= "dev") }'
 
 tested_coq_opam_versions:
-- version: '2.2.0-coq-8.17'
-  repo: 'mathcomp/mathcomp'
-- version: '2.2.0-coq-8.18'
-  repo: 'mathcomp/mathcomp'
 - version: '2.2.0-coq-8.19'
   repo: 'mathcomp/mathcomp'
 
@@ -94,9 +90,9 @@ categories:
 - name: Mathematics/Real Calculus and Topology
 
 publications:
-- pub_url: TODO
-  pub_title:  TODO
-  pub_doi: TODO
+- pub_url: https://inria.hal.science/hal-04312815
+  pub_title:  Safe Smooth Paths between Straight Line Obstacles
+  pub_doi: https://doi.org/10.1007/978-3-031-61716-4_3
 
 documentation: |-
   ## Disclaimer
@@ -114,6 +110,9 @@ documentation: |-
     https://hal.inria.fr/inria-00503017v2/document
   - Theorem of three circles in Coq (2013)
     https://arxiv.org/abs/1306.0783
+  - Safe Smooth Paths between straight line obstacles
+    https://inria.hal.science/hal-04312815
+    https://link.springer.com/chapter/10.1007/978-3-031-61716-4_3
 
   ## Development information
 

@@ -6,8 +6,8 @@ Follow the instructions on https://github.com/coq-community/templates to regener
 
 [![Docker CI][docker-action-shield]][docker-action-link]
 
-[docker-action-shield]: https://github.com/math-comp/trajectories/workflows/Docker%20CI/badge.svg?branch=master
-[docker-action-link]: https://github.com/math-comp/trajectories/actions?query=workflow:"Docker%20CI"
+[docker-action-shield]: https://github.com/math-comp/trajectories/actions/workflows/docker-action.yml/badge.svg?branch=master
+[docker-action-link]: https://github.com/math-comp/trajectories/actions/workflows/docker-action.yml
 
 
 
@@ -33,7 +33,7 @@ TODO
   - [Infotheo 0.7.0 of later](https://github.com/affeldt-aist/infotheo)
 - Coq namespace: `mathcomp.trajectories`
 - Related publication(s):
-  - [TODO](TODO) doi:[TODO](https://doi.org/TODO)
+  - [Safe Smooth Paths between Straight Line Obstacles](https://inria.hal.science/hal-04312815) doi:[https://doi.org/10.1007/978-3-031-61716-4_3](https://doi.org/https://doi.org/10.1007/978-3-031-61716-4_3)
 
 ## Building and installation instructions
 
@@ -70,6 +70,9 @@ references:
   https://hal.inria.fr/inria-00503017v2/document
 - Theorem of three circles in Coq (2013)
   https://arxiv.org/abs/1306.0783
+- Safe Smooth Paths between straight line obstacles
+  https://inria.hal.science/hal-04312815
+  https://link.springer.com/chapter/10.1007/978-3-031-61716-4_3
 
 ## Development information
 
