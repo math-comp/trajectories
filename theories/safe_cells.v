@@ -29,7 +29,7 @@ Notation left_pts := (left_pts R edge).
 Notation right_pts := (right_pts R edge).
 Notation dummy_pt := (dummy_pt R 1).
 Notation event := (@event R edge).
-Notation point := (@point R edge).
+Notation point' := (@point R edge).
 Notation outgoing := (@point R edge).
 
 Variables closed : seq cell.
@@ -630,6 +630,7 @@ move/hasP=> [e2 e2in /eqP ->].
 by apply: (@allP pt _ _ inbox_es); rewrite map_f.
 Qed.
 
+Notation event' := (generic_trajectories.event R edge).
 Lemma start_yields_safe_cells evs bottom top (open closed : seq cell):
   sorted (fun e1 e2 => p_x (point e1) < p_x (point e2)) evs ->
   {in [:: bottom, top &
@@ -643,6 +644,9 @@ Lemma start_yields_safe_cells evs bottom top (open closed : seq cell):
   {in closed & events_to_edges evs, forall c g p,
     strict_inside_closed p c -> ~~(p === g)}.
 Proof.
+set event' := generic_trajectories.event _ _.
+set p_x' := generic_trajectories.p_x R.
+set point' := generic_trajectories.point R edge.
 have [ev0 | evsn0] := eqVneq evs [::].
   rewrite /start /=; rewrite ev0 /=.
   by move=> _ _ _ _ _ _ _ [] _ <-.
