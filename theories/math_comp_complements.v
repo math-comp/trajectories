@@ -269,3 +269,23 @@ Ltac subset_tac :=
   | |- is_true (_ \in (_ ++ _)) => rewrite mem_cat; apply/orP;
     (solve [left; subset_tac] || (right; subset_tac))
   end.
+
+Section mapi.
+
+(* TODO: This might be useful one day, because it is used intensively in the
+  trajectory computation, but not so much in cell decomposition. *)
+Definition mapi [T U : Type] (f : T -> Datatypes.nat -> U) (s : seq T) :=
+  map (fun p => f p.1 p.2) (zip s (iota 0 (size s))).
+
+Lemma nth_mapi [T U : Type] (f : T -> Datatypes.nat -> U) (s : seq T) n d d' :
+  (n < size s)%N ->
+  nth d' (mapi f s) n = f (nth d s n) n.
+Proof.
+rewrite /mapi.
+rewrite -[X in f _ X]addn0.
+elim: s n 0%N => [ | el s Ih] [ | n] m //=.
+  rewrite ltnS=> nlt.
+by rewrite addSn -addnS; apply: Ih.
+Qed.
+
+End mapi.
