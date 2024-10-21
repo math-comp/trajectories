@@ -107,10 +107,21 @@ Definition bottom_left_corner (c : cell) := last dummy_pt (left_pts c).
 Definition bottom_left_cells_lex (open : seq cell) p :=
   {in open, forall c, lexPt (bottom_left_corner c) p}.
 
+(* TODO: these should be at the head. *)
 Definition left_limit (c : cell) :=
   p_x (last dummy_pt (left_pts c)).
 
 Definition right_limit c := p_x (last dummy_pt (right_pts c)).
+
+Lemma add_point_left_limit (c : cell) (p : pt) :
+  (1 < size (left_pts c))%N ->
+  left_limit (set_left_pts _ _ c
+    (head dummy_pt (left_pts c) :: p :: behead (left_pts c))) =
+  left_limit c.
+Proof.
+rewrite /left_limit.
+by case lptsq : (left_pts c) => [ | p1 [ | p2 ps]].
+Qed.
 
 Definition inside_open_cell p c :=
   [&& contains_point p c & left_limit c <= p_x p <= open_limit c].
