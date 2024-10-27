@@ -940,7 +940,43 @@ rewrite -[pt_eqb _ _ _ _]/(_ == _ :> pt).
 by move=> /eqP <-; rewrite (@mem_head pt).
 Qed.
 
-Lemma last_opening_cells_side_char e le he pp nos lno :
+Lemma last_opening_cells_left_pts_prefix e le he nos lno :
+  valid_edge le (point e) ->
+  valid_edge he (point e) ->
+  point e <<< he ->
+  out_left_event e ->
+  opening_cells_aux (point e) (sort (@edge_below _) (outgoing e)) le he =
+    (nos, lno) ->
+  (1 < size (left_pts lno))%N  /\
+  take 2 (left_pts lno) =
+    [:: Bpt (p_x (point e)) (pvert_y (point e) he); (point e)] .
+Proof.
+move=> + vh puh oute.
+have := outleft_event_sort oute.
+elim: (sort _ _) nos lno le => [ | g s Ih] nos lno le /= oute' vl.
+  do 2 rewrite -/(vertical_intersection_point _ _).
+  rewrite (pvertE vl) (pvertE vh) => -[nosq lnoq].
+  rewrite -lnoq /=.
+  rewrite -/(_ == point e) -/(point e == _).
+  set ph := (X in X == point e); set pl := (X in point e == X).
+  rewrite -/ph -/pl.
+  have /negbTE -> : ph != point e.
+    rewrite pt_eqE negb_and /ph /= eqxx /=.
+    move: puh.
+    by rewrite (strict_under_pvert_y vh) lt_neqAle eq_sym=> /andP[].
+  split; first by case: (_ == _).
+  by have [-> | enqpl] := eqVneq (point e) pl.
+rewrite -/(vertical_intersection_point _ _).
+rewrite (pvertE vl).
+case oca_eq : (opening_cells_aux _ _ _ _) => [nos1 lno1] [_ <-].
+have oute1 : forall ed, ed \in s -> left_pt ed == point e.
+  by move=> ed edin; apply: oute'; rewrite inE edin orbT.
+have vg : valid_edge g (point e).
+  by rewrite -(eqP (oute' g _)) ?valid_edge_left // inE eqxx.
+by apply: (Ih nos1 lno1 g oute1 vg oca_eq).
+Qed.
+
+Lemma last_opening_cells_safe_side_char e le he pp nos lno :
   outgoing e != [::] ->
   valid_edge le (point e) ->
   valid_edge he (point e) ->

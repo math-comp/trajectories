@@ -5054,7 +5054,7 @@ move: oeq; rewrite nosq=> oeq.
 rewrite /=.
 rewrite (first_opening_cells_side_char pp ogq vle vhe pal oute oeq).
 rewrite [in X in _ == X]has_rcons.
-rewrite (last_opening_cells_side_char pp ogq vle vhe puh oute oeq).
+rewrite (last_opening_cells_safe_side_char pp ogq vle vhe puh oute oeq).
 rewrite (negbTE (middle_opening_cells_side_char pp ogq vle vhe oute oeq)) orbF.
 case ccq : cc => [ | cc1 cc'].
     move: (oe); rewrite ccq=> oe'.
@@ -5614,6 +5614,46 @@ have ltev1 : all (fun e =>
 by constructor.
 Qed.
 
+Lemma same_x_point_above_low_lsto bottom top s fop lsto lop cls lstc 
+  ev lsthe lstx evs :
+  lstx = p_x (point ev) ->
+  common_non_gp_invariant bottom top s
+    (Bscan fop lsto lop cls lstc lsthe lstx) (ev :: evs) ->
+  point ev >>> low lsto.
+Proof.
+move=> at_lstx comng.
+have comi := ngcomm comng.
+have lstx_ll : lstx = left_limit lsto.
+  rewrite -[lstx]/(lst_x _ _ (Bscan fop lsto lop cls lstc lsthe lstx)).
+  by rewrite (lstx_eq comi).
+have := lst_side_lex comng.
+set W := (X in size X); rewrite -/W.
+have : open_cell_side_limit_ok lsto.
+  by apply: (allP (sides_ok comi)); rewrite mem_cat inE eqxx orbT.
+rewrite /open_cell_side_limit_ok => /andP[] _ /andP[] + /andP[] + /andP[].
+move=> + + _ +.
+rewrite -/W.
+  case wq : W => [ | p1 [ | p2 ps]] //= A /andP[] _ higherps + /andP[] ll _.
+  move: A => /andP[] _ /andP[] p2x allx.
+  have lx : p_x (last p2 ps) == left_limit lsto.
+    case : (ps) allx => [ | p3 pst] // /allP; apply=> /=.
+    by rewrite mem_last.
+  have samex : p_x (point ev) = p_x (last p2 ps).
+    by rewrite -at_lstx lstx_ll (eqP lx).
+  have cmpy : p_y (last p2 ps) <= p_y p2.
+    case psq : ps => [ | p3 pst] //.
+    apply ltW.
+    rewrite (path_sortedE (rev_trans lt_trans)) psq in higherps.
+    move: higherps=> /andP[] /allP /(_ (p_y (last p3 pst))) + _.
+    rewrite map_f; last by rewrite mem_last.
+    by move=> /(_ isT).
+  move=> /(under_edge_lower_y samex) ->.
+  rewrite -ltNge.
+  apply: (le_lt_trans cmpy).
+  move: ll; rewrite /lexPt.
+  by rewrite lt_neqAle samex (eqP p2x) eq_sym lx /=.
+Qed.
+
 Lemma update_open_cell_common_invariant
   bottom top s fop lsto lop cls lstc ev
   lsthe lstx evs :
@@ -5649,32 +5689,7 @@ have lstx_ll : lstx = left_limit lsto.
   rewrite -[lstx]/(lst_x _ _ (Bscan fop lsto lop cls lstc lsthe lstx)).
   by rewrite (lstx_eq comi).
 have pal : (point ev) >>> low lsto.
-  have := lst_side_lex comng.
-  set W := (X in size X); rewrite -/W.
-  have : open_cell_side_limit_ok lsto.
-    by apply: (allP (sides_ok comi)); rewrite mem_cat inE eqxx orbT.
-  rewrite /open_cell_side_limit_ok => /andP[] _ /andP[] + /andP[] + /andP[].
-  move=> + + _ +.
-  rewrite -/W.
-  case wq : W => [ | p1 [ | p2 ps]] //= A /andP[] _ higherps + /andP[] ll _.
-  move: A => /andP[] _ /andP[] p2x allx.
-  have lx : p_x (last p2 ps) == left_limit lsto.
-    case : (ps) allx => [ | p3 pst] // /allP; apply=> /=.
-    by rewrite mem_last.
-  have samex : p_x (point ev) = p_x (last p2 ps).
-    by rewrite -at_lstx lstx_ll (eqP lx).
-  have cmpy : p_y (last p2 ps) <= p_y p2.
-    case psq : ps => [ | p3 pst] //.
-    apply ltW.
-    rewrite (path_sortedE (rev_trans lt_trans)) psq in higherps.
-    move: higherps=> /andP[] /allP /(_ (p_y (last p3 pst))) + _.
-    rewrite map_f; last by rewrite mem_last.
-    by move=> /(_ isT).
-  move=> /(under_edge_lower_y samex) ->.
-  rewrite -ltNge.
-  apply: (le_lt_trans cmpy).
-  move: ll; rewrite /lexPt.
-  by rewrite lt_neqAle samex (eqP p2x) eq_sym lx /=.
+  by exact: (same_x_point_above_low_lsto at_lstx comng).
 have abovelow : p_x (point ev) = lstx -> (point ev) >>> low lsto by [].
 have noc : {in all_edges (fop ++ lsto :: lop) (ev :: evs) &,
            no_crossing R}.
@@ -5706,7 +5721,7 @@ constructor.
   rewrite -/(point_under_edge _ _) underW /=; last by [].
   by rewrite -/(point ev <<< lsthe) under_lsthe.
 - rewrite -/(update_open_cell lsto ev).
-case uoc_eq : update_open_cell => [nos lno] /=.
+  case uoc_eq : update_open_cell => [nos lno] /=.
   have [case1 | case2]:= update_open_cellE2 oute vl vh sok xev_llo sll pal puho.
     apply/esym.
     have := opening_cells_left oute vl vh.
@@ -5804,6 +5819,76 @@ have lxlftpts : all (fun x => lexPt x (point ev)) (behead (left_pts lsto)).
   by rewrite (cmpy (p_y px)) ?orbT // map_f.
 apply: (update_open_cell_side_limit_ok oute sval
     (sides_ok comi) lxlftpts uocq xev_ll puho pal).
+Qed.
+
+Lemma update_open_cell_common_non_gp_invariant
+  bottom top s fop lsto lop cls lstc ev
+  lsthe lstx evs :
+  bottom <| top ->
+  {in bottom :: top :: s &, forall e1 e2, inter_at_ext e1 e2} ->
+  {in s, forall g, inside_box bottom top (left_pt g) &&
+                   inside_box bottom top (right_pt g)} ->
+  lstx = p_x (point ev) ->
+  (point ev) <<< lsthe ->
+  common_non_gp_invariant bottom top s
+     (Bscan fop lsto lop cls lstc lsthe lstx)
+     (ev :: evs) ->
+  common_non_gp_invariant bottom top s
+     (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
+    evs.
+Proof.
+move=> bxwf nocs' inbox_s at_lstx under_lsthe comng.
+have comi := ngcomm comng.
+constructor.
+  now apply: update_open_cell_common_invariant.
+rewrite /step/generic_trajectories.step.
+rewrite /same_x at_lstx eqxx /=.
+rewrite -/(point_under_edge _ _) underW /=; last by [].
+rewrite -/(point ev <<< lsthe) under_lsthe.
+case uocq : (generic_trajectories.update_open_cell _ _ _ _ _ _
+  _ _ _ _ _ _ lsto ev) => [nos lno] /=.
+have oute : out_left_event ev.
+  by apply: (out_events comi); rewrite inE eqxx.
+have [clae [sval' [adj [cbtom rfo]]]] := inv1 comi.
+have sval : seq_valid (state_open_seq (Bscan fop lsto lop cls lstc lsthe lstx))
+              (point ev).
+  by case: sval'.
+have lstoin : lsto \in (fop ++ lsto :: lop).
+  by rewrite mem_cat inE eqxx orbT.
+have [vl vh] := (andP (allP sval lsto lstoin)).
+have sok : open_cell_side_limit_ok lsto.
+  by apply: (allP (sides_ok comi)); exact: lstoin.
+have xev_llo : p_x (point ev) = left_limit lsto.
+  by rewrite -at_lstx -(lstx_eq comi).
+have puho : point ev <<< high lsto.
+  move: under_lsthe.
+  rewrite -[lsthe]/(lst_high _ _ (Bscan fop lsto lop cls lstc lsthe lstx)).
+  by rewrite -(high_lsto_eq comi).
+have pal : (point ev) >>> low lsto.
+  by exact: (same_x_point_above_low_lsto at_lstx comng).
+have lstx_ll : lstx = left_limit lsto.
+  rewrite -[lstx]/(lst_x _ _ (Bscan fop lsto lop cls lstc lsthe lstx)).
+  by rewrite (lstx_eq comi).
+have sll : (1 < size (left_pts lsto))%N.
+  by apply: (size_left_lsto sval lstx_ll (sides_ok comi) (esym at_lstx) pal
+             (underW puho)).
+have [case1 | case2]:= update_open_cellE2 oute vl vh sok xev_llo sll pal puho.
+   rewrite /update_open_cell uocq /= in case1.
+   rewrite case1.
+   case oca_eq : (opening_cells_aux _ _ _ _) => [nos1 lno1] /=.
+   have  [sz prf]:= last_opening_cells_left_pts_prefix vl vh puho oute oca_eq.
+   rewrite sz /=.
+   set thenth := nth _ _ _.
+   suff -> : thenth = point ev.
+     rewrite (@path_map _ _ (@point) (@lexPt R) ev evs).
+     exact: (lex_events comi).
+  have := take_nth dummy_pt sz; rewrite prf /thenth.
+  case lpts1 : (left_pts lno1) sz => [ | a [ | b tl]] //= _.
+  by move=> [] _ /esym.
+rewrite /update_open_cell uocq /= in case2.
+rewrite case2 /=.
+rewrite (@path_map _ _ (@point) (@lexPt R) ev evs).
+exact: (lex_events comi).
 Qed.
 
 Lemma simple_step_disjoint_general_position_invariant
