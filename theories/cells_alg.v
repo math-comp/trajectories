@@ -2515,9 +2515,12 @@ Lemma update_open_cell_tail c :
  point e >>> low c ->
  point e <<< high c ->
   outgoing e != [::] ->
-  behead (rcons (update_open_cell c e).1
-               (update_open_cell c e).2) =
-  behead (opening_cells (point e) (outgoing e) (low c) (high c)).
+  behead (update_open_cell c e).1 =
+  behead (opening_cells_aux (point e) (sort (@edge_below _) (outgoing e))
+    (low c) (high c)).1 /\
+  (update_open_cell c e).2 =
+  (opening_cells_aux (point e) (sort (@edge_below _) (outgoing e))
+      (low c) (high c)).2.
 Proof.
 move=> vl vh cok at_x lgt1 pal puh on0.
 rewrite /update_open_cell/generic_trajectories.update_open_cell.
@@ -2530,8 +2533,7 @@ have oute2 : {in fog :: ogs,
 have := opening_cells_aux_absurd_case vl vh son0 oute2.
 rewrite oca_eq /=.
 case nosq : nos => [ | fno nos']; first by [].
-move=> _ /=.
-by rewrite /opening_cells oca_eq nosq.
+by [].
 Qed.
 
 Lemma update_open_cellE1 c c1 :
@@ -3784,6 +3786,7 @@ Lemma connect_limits_seq_subst (l : seq cell) c c' :
   connect_limits l -> connect_limits (seq_subst l c c').
 Proof.
 move=> ll rr; elim: l => [ | a [ | b l] Ih] /=; first by [].
+
   by [].
 move=> /[dup] conn /andP[ab conn'].
 have conn0 : path (fun c1 c2 => right_limit c1 == left_limit c2) a (b :: l).
@@ -5853,6 +5856,9 @@ apply: (update_open_cell_side_limit_ok oute sval
     (sides_ok comi) lxlftpts uocq xev_ll puho pal).
 Qed.
 
+Lemma left_pts_set c l: left_pts (set_left_pts c l) = l.
+Proof. by move: c => []. Qed.
+
 Lemma update_open_cell_common_non_gp_invariant
   bottom top s fop lsto lop cls lstc ev
   lsthe lstx evs :
@@ -5905,25 +5911,24 @@ have sll : (1 < size (left_pts lsto))%N.
   by apply: (size_left_lsto sval lstx_ll (sides_ok comi) (esym at_lstx) pal
              (underW puho)).
 have [og0 | ognn] := eqVneq (outgoing ev) [::].
-have := update_open_cell_outgoing_empty.
-have := update_open_cell_tail oute vl vh sok xev_llo sll pal puho.
-have [case1 | case2]:= update_open_cellE2 oute vl vh sok xev_llo sll pal puho.
-   rewrite uocq /= in case1.
-   rewrite case1.
-   case oca_eq : (opening_cells_aux _ _ _ _) => [nos1 lno1] /=.
-   have  [sz prf]:= last_opening_cells_left_pts_prefix vl vh puho oute oca_eq.
-   rewrite sz /=.
-   set thenth := nth _ _ _.
-   suff -> : thenth = point ev.
-     rewrite (@path_map _ _ (@point) (@lexPt R) ev evs).
-     exact: (lex_events comi).
-  have := take_nth dummy_pt sz; rewrite prf /thenth.
-  case lpts1 : (left_pts lno1) sz => [ | a [ | b tl]] //= _.
-  by move=> [] _ /esym.
-rewrite uocq /= in case2.
-rewrite case2 /=.
-rewrite (@path_map _ _ (@point) (@lexPt R) ev evs).
-exact: (lex_events comi).
+  have := update_open_cell_outgoing_empty vl vh sok xev_llo sll pal puho og0.
+  rewrite /update_open_cell uocq=> -[] _ ->.
+  rewrite left_pts_set /=.
+  rewrite (@path_map _ _ (@point) (@lexPt R) ev evs).
+  exact: (lex_events comi).
+have [_ ]:= update_open_cell_tail oute vl vh sok xev_llo sll pal puho ognn.
+rewrite /update_open_cell uocq.
+case oca_eq : (opening_cells_aux _ _ _ _) => [nos1 lno1] /=.
+move=> ->.
+have  [sz prf]:= last_opening_cells_left_pts_prefix vl vh puho oute oca_eq.
+rewrite sz /=.
+set thenth := nth _ _ _.
+suff -> : thenth = point ev.
+  rewrite (@path_map _ _ (@point) (@lexPt R) ev evs).
+  exact: (lex_events comi).
+have := take_nth dummy_pt sz; rewrite prf /thenth.
+case lpts1 : (left_pts lno1) sz => [ | a [ | b tl]] //= _.
+by move=> [] _ /esym.
 Qed.
 
 Lemma simple_step_disjoint_general_position_invariant
