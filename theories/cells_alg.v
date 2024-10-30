@@ -2489,7 +2489,7 @@ Definition update_pts_head (l : seq pt) (p : pt) :=
 Definition update_pts_single (l : seq pt) (p : pt) :=
   head dummy_pt l :: p :: behead l.
 
-Lemma update_open_cell_outgoing_empty c (lo : seq cell * cell) :
+Lemma update_open_cell_outgoing_empty c :
  valid_edge (low c) (point e) ->
  valid_edge (high c) (point e) ->
  open_cell_side_limit_ok c ->
@@ -2506,7 +2506,7 @@ intros vl vh okc xq lptsgt pal puh ogq.
 by rewrite /update_open_cell/generic_trajectories.update_open_cell ogq.
 Qed.
 
-Lemma update_open_cell_tail c (lo : seq cell * cell) :
+Lemma update_open_cell_tail c :
  valid_edge (low c) (point e) ->
  valid_edge (high c) (point e) ->
  open_cell_side_limit_ok c ->
@@ -5904,6 +5904,9 @@ have lstx_ll : lstx = left_limit lsto.
 have sll : (1 < size (left_pts lsto))%N.
   by apply: (size_left_lsto sval lstx_ll (sides_ok comi) (esym at_lstx) pal
              (underW puho)).
+have [og0 | ognn] := eqVneq (outgoing ev) [::].
+have := update_open_cell_outgoing_empty.
+have := update_open_cell_tail oute vl vh sok xev_llo sll pal puho.
 have [case1 | case2]:= update_open_cellE2 oute vl vh sok xev_llo sll pal puho.
    rewrite uocq /= in case1.
    rewrite case1.
