@@ -3768,7 +3768,7 @@ Lemma connect_limits_seq_subst (l : seq cell) c c' :
   connect_limits l -> connect_limits (seq_subst l c c').
 Proof.
 move=> ll rr; elim: l => [ | a [ | b l] Ih] /=; first by [].
-  by case: ifP.
+  by [].
 move=> /[dup] conn /andP[ab conn'].
 have conn0 : path (fun c1 c2 => right_limit c1 == left_limit c2) a (b :: l).
    by exact: conn.
@@ -3826,7 +3826,7 @@ case: ecg => [[oc [pcc [ocP1 [hP [cP [ocin conn]]]]]] | ].
     rewrite connect_limits_rcons; last by apply/eqP/rcons_neq0.
     move=> /andP[] cP cc.
     rewrite connect_limits_rcons; last first.
-      by case: (pcc')=> /= [ | ? ?]; case: ifP.
+      by case: (pcc')=> /= [ | ? ?].
     apply/andP; split; last first.
       rewrite -cats1 seq_subst_cat /=.
       move: cc; rewrite last_rcons=> /eqP <-.
