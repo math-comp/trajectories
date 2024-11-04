@@ -25,6 +25,16 @@ Notation p_y := (p_y R).
 Notation event := (event R edge).
 Notation point := (point R edge).
 Notation outgoing := (outgoing R edge).
+Notation valid_edge := (valid_edge R le edge (@left_pt R) (@right_pt R)).
+Notation point_under_edge :=
+  (point_under_edge R le +%R (fun x y => x - y) *%R 1 edge (@left_pt R)
+    (@right_pt R)).
+Notation "p <<= g" := (point_under_edge p g).
+Notation "p >>> g" := (~~ (point_under_edge p g)).
+Notation point_strictly_under_edge :=
+  (point_strictly_under_edge  R eq_op le +%R (fun x y => x - y) *%R 1
+    edge (@left_pt R) (@right_pt R)).
+Notation "p <<< g" := (point_strictly_under_edge p g).
 
 Definition event_eqb (ea eb : event) : bool :=
   (point ea == point eb :> pt) && (outgoing ea == outgoing eb).
@@ -184,7 +194,7 @@ have /sort_sorted_in : {in s &, total (@edge_below _)}.
 by apply; apply: allss.
 Qed.
 
-Lemma sorted_outgoing le he e : 
+Lemma sorted_outgoing (le he : edge) (e : event) : 
   valid_edge le (point e) ->
   valid_edge he (point e) ->
   point e >>> le ->

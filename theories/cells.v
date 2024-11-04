@@ -23,6 +23,17 @@ Notation Bpt := (Bpt R).
 Notation p_x := (p_x R).
 Notation p_y := (p_y R).
 Notation edge := (edge R).
+Notation valid_edge := (valid_edge R le edge (@left_pt R) (@right_pt R)).
+Notation point_under_edge :=
+  (point_under_edge R le +%R (fun x y => x - y) *%R 1 edge (@left_pt R)
+    (@right_pt R)).
+Notation "p <<= g" := (point_under_edge p g).
+Notation "p >>> g" := (~~ (point_under_edge p g)).
+Notation point_strictly_under_edge :=
+  (point_strictly_under_edge  R eq_op <=%R +%R (fun x y => x - y) *%R 1
+    edge (@left_pt R) (@right_pt R)).
+Notation "p <<< g" := (point_strictly_under_edge p g).
+Notation "p >>= g" := (~~ (point_strictly_under_edge p g)).
 Notation event := (event R edge).
 Notation point := (point R edge).
 Notation outgoing := (outgoing R edge).
@@ -79,6 +90,9 @@ Notation dummy_pt := (generic_trajectories.dummy_pt R 1).
 Notation dummy_event := (generic_trajectories.dummy_event R 1 edge).
 Notation dummy_edge := (generic_trajectories.dummy_edge R 1 edge unsafe_Bedge).
 Notation dummy_cell := (dummy_cell R 1 edge unsafe_Bedge).
+Notation vertical_intersection_point :=
+  (vertical_intersection_point R le +%R (fun x y => x - y) *%R
+    (fun x y => x / y) edge (@left_pt R) (@right_pt R)).
 
 Definition head_cell (s : seq cell) := head dummy_cell s.
 Definition last_cell (s : seq cell) := last dummy_cell s.
@@ -441,8 +455,8 @@ set p := (Bpt 3%:R 0).
 set c := Bcell [::] [::] e1 e2.
 have exrf : s_right_form [:: c].
   rewrite /= andbT /e1 /e2 /edge_below /=.
-  rewrite /generic_trajectories.point_under_edge !underE /=.
-  rewrite /generic_trajectories.point_under_edge !strictE /=.
+  rewrite !underE /=.
+  rewrite !strictE /=.
   rewrite !(mul0r, subrr, mul1r, subr0, add0r, addr0, oppr0, opprK, addrK).
   rewrite le_refl lt_irreflexive /= !andbT.
   rewrite -[X in X - 2%:R]/(1%:R) -opprB -natrB //  -[(2-1)%N]/1%N.

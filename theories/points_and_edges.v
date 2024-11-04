@@ -17,7 +17,7 @@ Section working_context.
 
 Variable (R : realFieldType).
 
-Definition pt := pt R.
+Notation pt := (pt R).
 Notation Bpt := (Bpt _).
 Notation "p .x" := (generic_trajectories.p_x _ p)
     (at level 2, left associativity, format "p .x").
@@ -69,13 +69,13 @@ Notation area3 :=
   (area3 R +%R (fun x y => x - y) *%R).
 
 (* returns true if p is under e *)
-Definition point_under_edge :=
-  point_under_edge R le +%R (fun x y => x - y) *%R 1 edge
-  left_pt right_pt.
+Notation point_under_edge :=
+  (point_under_edge R le +%R (fun x y => x - y) *%R 1 edge
+  left_pt right_pt).
 
-Definition point_strictly_under_edge :=
-  point_strictly_under_edge R eq_op le +%R (fun x y => x - y) *%R 1 edge
-  left_pt right_pt.
+Notation point_strictly_under_edge :=
+  (point_strictly_under_edge R eq_op le +%R (fun x y => x - y) *%R 1 edge
+  left_pt right_pt).
 
 Lemma R_ltb_lt  x y : R_ltb R eq_op le x y = (x < y).
 Proof. by rewrite /R_ltb -lt_neqAle. Qed.
@@ -539,8 +539,8 @@ Lemma underWC p e :
 ~~ (p <<= e) -> ~~ (p <<< e).
 Proof. by move/negP=> it; apply/negP=> it'; case: it; apply : underW. Qed.
 
-Definition valid_edge :=
-  generic_trajectories.valid_edge R le edge left_pt right_pt.
+Notation valid_edge :=
+  (generic_trajectories.valid_edge R le edge left_pt right_pt).
 
 Lemma valid_edge_extremities e0 p:
   (left_pt e0 == p) || (right_pt e0 == p) ->
@@ -763,17 +763,16 @@ Qed.
 (* returns the point of the intersection between a vertical edge
  intersecting p and the edge e if it exists, None if it doesn't *)
 
-Definition vertical_intersection_point (p : pt) (e : edge) : option pt :=
-  vertical_intersection_point R le +%R (fun x y => x - y) *%R
-    (fun x y => x / y) edge left_pt right_pt p e.
+Notation vertical_intersection_point :=
+  (vertical_intersection_point R le +%R (fun x y => x - y) *%R
+    (fun x y => x / y) edge left_pt right_pt).
 
 Lemma vertical_none p e :
   ~~ valid_edge e p -> vertical_intersection_point p e = None.
 Proof.
 move: p e => [px py] [[ax ay] [b_x b_y] ab] h /=.
-rewrite /vertical_intersection_point.
 rewrite /generic_trajectories.vertical_intersection_point /=.
-by rewrite /valid_edge in h; rewrite (negbTE h).
+by rewrite (negbTE h).
 Qed.
 
 Lemma vertical_correct p e :

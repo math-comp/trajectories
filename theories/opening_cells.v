@@ -34,6 +34,21 @@ Notation right_pts := (right_pts R edge).
 Notation dummy_pt := (dummy_pt R 1).
 Notation dummy_edge := (dummy_edge R).
 Notation dummy_cell := (dummy_cell R 1 edge (@unsafe_Bedge R)).
+Notation valid_edge :=
+  (generic_trajectories.valid_edge R le edge (@left_pt R) (@right_pt R)).
+Notation vertical_intersection_point :=
+  (vertical_intersection_point R le +%R (fun x y => x - y) *%R
+    (fun x y => x / y) edge (@left_pt R) (@right_pt R)).
+Notation point_under_edge :=
+  (point_under_edge R le +%R (fun x y => x - y) *%R 1 edge (@left_pt R)
+    (@right_pt R)).
+Notation "p <<= g" := (point_under_edge p g).
+Notation "p >>> g" := (~~ (point_under_edge p g)).
+Notation point_strictly_under_edge :=
+  (point_strictly_under_edge  R eq_op <=%R +%R (fun x y => x - y) *%R 1
+    edge (@left_pt R) (@right_pt R)).
+Notation "p <<< g" := (point_strictly_under_edge p g).
+Notation "p >>= g" := (~~ (point_strictly_under_edge p g)).
 
 (*
 Fixpoint opening_cells_aux (p : pt) (out : seq edge) (low_e high_e : edge) 
@@ -58,9 +73,9 @@ Fixpoint opening_cells_aux (p : pt) (out : seq edge) (low_e high_e : edge)
 end.
 *)
 
-Definition opening_cells_aux :=
-  opening_cells_aux R eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y)
-  1 edge (@unsafe_Bedge R) (@left_pt R) (@right_pt R).
+Notation opening_cells_aux :=
+  (opening_cells_aux R eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y)
+  1 edge (@unsafe_Bedge R) (@left_pt R) (@right_pt R)).
 
 Lemma opening_cells_aux_eqn p out low_e high_e :
   opening_cells_aux p out low_e high_e =
@@ -108,7 +123,6 @@ Lemma opening_cells_left p out le he :
   {in opening_cells p out le he, forall c, left_limit c = p_x p}.
 Proof.
 move=> outl vle vhe; rewrite /opening_cells.
-rewrite /opening_cells_aux.
 have : forall g, g \in sort (@edge_below _) out -> left_pt g == p.
   by move=> g; rewrite mem_sort; apply: outl.
 elim: (sort _ _) le vle => [ | g1 gs Ih] le vle {}outl c /=.
@@ -123,7 +137,7 @@ have outl' : forall g, g \in gs -> left_pt g == p.
 rewrite /=.
 have vg1 : valid_edge g1 p.
   by rewrite -(eqP (outl g1 _)) ?valid_edge_left // inE eqxx.
-move: Ih; case oca_eq : (generic_trajectories.opening_cells_aux _ _ _ _) => [s c'] /(_ _ vg1 outl').
+move: Ih; case oca_eq : opening_cells_aux => [s c'] /(_ _ vg1 outl').
 rewrite oca_eq => Ih.
 rewrite -[generic_trajectories.vertical_intersection_point
              _ _ _ _ _ _ _ _ _ _ _]/(vertical_intersection_point _ _).
