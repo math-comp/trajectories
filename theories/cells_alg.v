@@ -17,69 +17,70 @@ Section working_environment.
 
 Variable R : realFieldType.
 
-Notation pt := (pt R).
-Notation p_x := (p_x R).
-Notation p_y := (p_y R).
-Notation Bpt := (Bpt R).
+Notation pt := (pt (RealField.sort R)).
+Notation p_x := (p_x (RealField.sort R)).
+Notation p_y := (p_y (RealField.sort R)).
+Local Notation Bpt := (Bpt (RealField.sort R)).
 Notation edge := (edge R).
-Notation event' := (event R edge).
-Notation outgoing := (outgoing R edge).
-Notation point := (point R edge).
+Notation event := (event (RealField.sort R) edge).
+Notation outgoing := (outgoing (RealField.sort R) edge).
+Notation point := (point (RealField.sort R) edge).
+Notation cell := (cell (RealField.sort R) edge).
 
-Notation cell := (cell R edge).
-
-Notation dummy_pt := (dummy_pt R 1).
-Notation dummy_edge := (dummy_edge R 1 edge (@unsafe_Bedge R)).
-Notation dummy_cell := (dummy_cell R 1 edge (@unsafe_Bedge _)).
-Notation dummy_event := (dummy_event R 1 edge).
+Notation dummy_pt := (dummy_pt (RealField.sort R) 1).
+Notation dummy_edge := (dummy_edge (RealField.sort R) 1 edge (@unsafe_Bedge _)).
+Notation dummy_cell :=
+  (dummy_cell (RealField.sort R) 1 edge ( @unsafe_Bedge _)).
+Notation dummy_event := (dummy_event (RealField.sort R) 1 edge).
 
 Notation valid_edge :=
-  (generic_trajectories.valid_edge R le edge (@left_pt R) (@right_pt R)).
+  (generic_trajectories.valid_edge (RealField.sort R)
+   le edge (@left_pt R) (@right_pt R)).
 Notation vertical_intersection_point :=
-  (vertical_intersection_point R le +%R (fun x y => x - y) *%R
-    (fun x y => x / y) edge (@left_pt R) (@right_pt R)).
+  (vertical_intersection_point (RealField.sort R)
+  le +%R (fun x y => x - y) *%R
+  (fun x y => x / y) edge ( @left_pt R) ( @right_pt R)).
 Notation point_under_edge :=
-  (point_under_edge R le +%R (fun x y => x - y) *%R 1 edge (@left_pt R)
-    (@right_pt R)).
+  (point_under_edge (RealField.sort R) le +%R (fun x y => x - y) *%R 1
+  edge ( @left_pt R) (@right_pt R)).
 Notation "p <<= g" := (point_under_edge p g).
 Notation "p >>> g" := (~~ (point_under_edge p g)).
 Notation point_strictly_under_edge :=
-  (point_strictly_under_edge  R eq_op <=%R +%R (fun x y => x - y) *%R 1
-    edge (@left_pt R) (@right_pt R)).
+  (point_strictly_under_edge  (RealField.sort R) eq_op <=%R +%R
+  (fun x y => x - y) *%R 1 edge ( @left_pt R) ( @right_pt R)).
 Notation "p <<< g" := (point_strictly_under_edge p g).
 Notation "p >>= g" := (~~ (point_strictly_under_edge p g)).
 
 Notation open_cells_decomposition_contact :=
-  (open_cells_decomposition_contact R eq_op le +%R (fun x y => x - y) *%R 1
-    edge (@left_pt R) (@right_pt R)).
-
+  (open_cells_decomposition_contact (RealField.sort R) eq_op le +%R
+  (fun x y => x - y) *%R 1 edge ( @left_pt R) ( @right_pt R)).
 Notation open_cells_decomposition_rec :=
-  (open_cells_decomposition_rec R eq_op le +%R (fun x y => x - y) *%R 1
-  edge (@unsafe_Bedge R) (@left_pt R) (@right_pt R)).
-
+  (open_cells_decomposition_rec (RealField.sort R) eq_op le +%R
+  (fun x y => x - y) *%R 1 edge ( @unsafe_Bedge R) ( @left_pt R)
+  ( @right_pt R)).
 Notation open_cells_decomposition :=
-  (open_cells_decomposition R eq_op le +%R (fun x y => x - y) *%R 1
-  edge (@unsafe_Bedge R) (@left_pt R) (@right_pt R)).
+  (open_cells_decomposition (RealField.sort R) eq_op le +%R
+  (fun x y => x - y) *%R 1 edge ( @unsafe_Bedge R) ( @left_pt R) 
+  ( @right_pt R)).
 
-Notation scan_state := (scan_state R edge).
-Notation sc_open1 := (sc_open1 R edge).
-Notation lst_open := (lst_open R edge).
-Notation sc_open2 := (sc_open2 R edge).
-Notation sc_closed := (sc_closed R edge).
-Notation lst_closed := (lst_closed R edge).
-
+Notation scan_state := (scan_state (RealField.sort R) edge).
+Notation sc_open1 := (sc_open1 (RealField.sort R) edge).
+Notation lst_open := (lst_open (RealField.sort R) edge).
+Notation sc_open2 := (sc_open2 (RealField.sort R) edge).
+Notation sc_closed := (sc_closed (RealField.sort R) edge).
+Notation lst_closed := (lst_closed (RealField.sort R) edge).
 
 Notation update_closed_cell :=
-  (update_closed_cell R 1 edge).
+  (update_closed_cell (RealField.sort R) 1 edge).
 
 Notation set_left_pts :=
-  (set_left_pts R edge).
+  (set_left_pts (RealField.sort R) edge).
 
-Notation low := (low R edge).
-Notation high := (high R edge).
-Notation left_pts := (left_pts R edge).
-Notation right_pts := (right_pts R edge).
-Notation Bcell := (Bcell R edge).
+Notation low := (low (RealField.sort R) edge).
+Notation high := (high (RealField.sort R) edge).
+Notation left_pts := (left_pts (RealField.sort R) edge).
+Notation right_pts := (right_pts (RealField.sort R) edge).
+Notation Bcell := (Bcell (RealField.sort R) edge).
 
 (* TODO : these should probably be in cell.v *)
 Lemma high_set_left_pts (c : cell) l : high (set_left_pts c l) = high c.
@@ -88,7 +89,7 @@ Proof. by case: c. Qed.
 Lemma low_set_left_pts (c : cell) l : low (set_left_pts c l) = low c.
 Proof. by case: c. Qed.
 
-Notation set_pts := (set_pts R edge).
+Notation set_pts := (set_pts (RealField.sort R) edge).
 
 (* This function is to be called only when the event is in the middle
   of the last opening cell.  The point e needs to be added to the left
@@ -96,25 +97,27 @@ Notation set_pts := (set_pts R edge).
   the first segment of the last opening cells should keep its existing
   left points.*)
 Notation update_open_cell :=
-  (update_open_cell R eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y) 1
-  edge (@unsafe_Bedge R) (@left_pt R) (@right_pt R)).
+  (update_open_cell (RealField.sort R) eq_op le +%R (fun x y => x - y)
+  *%R (fun x y => x / y) 1 edge (@unsafe_Bedge R) (@left_pt R) (@right_pt R)).
 
 Notation update_open_cell_top :=
-  (update_open_cell_top R eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y) 1
-  edge (@unsafe_Bedge R) (@left_pt R) (@right_pt R)).
+  (update_open_cell_top (RealField.sort R) eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y) 1
+  edge ( @unsafe_Bedge R) ( @left_pt R) ( @right_pt R)).
 
-Notation Bscan := (Bscan _ _).
+Notation Bscan := (Bscan (RealField.sort R) edge).
 
 Notation opening_cells_aux :=
-  (opening_cells_aux R eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y)
-  1 edge (@unsafe_Bedge R) (@left_pt R) (@right_pt R)).
+  (opening_cells_aux (RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
+  *%R (fun x y => x / y) 1 edge ( @unsafe_Bedge R) ( @left_pt R) (
+   @right_pt R)).
 
 Notation simple_step :=
-  (simple_step R eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y)
-  1 edge (@unsafe_Bedge R) (@left_pt R) (@right_pt R)).
+  (generic_trajectories.simple_step (RealField.sort R) eq_op le +%R
+  (fun x y => x - y) *%R (fun x y => x / y)
+  1 edge ( @unsafe_Bedge R) ( @left_pt R) ( @right_pt R)).
 
 Notation step :=
-  (step R eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y)
+  (step (RealField.sort R) eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y)
   1 edge (@unsafe_Bedge R) (@left_pt R) (@right_pt R)).
 
 Definition scan events st : seq cell * seq cell :=
@@ -123,7 +126,7 @@ Definition scan events st : seq cell * seq cell :=
    lst_closed final_state :: sc_closed final_state).
 
 Notation start_open_cell :=
-  (start_open_cell R eq_op le +%R (fun x y => x - y)
+  (start_open_cell (RealField.sort R) eq_op le +%R (fun x y => x - y)
   *%R (fun x y => x / y) edge (@left_pt R) (@right_pt R)).
 
 (*
@@ -161,7 +164,7 @@ rewrite inE lc0; congr (_ || _).
 by rewrite -map_cons main mem_rcons inE.
 Qed.
 
-Lemma not_bottom_or_top bottom top (ev : event') :
+Lemma not_bottom_or_top bottom top (ev : event) :
   inside_box bottom top (point ev) ->
   out_left_event ev ->
   {in outgoing ev, forall g, g \notin [:: bottom; top]}.
@@ -595,7 +598,7 @@ Qed.
 Section step.
 
 
-Variable e : event'.
+Variable e : event.
 Variable fop : seq cell.
 Variable lsto : cell.
 Variable lop : seq cell.
@@ -603,7 +606,7 @@ Variable cls : seq cell.
 Variable lstc :  cell.
 Variable lsthe : edge.
 Variable lstx : R.
-Variable future_events : seq event'.
+Variable future_events : seq event.
 Variable p : pt.
 
 Let open := (fop ++ lsto :: lop).
@@ -5101,7 +5104,7 @@ Lemma cell_edges_start bottom top :
 Proof. by []. Qed.
 
 Record common_invariant bottom top edge_set s
-  (events : seq event') :=
+  (events : seq event) :=
   { inv1 : inv1_seq bottom top events (state_open_seq s);
    lstx_eq : lst_x _ _ s = left_limit (lst_open s);
    high_lsto_eq : high (lst_open s) = lst_high _ _ s;
@@ -5116,14 +5119,14 @@ Record common_invariant bottom top edge_set s
 }.
 
 Record common_general_position_invariant bottom top edge_set s
-  (events : seq event') :=
+  (events : seq event) :=
   { gcomm : common_invariant bottom top edge_set s events;
    general_pos :
      all (fun ev => lst_x _ _ s < p_x (point ev)) events &&
      sorted (fun e1 e2 => p_x (point e1) < p_x (point e2)) events;
 }.
 
-Record common_non_gp_invariant bottom top edge_set s (events : seq event') :=
+Record common_non_gp_invariant bottom top edge_set s (events : seq event) :=
   { ngcomm : common_invariant bottom top edge_set s events;
     lst_side_lex :
         (1 < size (left_pts (lst_open s)))%N &&
@@ -5141,7 +5144,7 @@ Record common_non_gp_invariant bottom top edge_set s (events : seq event') :=
   cells, here named "open", should be reduced to only one element. *)
 Record disjoint_general_position_invariant (bottom top : edge)
  (edge_set : seq edge)
- (s : scan_state) (events : seq event') :=
+ (s : scan_state) (events : seq event) :=
  { op_cl_dis :
      {in state_open_seq s & state_closed_seq s,
        disjoint_open_closed_cells R};
@@ -5156,7 +5159,7 @@ Record disjoint_general_position_invariant (bottom top : edge)
    }.
 
 Record disjoint_non_gp_invariant (bottom top : edge)
-  (edge_set : seq edge)(s : scan_state) (events : seq event') :=
+  (edge_set : seq edge)(s : scan_state) (events : seq event) :=
   {op_cl_dis_non_gp :
     {in state_open_seq s & state_closed_seq s,
        disjoint_open_closed_cells R};
@@ -5174,7 +5177,7 @@ Record disjoint_non_gp_invariant (bottom top : edge)
 Definition dummy_state :=
   Bscan [::] dummy_cell [::] [::] dummy_cell dummy_edge 0.
 
-Definition initial_state bottom top (events : seq event') :=
+Definition initial_state bottom top (events : seq event) :=
   match events with
   | [::] => dummy_state
   | ev :: future_events =>
@@ -6011,9 +6014,18 @@ move=> bxwf nocs' inbox_s at_lstx under_lsthe disng.
 have comng := common_non_gp_inv_dis disng.
 have comi := ngcomm comng.
 rewrite /step/=/same_x eq_sym at_lstx eqxx /=.
-rewrite -/((point ev) <<= lsthe).
 rewrite underW ?under_lsthe //=.
-rewrite -/(update_open_cell lsto ev).
+Print common_invariant.
+have oute : out_left_event ev.
+  by apply: (out_events comi); rewrite inE eqxx.
+Print inv1_seq.
+move: (inv1 comi) => [] clae [] sval' [] adj [] cbtom rfo.
+move: sval' => [ //| sval].
+have at_ll : p_x (point ev) = left_limit lsto.
+  by rewrite -(lstx_eq comi) at_lstx.
+have tmp := high_lsto_eq comi.
+have := step_keeps_disjoint (inbox_events comi) oute rfo cbtom adj sval
+  (esym tmp) at_ll.
 case uocq:  update_open_cell => [nos lno].
 constructor.
 - rewrite /state_open_seq/state_closed_seq/=.
@@ -6035,12 +6047,13 @@ constructor.
     by rewrite pin1 pin2'.
 (* BEWARE: step_keeps_disjoint may already contain the full proof! *)
 Search oc_disjoint -"Build".
+Admitted.
 
 Definition start :=
   start R eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y) 1 edge
   (@unsafe_Bedge _) (@left_pt _) (@right_pt _).
 
-Lemma start_eq_initial (bottom top : edge) (ev : event') :
+Lemma start_eq_initial (bottom top : edge) (ev : event) :
   start ev bottom top = initial_state bottom top [:: ev].
 Proof. by []. Qed.
 
@@ -6114,26 +6127,24 @@ move=> /andP[] /andP[] lstxlte lstx_fut' ltfut' edges_pairwise cl_at_left.
 move: (inv1)=> [] clae [] pre_sval [] adj [] cbtom rfo.
 have sval : seq_valid (fop ++ lsto :: lop) (point ev') by case: pre_sval.
 
-rewrite /=/simple_step; case: ifP=> [_ | ]; last first.
+rewrite /=; case: ifP=> [_ | ]; last first.
   move=> /negbFE; rewrite /same_x eq_sym=> /eqP abs; suff: False by [].
   by move : lstxlte; rewrite abs lt_irreflexive.
 rewrite -/(open_cells_decomposition _ _).
 rewrite /generic_trajectories.simple_step.
 case oe : (open_cells_decomposition _ _) => [[[[[fc cc] lcc] lc] le] he].
-rewrite -/(opening_cells_aux _ _ _ _).
 case oca_eq : (opening_cells_aux _ _ _ _) => [nos lno].
 apply: Ih.
 have :=
   simple_step_disjoint_general_position_invariant boxwf nocs' inbox_s oe.
-  rewrite /simple_step/generic_trajectories.simple_step.
-  rewrite -/(opening_cells_aux _ _ _ _).
+  rewrite /simple_step.
   rewrite oca_eq=> /(_ _ _ lsthe lstx).
 by apply.
 Qed.
 
 Record edge_covered_general_position_invariant (bottom top : edge)
- (edge_set : seq edge) (processed_set : seq event')
- (s : scan_state) (events : seq event') :=
+ (edge_set : seq edge) (processed_set : seq event)
+ (s : scan_state) (events : seq event) :=
  { edge_covered_ec : {in processed_set, forall e,
        {in outgoing e, forall g,
        edge_covered g (state_open_seq s) (state_closed_seq s)}};
@@ -6389,10 +6400,8 @@ have btm_left_lex' :
   rewrite /simple_step/= /= oe oca_eq /= /state_open_seq /=.
   rewrite catA=> main.
   move=> c e cin ein; apply: main=> //=.
-    move: lexev; rewrite path_sortedE; last by apply: lexPtEv_trans.
-    by move=> /andP[] /allP /(_ e ein).
-  move: cin; rewrite /generic_trajectories.simple_step.
-  by rewrite -/(opening_cells_aux _ _ _ _) oca_eq.
+  move: lexev; rewrite path_sortedE; last by apply: lexPtEv_trans.
+  by move=> /andP[] /allP /(_ e ein).
 have p_cov' : {in rcons cov_set ev, forall e, exists2 c,
    c \in state_closed_seq (simple_step fc cc lc lcc le he cls lstc ev) &
    point e \in (right_pts c : seq pt) /\ point e >>> low c}.
@@ -6495,8 +6504,8 @@ by have := simple_step_edge_covered_general_position boxwf nocs'
 Qed.
 
 Record safe_side_general_position_invariant (bottom top : edge)
- (edge_set : seq edge) (processed_set : seq event')
- (s : scan_state) (events : seq event') :=
+ (edge_set : seq edge) (processed_set : seq event)
+ (s : scan_state) (events : seq event) :=
  { disjoint_ss :
      disjoint_general_position_invariant bottom top edge_set s events;
    covered_ss :
@@ -6540,7 +6549,7 @@ Record safe_side_general_position_invariant (bottom top : edge)
          p != point e :> pt};
 }.
 
-Lemma events_to_edges_rcons evs (e : event') :
+Lemma events_to_edges_rcons evs (e : event) :
   events_to_edges (rcons evs e) = events_to_edges evs ++ outgoing e.
 Proof. by rewrite /events_to_edges /= map_rcons flatten_rcons. Qed.
 
@@ -6723,7 +6732,7 @@ have op_no_event : {in [:: ev] & nos ++ [:: lno],
   have := opening_cells_in vb0 vt0 oute; rewrite /opening_cells oca_eq pev.
   by apply.
 have lt_p_ev :
-  {in [:: ev] & evs, forall e1 e2 : event', p_x (point e1) < p_x (point e2)}.
+  {in [:: ev] & evs, forall e1 e2 : event, p_x (point e1) < p_x (point e2)}.
   by move=> e1 e2; rewrite inE => /eqP ->; apply: lte.
 have ll_o_b :
   {in nos ++ [:: lno], forall c,
@@ -6963,7 +6972,7 @@ have subc' :
 (* Proving that open cells have a left side that is smaller than any
    event first coordinate. *)
 have loplte : {in state_open_seq rstate & future_events,
-    forall (c : cell) (e : event'), left_limit c < p_x (point e)}.
+    forall (c : cell) (e : event), left_limit c < p_x (point e)}.
   move=> c e; rewrite /state_open_seq/= -catA -cat_rcons => cin ein.
   move: cin; rewrite !mem_cat orbCA => /orP[ | cold ]; last first.
     apply: lolt; first by rewrite ocd -cat_rcons !mem_cat orbCA cold orbT.
@@ -7003,7 +7012,7 @@ have clok' : all (@closed_cell_side_limit_ok _) (state_closed_seq rstate).
   by apply close_cell_ok.
 (* proving a right_limit stronger invariant. *)
 have rllte :   {in state_closed_seq rstate & future_events,
-    forall (c : cell) (e : event'), right_limit c < p_x (point e)}.
+    forall (c : cell) (e : event), right_limit c < p_x (point e)}.
   rewrite /state_closed_seq/=.
   move=> c e cin ein.
   move: cin; rewrite -cats1 -catA /= -cat_rcons mem_cat=> /orP[cold | cnew].
@@ -7256,7 +7265,7 @@ have cl_safe_event :
   by rewrite -abs pxq lt_irreflexive.
 have op_safe_event :
 {in rcons p_set ev & state_open_seq rstate,
-    forall (e : event') (c : cell) (p : pt),
+    forall (e : event) (c : cell) (p : pt),
     in_safe_side_left p c -> p != point e}.
   move=> e c ein; rewrite /rstate/state_open_seq/=.
   rewrite -catA -cat_rcons !mem_cat orbCA=> /orP[cnew | cold]; last first.
