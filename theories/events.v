@@ -194,7 +194,7 @@ have /sort_sorted_in : {in s &, total (@edge_below _)}.
 by apply; apply: allss.
 Qed.
 
-Lemma sorted_outgoing (le he : edge) (e : event) : 
+Lemma sorted_outgoing (le he : edge) (e : event) :
   valid_edge le (point e) ->
   valid_edge he (point e) ->
   point e >>> le ->
@@ -521,5 +521,9 @@ have cndright : right_pt g \in s by apply: cndr; rewrite inE eqxx.
 have Ih' := Ih cndl' cndr'; clear Ih.
 by apply: add_event_point_subset;[apply: add_event_point_subset | ].
 Qed.
+
+Lemma sorted_lexPtEv_lexPt {evs : seq event} :
+  sorted lexPtEv evs = sorted (@lexPt _) [seq point e | e <- evs].
+Proof. by rewrite sorted_map. Qed.
 
 End working_environment.
