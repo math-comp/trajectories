@@ -21,6 +21,7 @@ rewrite /=.
 by case: ifP => [] ?; rewrite !inE=> /orP[ | /Ih /orP[] ] ->; rewrite ?orbT.
 Qed.
 
+(* Using == [::] to express emptyness of a list is only for eqTypes *)
 Lemma map_nilp {A B : Type} (f : A -> B) (l : seq A) :
   nilp [seq f x | x <- l] = nilp l.
 Proof. by case: l. Qed.
