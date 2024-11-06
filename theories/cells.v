@@ -44,6 +44,7 @@ Notation low := (low R edge).
 Notation high := (high R edge).
 Notation left_pts := (left_pts R edge).
 Notation right_pts := (right_pts R edge).
+Notation set_left_pts := (set_left_pts (RealField.sort R) edge).
 
 Definition cell_eqb (ca cb : cell) : bool :=
   let: generic_trajectories.Bcell lptsa rptsa lowa higha := ca in
@@ -97,6 +98,9 @@ Notation vertical_intersection_point :=
 Definition head_cell (s : seq cell) := head dummy_cell s.
 Definition last_cell (s : seq cell) := last dummy_cell s.
 
+Lemma left_pts_set c l: left_pts (set_left_pts c l) = l.
+Proof. by move: c => []. Qed.
+
 Definition contains_point :=
   contains_point R eq_op le +%R (fun x y => x - y) *%R 1 edge
   (@left_pt R) (@right_pt R).
@@ -129,7 +133,7 @@ Definition right_limit c := p_x (last dummy_pt (right_pts c)).
 
 Lemma add_point_left_limit (c : cell) (p : pt) :
   (1 < size (left_pts c))%N ->
-  left_limit (set_left_pts _ _ c
+  left_limit (set_left_pts c
     (head dummy_pt (left_pts c) :: p :: behead (left_pts c))) =
   left_limit c.
 Proof.
