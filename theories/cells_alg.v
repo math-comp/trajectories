@@ -81,6 +81,8 @@ Notation high := (high (RealField.sort R) edge).
 Notation left_pts := (left_pts (RealField.sort R) edge).
 Notation right_pts := (right_pts (RealField.sort R) edge).
 Notation Bcell := (Bcell (RealField.sort R) edge).
+Notation cell_center :=
+  (cell_center (RealField.sort R) +%R (fun x y => x / y) 1%:R edge).
 
 (* TODO : these should probably be in cell.v *)
 Lemma high_set_left_pts (c : cell) l : high (set_left_pts c l) = high c.
@@ -5180,7 +5182,13 @@ Record disjoint_non_gp_invariant (bottom top : edge)
      {in state_closed_seq s & events,
        forall c e, right_limit c <= p_x (point e)};
    size_right_cls : (1 < size (right_pts (lst_closed s)))%N;
-   uniq_cl : uniq (state_closed_seq s)
+   uniq_cc : uniq [seq cell_center c | c <- state_closed_seq s];
+   cl_large : {in state_closed_seq s, forall c, left_limit c < right_limit c};
+   cl_side : {in state_closed_seq s, forall c, closed_cell_side_limit_ok c};
+   cl_at_lstx : right_limit (lst_closed s) = (lst_x _ _ s);
+   high_lstc : high (lst_closed s) = lst_high _ _ s;
+   lexev_right_cls : path (@lexPt R)
+     (nth dummy_pt (right_pts (lst_closed s)) 1) [seq point x | x <- events]
   }.
 
 Definition dummy_state :=
@@ -6072,6 +6080,13 @@ have right_limit_closed' :
 by constructor.
 Qed.
 
+Lemma cell_center_update_closed_cell c p:
+  (1 < size (right_pts c))%N ->
+  cell_center (update_closed_cell c p) = cell_center c.
+Proof.
+rewrite /update_closed_cell/cell_center/=.
+by case: (right_pts c) => [ | p1 [  | [p2  tl ]]].
+Qed.
 
 Lemma update_open_cell_disjoint_non_gp_invariant
   bottom top s fop lsto lop cls lstc ev
@@ -6126,12 +6141,40 @@ have discl := cl_dis_non_gp disng.
 have clleft : {in rcons cls lstc, forall c, right_limit c <= p_x (point ev)}.
   move=> c cin.
   by have clleft := closed_at_left_non_gp disng cin evin.
+have uniq_cl : uniq (rcons cls lstc).
+  by apply/(@map_uniq _ _ cell_center)/(uniq_cc disng).
 have := step_keeps_disjoint (inbox_events comi) oute rfo cbtom adj sval
   (esym (high_lsto_eq comi)) (lstx_eq comi) (fun _ => evabove) pw sok disoc
-  discl clleft (uniq_cl disng) (size_right_cls disng).
+  discl clleft uniq_cl (size_right_cls disng).
 rewrite /step/same_x [lst_x _ _ _]/= at_lstx eqxx /= underW under_lsthe //=.
 case uocq : update_open_cell=> [nos lno].
 rewrite /state_closed_seq /= => -[] cc_disj oc_disj.
+(*
+have xev_llo : p_x (point ev) = left_limit lsto.
+  by rewrite -at_lstx -(lstx_eq comi).
+have puho : point ev <<< high lsto.
+  move: under_lsthe.
+  rewrite -[lsthe]/(lst_high _ _ (Bscan fop lsto lop cls lstc lsthe lstx)).
+  by rewrite -(high_lsto_eq comi).
+have [vl vh] := (andP (allP sval lsto lstoin)).
+- have xev_ll : p_x (point ev) = left_limit lsto.
+    by rewrite -at_lstx -at_ll.
+have sll : (1 < size (left_pts lsto))%N.
+  apply: (size_left_lsto sval _ (sides_ok comi) (esym at_lstx)
+    evabove (underW puho)).
+  by rewrite -at_ll at_lstx.
+have ogsub : {subset (outgoing ev) <= [:: bottom, top & s]}.
+  move=> g gin; apply: (edges_sub comi); rewrite /all_edges mem_cat.
+  by apply/orP; right; rewrite events_to_edges_cons mem_cat gin.
+have soko : open_cell_side_limit_ok lsto.
+  exact: (allP sok _ lstoin). *)
+have srlstc : right_pts (update_closed_cell lstc (point ev)) != [::].
+  by [].
+have cl_rl : right_limit (update_closed_cell lstc (point ev)) =
+             right_limit lstc.
+  rewrite update_closed_cell_keeps_right_limit //.
+    by apply: (size_right_cls disng).
+  by apply: (cl_side disng); rewrite /= mem_rcons inE eqxx.
 constructor.
 - rewrite /state_open_seq/state_closed_seq/=.
   move=> c1 c2 c1in c2in; exact: (oc_disj _ _ c1in c2in).
@@ -6140,13 +6183,89 @@ Search common_non_gp_invariant.
 - have := update_open_cell_common_non_gp_invariant bxwf nocs' inbox_s at_lstx
    under_lsthe comng.
   by rewrite /step/same_x at_lstx eqxx /= underW under_lsthe //= uocq.
-  have nocs : {in all_edges (fop ++ lsto :: lop) (ev :: evs) &,
+- have nocs : {in all_edges (fop ++ lsto :: lop) (ev :: evs) &,
      no_crossing R}.
     apply: inter_at_ext_no_crossing.
     by apply: (sub_in2 (edges_sub comi)).
-(* Cannot use step_keeps_pw here, because it is meant to be used only in
-  the general position. *)
-
+  have := step_keeps_pw cls lstc (inbox_events comi) oute rfo cbtom adj sval
+    (esym hlo_eq) (fun (_ : _ = lstx) => evabove) nocs
+    (pairwise_open_non_gp disng) => /=.
+  rewrite /same_x  at_lstx eqxx /= underW under_lsthe //=.
+  by rewrite uocq /state_open_seq.
+- rewrite /state_closed_seq /=.
+  move=> c e + ein; rewrite mem_rcons inE orbC=> /orP[cin | /eqP ->].
+    apply: (closed_at_left_non_gp disng).
+      by rewrite /state_closed_seq /= mem_rcons inE cin orbT.
+    by rewrite inE ein orbT.
+  rewrite update_closed_cell_keeps_right_limit.
+      apply: (closed_at_left_non_gp disng).
+        by rewrite /state_closed_seq/= mem_rcons inE eqxx.
+      by rewrite inE ein orbT.
+    apply: (size_right_cls disng).
+  by apply (cl_side disng); rewrite /state_closed_seq /= mem_rcons inE eqxx.
+- by [].
+- have -> : 
+   [seq cell_center c | c <- rcons cls (update_closed_cell lstc (point ev))] =
+   [seq cell_center c | c <- rcons cls lstc].
+    rewrite -!cats1 !map_cat /=.
+    rewrite cell_center_update_closed_cell //.
+    exact: (size_right_cls disng).
+  exact: (uniq_cc disng).
+- rewrite /state_closed_seq/= => c.
+  rewrite mem_rcons inE orbC => /orP[cin | /eqP ->].
+    by apply: (cl_large disng); rewrite /= mem_rcons inE cin orbT.  
+  rewrite update_closed_cell_keep_left_limit.
+  rewrite update_closed_cell_keeps_right_limit; last first.
+      by apply: (cl_side disng); rewrite /= mem_rcons inE eqxx.
+    exact: (size_right_cls disng).
+  by apply: (cl_large disng); rewrite /= mem_rcons inE eqxx.
+- rewrite /state_closed_seq/= => c.
+  rewrite mem_rcons inE orbC=> /orP[ cin |/eqP ->].
+    by apply: (cl_side disng); rewrite /= mem_rcons inE cin orbT.
+  rewrite /closed_cell_side_limit_ok/left_limit.
+  have -> : left_pts (update_closed_cell lstc (point ev)) = left_pts lstc.
+    by [].
+  have lstcin : lstc \in rcons cls lstc by rewrite mem_rcons inE eqxx.
+  have /andP[ -> ] := (cl_side disng lstcin).
+  move=> /andP[] -> /andP[] -> /andP[] -> /andP[] -> /andP[] rptsn0.
+  move=> /andP[] alx /andP[] decry /andP[] onh onl /=.
+  have lstc_at : right_limit lstc = lstx by apply: (cl_at_lstx disng).
+  have hin : head dummy_pt (right_pts lstc) \in right_pts lstc.
+    by apply: head_in_not_nil.
+  apply/andP; split.
+    have := (allP alx (head dummy_pt (right_pts lstc)) hin)=> /eqP ->.
+    rewrite update_closed_cell_keeps_right_limit; last first.
+        by apply: (cl_side disng); rewrite /= mem_rcons inE eqxx.
+      by apply: (size_right_cls disng).
+    rewrite eqxx /=.
+    rewrite lstc_at at_lstx eqxx /=.
+    apply/allP=> p pin.
+    have pin' : p \in (right_pts lstc) by rewrite mem_behead.
+    by rewrite (eqP (allP alx _ pin')) lstc_at at_lstx eqxx.
+  apply/andP; split.
+    have  [vl vh] := andP (allP sval lsto lstoin).
+    move: hlo_eq; rewrite /= => hlo_eq.
+    have := under_lsthe; rewrite -hlo_eq.
+    rewrite (strict_under_pvert_y vh) /=.
+    have xh : p_x (point ev) = p_x (head dummy_pt (right_pts lstc)).
+      by rewrite (eqP (allP alx (head dummy_pt (right_pts lstc)) hin)) lstc_at.
+    have := same_pvert_y vh xh => /= ->.
+    have := (on_pvert onh); rewrite (high_lstc disng) /= hlo_eq => -> -> /=.
+    move: (size_right_cls disng) (lexev_right_cls disng) decry alx xh=> /=.
+    case: (right_pts lstc) => [| a [| b tl]] //= _ /andP[] + _ /andP[] _ ->.
+    move=> lexevb /andP[] /eqP -> /andP[] /eqP bx _ evx.
+    by move: lexevb; rewrite /lexPt lt_neqAle bx evx eqxx /= => ->.
+  rewrite onh /=.
+  move: (size_right_cls disng) onl.
+  by case: (right_pts lstc) => [ | a [ | b ?]].
+- rewrite /= update_closed_cell_keeps_right_limit //.
+      by rewrite (cl_at_lstx disng) /= at_lstx.
+    by apply: (size_right_cls disng).
+  by apply: (cl_side disng); rewrite /= mem_rcons inE eqxx.
+- rewrite /=; apply: (high_lstc disng).
+have := lex_events comi.
+by rewrite sorted_lexPtEv_lexPt.
+Qed.
 
 Definition start :=
   start R eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y) 1 edge
