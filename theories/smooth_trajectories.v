@@ -25,7 +25,7 @@ Notation outgoing := (outgoing Q edge).
 
 
 Definition scan :=
-  complete_process Q Qeq_bool Qle_bool 
+  complete_process Q Qeq_bool Qle_bool
     Qplus Qminus Qmult Qdiv 0 edge Bedge left_pt right_pt.
 
 Definition manhattan_distance (p1x p1y p2x p2y : R) :=
@@ -72,7 +72,7 @@ Fixpoint positive_Z_to_decimal_string (fuel : nat) (z : Z) :=
        ""%string
     else
     let (q, r) := Z.div_eucl z 10 in
-    append (positive_Z_to_decimal_string p q) 
+    append (positive_Z_to_decimal_string p q)
     match r with
     | 0%Z => "0"%string
     | 1%Z => "1"%string
@@ -91,24 +91,24 @@ Definition Z_to_string (z : Z) :=
   if (z =? 0)%Z then
     "0"%string
   else if (z <? 0)%Z then
-    append "-" 
+    append "-"
        (positive_Z_to_decimal_string (S (Z.abs_nat (Z.log2_up (- z)))) (- z))
-  else 
+  else
     (positive_Z_to_decimal_string (S (Z.abs_nat (Z.log2_up z))) z).
 
 Definition positive_rational_to_approx_decimal_string (x : Q) : string :=
-    let frac_part := 
+    let frac_part :=
         (((1000 * Qnum x) / Zpos (Qden x)) mod 1000)%Z in
-    let frac_part_string := 
+    let frac_part_string :=
       if (frac_part =? 0)%Z then
          "000"%string
       else if (frac_part <? 10)%Z then
         append "00" (Z_to_string frac_part)
       else if (frac_part <? 100)%Z then
         append "0" (Z_to_string frac_part)
-      else 
+      else
         (Z_to_string frac_part) in
-     append (Z_to_string (Qnum x / Z.pos (Qden x))) 
+     append (Z_to_string (Qnum x / Z.pos (Qden x)))
          (append "." frac_part_string).
 
 Definition Q_to_approx_decimal_string (x : Q) :=
@@ -152,7 +152,7 @@ match e with
 | bezier p1 p2 p3 =>
   append (display_point tr_x tr_y scale (apt_val p1))
     (append " moveto "
-      (append (display_point tr_x tr_y scale 
+      (append (display_point tr_x tr_y scale
            (weighted_sum (apt_val p1) (apt_val p2) (1/3)))
          (append " "
            (append (display_point tr_x tr_y scale
@@ -178,7 +178,7 @@ Definition display_cell_centers (tr_x tr_y scale : Q) (s : seq cell) :=
   let indices := seq.iota 0 (List.length s) in
   map (fun i =>
          append "newpath "
-         (append (display_point tr_x tr_y scale 
+         (append (display_point tr_x tr_y scale
                       (cell_center (nth i s dummy_cell)))
           (append " moveto ("
             (append (Z_to_string (Z.of_nat i))

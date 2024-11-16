@@ -84,7 +84,7 @@ Variable find : queue -> node -> option (seq node * option R).
 Variable update : queue -> node -> seq node -> option R -> queue.
 Variable pop :  queue -> option (node * seq node * option R * queue).
 
-Hypothesis find_empty : 
+Hypothesis find_empty :
   forall n, find empty n = None.
 Hypothesis find_update_eq : forall q n p d p' d',
   find q n = Some(p', d') -> cmp_option R <%R d d' ->
@@ -95,10 +95,10 @@ Hypothesis find_update_diff : forall q n1 n2 p d,
   n1 != n2 ->
   find (update q n1 p d) n2 = find q n2.
 Hypothesis pop_remove :
-  forall q n p d q', pop q = Some (n, p, d, q') -> 
+  forall q n p d q', pop q = Some (n, p, d, q') ->
   find q' n = None.
 Hypothesis pop_find :
-  forall q n p d q', pop q = Some (n, p, d, q') -> 
+  forall q n p d q', pop q = Some (n, p, d, q') ->
   find q n = Some(p, d).
 Hypothesis pop_diff :
   forall q n1 n2 p d q', pop q = Some(n1, p, d, q') ->

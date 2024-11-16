@@ -17,20 +17,33 @@ Section safety_property.
 
 Variable R : realFieldType.
 
-Notation pt := (@pt R).
+Notation pt := (@pt (RealField.sort R)).
 Notation p_x := (p_x R).
 Notation p_y := (p_y R).
 Notation Bpt := (Bpt R).
 Notation edge := (@edge R).
-Notation cell := (@cell R edge).
-Notation low := (low R edge).
-Notation high := (high R edge).
+Notation cell := (@cell (RealField.sort R) edge).
+Notation low := (low (RealField.sort R) edge).
+Notation high := (high (RealField.sort R) edge).
 Notation left_pts := (left_pts R edge).
 Notation right_pts := (right_pts R edge).
 Notation dummy_pt := (dummy_pt R 1).
 Notation event := (@event R edge).
 Notation point' := (@point R edge).
 Notation outgoing := (@point R edge).
+Notation point_under_edge :=
+  (point_under_edge (RealField.sort R) <=%R +%R (fun x y => x - y)
+    *%R 1 edge (@left_pt R)(@right_pt R)).
+Notation "p <<= e" := (point_under_edge p e).
+Notation "p >>> e" := (negb (point_under_edge p e)).
+Notation valid_edge :=
+  (valid_edge (RealField.sort R) <=%R edge (@left_pt R) (@right_pt R)).
+Notation point_strictly_under_edge :=
+  (point_strictly_under_edge (RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
+    *%R 1 edge (@left_pt R)(@right_pt R)).
+Notation "p <<< e" := (point_strictly_under_edge p e).
+Notation "p >>= e" := (negb (point_strictly_under_edge p e)).
+
 
 Variables closed : seq cell.
 (* The last open cell.  We need to prove that that its top edge is top.
@@ -118,7 +131,7 @@ by rewrite (eqP (allP rsx _ (last_in_not_nil _ rn0))).
 Qed.
 
 Lemma right_valid :
-  {in closed, forall c, {in (right_pts c : seq pt), forall p, 
+  {in closed, forall c, {in (right_pts c : seq pt), forall p,
       valid_edge (low c) p /\ valid_edge (high c) p}}.
 Proof.
 move=> c cin p pin.
@@ -364,7 +377,7 @@ have rpcc' : right_limit (last_cell (pc2 :: pcc)) = p_x (right_pt g).
 have [pleft2 | pright2 ] := lerP (p_x p) (left_limit pc2).
 (* In this case, p is inside pc1, contradiction with pinc *)
   have v1 : valid_edge g p by move: pong=> /andP[].
-  have pc1cl : pc1 \in closed by apply: pcccl; rewrite inE eqxx.  
+  have pc1cl : pc1 \in closed by apply: pcccl; rewrite inE eqxx.
   suff pin1 : inside_closed' p pc1.
     have [cqpc1 | ] := disj_closed ccl pc1cl.
       move: puh; rewrite cqpc1 (highs _ (mem_head _ _)) strict_nonAunder //.
@@ -434,24 +447,43 @@ Section main_statement.
 
 Variable R : realFieldType.
 
-Notation pt := (@pt R).
-Notation p_x := (p_x R).
-Notation p_y := (p_y R).
-Notation Bpt := (Bpt R).
+Notation pt := (@pt (RealField.sort R)).
+Notation p_x := (p_x (RealField.sort R)).
+Notation p_y := (p_y (RealField.sort R)).
+Notation Bpt := (Bpt (RealField.sort R)).
 Notation edge := (@edge R).
-Notation cell := (@cell R edge).
-Notation low := (low R edge).
-Notation high := (high R edge).
-Notation left_pts := (left_pts R edge).
-Notation right_pts := (right_pts R edge).
-Notation dummy_pt := (dummy_pt R 1).
-Notation event := (@event R edge).
-Notation point := (@point R edge).
-Notation outgoing := (@outgoing R edge).
+Notation cell := (@cell (RealField.sort R) edge).
+Notation low := (low (RealField.sort R) edge).
+Notation high := (high (RealField.sort R) edge).
+Notation left_pts := (left_pts (RealField.sort R) edge).
+Notation right_pts := (right_pts (RealField.sort R) edge).
+Notation dummy_pt := (dummy_pt (RealField.sort R) 1).
+Notation event := (@event (RealField.sort R) edge).
+Notation point := (@point (RealField.sort R) edge).
+Notation outgoing := (@outgoing (RealField.sort R) edge).
+Notation point_under_edge :=
+  (point_under_edge (RealField.sort R) <=%R +%R (fun x y => x - y)
+    *%R 1 edge (@left_pt R)(@right_pt R)).
+Notation "p <<= e" := (point_under_edge p e).
+Notation "p >>> e" := (negb (point_under_edge p e)).
+Notation valid_edge :=
+  (valid_edge (RealField.sort R) <=%R edge (@left_pt R) (@right_pt R)).
+Notation point_strictly_under_edge :=
+  (point_strictly_under_edge (RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
+    *%R 1 edge (@left_pt R)(@right_pt R)).
+Notation "p <<< e" := (point_strictly_under_edge p e).
+Notation "p >>= e" := (negb (point_strictly_under_edge p e)).
 
-Definition leftmost_points :=
- leftmost_points R eq_op le +%R (fun x y => x - y) *%R 
-  (fun x y => x / y) edge (@left_pt R) (@right_pt R).
+Notation vertical_intersection_point :=
+  (vertical_intersection_point (RealField.sort R) le +%R
+  (fun x y => x - y) *%R
+  (fun x y => x / y) edge (@left_pt R) (@right_pt R)).
+Notation leftmost_points :=
+ (leftmost_points (RealField.sort R) eq_op le +%R (fun x y => x - y) *%R
+  (fun x y => x / y) edge (@left_pt R) (@right_pt R)).
+Notation start_open_cell :=
+  (start_open_cell (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R
+  (fun x y => x / y) edge (@left_pt R) (@right_pt R)).
 
 Arguments pt_eqb : simpl never.
 
@@ -468,7 +500,7 @@ have vt : valid_edge top p by rewrite /valid_edge/generic_trajectories.valid_edg
 rewrite /open_cell_side_limit_ok /=.
 have ln0 : leftmost_points bottom top != [::] :> seq pt.
   rewrite /leftmost_points/generic_trajectories.leftmost_points.
-  case: ifP=> [lbl | ltl]; rewrite -/(vertical_intersection_point _ _) pvertE //.
+  case: ifP=> [lbl | ltl]; rewrite pvertE //.
       rewrite R_ltb_lt in lbl.
       rewrite /valid_edge/generic_trajectories.valid_edge.
       by rewrite ltW // ?ltW // (lt_trans ltp).
@@ -483,12 +515,10 @@ have samex : all (fun p => p_x p == left_limit (start_open_cell bottom top))
   rewrite /leftmost_points/generic_trajectories.leftmost_points.
   case: ifP=> [lbl | ltl].
     rewrite R_ltb_lt in lbl.
-    rewrite -/(vertical_intersection_point _ _).
     rewrite pvertE; last first.
       by rewrite /valid_edge/generic_trajectories.valid_edge ltW // ltW // (lt_trans ltp).
     by rewrite /= !eqxx.
   move: ltl=> /negbT; rewrite R_ltb_lt -leNgt=> ltl.
-  rewrite -/(vertical_intersection_point _ _).
   rewrite pvertE; last first.
     by rewrite /valid_edge/generic_trajectories.valid_edge ltl ltW // (lt_trans lbp).
   set W := (X in no_dup_seq_aux _ X).
@@ -503,12 +533,10 @@ have headin : head dummy_pt (leftmost_points bottom top) === top.
   rewrite /leftmost_points/generic_trajectories.leftmost_points.
   case: ifP => [lbl | ltl].
     rewrite R_ltb_lt in lbl.
-    rewrite -/(vertical_intersection_point _ _).
     rewrite pvertE; last first.
       by rewrite /valid_edge/generic_trajectories.valid_edge ltW // ltW // (lt_trans ltp).
     by rewrite /= left_on_edge.
   move: ltl=> /negbT; rewrite R_ltb_lt -leNgt=> ltl.
-  rewrite -/(vertical_intersection_point _ _).
   rewrite pvertE; last first.
     by rewrite /valid_edge/generic_trajectories.valid_edge ltl ltW // (lt_trans lbp).
   set W := (X in no_dup_seq_aux _ X).
@@ -521,12 +549,10 @@ have lastin : last dummy_pt (leftmost_points bottom top) === bottom.
   rewrite /leftmost_points/generic_trajectories.leftmost_points.
   case: ifP => [lbl | ltl].
     rewrite R_ltb_lt in lbl.
-    rewrite -/(vertical_intersection_point _ _).
     rewrite pvertE; last first.
       by rewrite /valid_edge/generic_trajectories.valid_edge ltW // ltW // (lt_trans ltp).
     by rewrite /= pvert_on // /valid_edge/generic_trajectories.valid_edge ltW // ltW // (lt_trans ltp).
   move: ltl=> /negbT; rewrite R_ltb_lt -leNgt=> ltl.
-  rewrite -/(vertical_intersection_point _ _).
   rewrite pvertE; last first.
     by rewrite /valid_edge/generic_trajectories.valid_edge ltl ltW // (lt_trans lbp).
   set W := (X in no_dup_seq_aux _ X).
@@ -542,11 +568,12 @@ case: ifP => [lbl | ltl].
   rewrite R_ltb_lt in lbl.
   have vtb : valid_edge bottom (left_pt top).
     by rewrite /valid_edge/generic_trajectories.valid_edge ltW // ltW // (lt_trans ltp).
-  rewrite -/(vertical_intersection_point _ _).
+
   rewrite pvertE //= andbT.
   have := order_below_viz_vertical vtb (valid_edge_left top).
   rewrite pvertE // => /(_ _ (left_pt top) erefl _ blt) /=.
-  have -> : vertical_intersection_point (left_pt top) top = Some (left_pt top).
+  have -> : vertical_intersection_point
+    (left_pt top) top = Some (left_pt top).
    rewrite (pvertE (valid_edge_left _)); congr (Some _); apply/eqP.
    by rewrite pt_eqE /= (on_pvert (left_on_edge _)) !eqxx.
   move=> /(_ erefl); rewrite le_eqVlt=> /orP[/eqP abs | -> //].

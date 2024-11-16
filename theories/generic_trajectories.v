@@ -503,7 +503,7 @@ Definition on_vert_edge (p : pt) (v : vert_edge) : bool :=
 
 Definition vert_edge_midpoint (ve : vert_edge) : pt :=
   {|p_x := ve_x ve; p_y := R_div ((R_add (ve_top ve) (ve_bot ve))) R2|}.
- 
+
 (* When a vertical edge contains the source or the target, we wish this
   point to be considered as the reference point for that edge. *)
 Definition vert_edge_to_reference_point (s t : pt) (v : vert_edge) :=
@@ -550,7 +550,7 @@ Definition add_extremity_reference_point
     seq.find (fun '(v, _, _) => on_vert_edge p v) doors in
   if purported_index < size doors then
     (doors, purported_index)
-  else 
+  else
     let '(i, c) :=
       head (size indexed_cells, dummy_cell)
         (filter (fun '(i', c') => strict_inside_closed p c')  indexed_cells) in
@@ -584,7 +584,7 @@ Definition dummy_door := (dummy_vert_edge, 0, 0).
   between the reference points. TODO: this computation does not take
   into account the added trajectory to go to a safe point inside the
   cell where the doors are vertically aligned.  *)
-Definition distance (doors : seq door) (s t : pt) 
+Definition distance (doors : seq door) (s t : pt)
   (i j : nat) :=
   let '(v1, _, _) := seq.nth dummy_door doors i in
   let '(v2, _, _) := seq.nth dummy_door doors j in
@@ -680,7 +680,7 @@ Definition midpoint (p1 p2 : pt) : pt :=
    the middle of the low edge, and their middle. *)
 Definition cell_center (c : cell) :=
   midpoint
-    (midpoint (seq.last dummy_pt (left_pts c)) 
+    (midpoint (seq.last dummy_pt (left_pts c))
               (head dummy_pt (right_pts c)))
     (midpoint (head dummy_pt (left_pts c))
               (seq.last dummy_pt (right_pts c))).
@@ -728,7 +728,7 @@ Definition common_index (s1 s2 : seq nat) :=
   let intersect := intersection s1 s2 in
   seq.head 0 intersect.
 
-Definition door_to_annotated_point s t (d : door) 
+Definition door_to_annotated_point s t (d : door)
   (door_index : nat) :=
   let p' := vert_edge_to_reference_point s t d.1.1 in
   let annot :=
@@ -867,7 +867,7 @@ Fixpoint break_segments (s : seq (annotated_point * annotated_point)) :
     (Apt (midpoint p1 p2) None (intersection a1 a2), Apt p2 door_index2 a2) ::
         break_segments tl
   | nil => nil
-  end. 
+  end.
 
 (* The connection at anchor points is straight (because it comes
    from a straight line segment.  The connection between two anchor points
@@ -880,7 +880,7 @@ Variant curve_element :=
 
 (* This function assumes that every other straight line segment goes into
   an angle, and the other go into a straight connection.  The angles
-  (represented by adjacent pairs) are then replace by Bezier curves. 
+  (represented by adjacent pairs) are then replace by Bezier curves.
   the last element is left as is. *)
 (* The input of this function is guaranteed to have b = b' in the second
   pattern matching rule below. *)
@@ -923,7 +923,7 @@ end.
   a b c is ccw (counter clockwise). It assumes that there is no need to
  check the bottom point. *)
 Fixpoint check_bezier_ccw (fuel : nat) (v : vert_edge)
-  (a b c : pt) : 
+  (a b c : pt) :
   option bool :=
 match fuel with
 | O => None
@@ -934,7 +934,7 @@ match fuel with
   else if
      point_under_edge top_of_edge (Bedge a b) ||
      point_under_edge top_of_edge (Bedge b c)
-  then 
+  then
     Some false
   else
     let b' := midpoint a b in
@@ -955,7 +955,7 @@ end.
   a b c is cw (clockwise).
   It assumes that there is no need to check the top point. *)
 Fixpoint check_bezier_cw (fuel : nat) (v : vert_edge)
-  (a b c : pt) : 
+  (a b c : pt) :
   option bool :=
 match fuel with
 | O => None
@@ -966,7 +966,7 @@ match fuel with
   else if
      negb (point_strictly_under_edge bot_of_edge (Bedge a b)) ||
      negb (point_strictly_under_edge bot_of_edge (Bedge b c))
-  then 
+  then
     Some false
   else
     let b' := midpoint a b in
@@ -985,7 +985,7 @@ end.
 
 (* This function verifies that the Bezier curve does pass through the
   door that was initially given has a constraint for the broken line.  This
-  is done by performing a dichotomy on the Bezier curve until we either 
+  is done by performing a dichotomy on the Bezier curve until we either
   see explicitely that the condition is met or that the condition is
   violated.  When the condition is violated, a new Bezier curve is proposed
   and by creating two new anchor points half way between the previous
@@ -1018,7 +1018,7 @@ match e with
     |straight _ _ => e' :: nil
     | bezier p1' p2' p3' =>
       let check_function :=
-      if R_ltb R0 
+      if R_ltb R0
           (area3 (apt_val p1') (apt_val p2') (apt_val p3')) then
           check_bezier_ccw
       else
@@ -1026,11 +1026,11 @@ match e with
         match check_function fuel_constant vedge
                   (apt_val p1')(apt_val p2')(apt_val p3') with
         | Some true => bezier p1 p2 p3 :: nil
-        | _ => 
+        | _ =>
           match fuel with
           | S p =>
-            straight p1 
-               (Apt (midpoint (apt_val p1) (apt_val p2)) 
+            straight p1
+               (Apt (midpoint (apt_val p1) (apt_val p2))
                     None (cell_indices p1))
               ::
               check_curve_element_and_repair p doors
@@ -1066,7 +1066,7 @@ Definition point_to_point (bottom top : edge) (obstacles : seq edge)
   (initial final : pt) : seq curve_element :=
   let cells := edges_to_cells bottom top obstacles in
   match source_to_target cells initial final with
-  | Some (doors, s) => 
+  | Some (doors, s) =>
     List.map (fun '(a, b) => straight a b) s
   | None => nil
   end.

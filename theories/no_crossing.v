@@ -48,7 +48,7 @@ field; split; auto; intros abs; case dn0; rewrite <- abs; ring.
 Qed.
 
 Close Scope R_scope.
-  
+
 (* this function assumes the two edge directions cross and the first edge *)
 Definition cross_first_coordinate (e1 e2 : edge) :=
   let yl2 := p_y (left_pt e2) in
@@ -103,7 +103,7 @@ Definition have_crossing (e1 e2 : edge) : bool :=
       Qlt_bool (cross_first_coordinate e1 e2) (p_x (right_pt e1)))
   else
    (* The two edges are parallel.  They may still touch. *)
-   if negb (Qeq_bool 
+   if negb (Qeq_bool
              (area3 _ Qplus Qminus Qmult (left_pt e1) (left_pt e2) (right_pt e2)) 0) then
      true
    else
@@ -154,7 +154,7 @@ Fixpoint make_broken_edges (e : edge) (break_points : seq Q) :=
   | nil => e :: nil
   | bp :: bps =>
     let intermediate_point := (Bpt bp (pre_cross_second_coordinate e bp)) in
-    Bedge (left_pt e) intermediate_point :: 
+    Bedge (left_pt e) intermediate_point ::
     make_broken_edges (Bedge intermediate_point (right_pt e)) bps
   end.
 
@@ -182,11 +182,11 @@ end.
 
 Definition add_edge_avoid_cross (evs : seq event) (e : edge) :=
   seq.foldl (fun evs' e' =>
-               add_event (left_pt e') e' false 
+               add_event (left_pt e') e' false
                   (add_event (right_pt e') e' true
                         (repair_hit_edge e' evs')))
      evs
-     (make_broken_edges e 
+     (make_broken_edges e
           (no_dup_seq_aux Qeq_bool
               (path.sort Qlt_bool (find_all_crossing_points e evs)))).
 
@@ -206,8 +206,8 @@ Definition e2 := (Bedge (Bpt 0 0) (Bpt 2 (-2))).
 Definition e3 := (Bedge (Bpt 0 (-3)) (Bpt 2 1)).
 Definition e4 := Bedge (Bpt 0 0) (Bpt 2 0).
 
-Compute (make_broken_edges e2 
-           (find_all_crossing_points e2 (edges_to_events_nc (e1 :: nil)))). 
+Compute (make_broken_edges e2
+           (find_all_crossing_points e2 (edges_to_events_nc (e1 :: nil)))).
 
 Notation dummy_edge := (dummy_edge Q 0 edge Bedge).
 
@@ -228,8 +228,8 @@ Compute List.length (List.concat (List.map (fun ev => outgoing ev) evs14)).
 
 Definition display_break_points (e : edge) (bps : seq Q) :=
    List.concat (
-   List.map (fun e => 
-          (display_edge 300 400 70 
+   List.map (fun e =>
+          (display_edge 300 400 70
             (Bedge (Bpt (p_x (right_pt e) - 0.5) (p_y (right_pt e)))
                    (Bpt (p_x (right_pt e) + 0.5) (p_y (right_pt e)))) ::
             display_edge 300 400 70
@@ -247,7 +247,7 @@ Compute repair_hit_edge e3 evs12.
 
 Notation edge_eqb := (@edge_eqb Q Qeq_bool edge left_pt right_pt).
 Lemma noc14 :
-  let l := List.concat (List.map outgoing evs14) in 
+  let l := List.concat (List.map outgoing evs14) in
   forallb (fun g => forallb (fun g' => edge_eqb g g' || negb (have_crossing g g')) l) l = true.
 Proof. easy. Qed.
 
@@ -265,10 +265,10 @@ Compute (concat "
    display_edge 300 400 70 example_bottom ::
    display_edge 300 400 70 example_top ::
    List.map (display_edge 300 400 70)
-         (List.concat (List.map (fun ev => outgoing ev) 
+         (List.concat (List.map (fun ev => outgoing ev)
                 evs14
 (*  ((* add_event (left_pt e3_1) e3_1 false *)
-                   ((* add_edge_avoid_cross_debug *) 
+                   ((* add_edge_avoid_cross_debug *)
 add_edge_avoid_cross e3 evs12)) *))) ++
         "stroke"%string :: ""%string ::
         postscript_end_of_file)).
@@ -284,17 +284,17 @@ Compute (concat "
         (display_edge 300 400 70 e2) ::
         (display_edge 300 400 70 e3) ::
         (display_edge 300 400 70 e4) ::
-        List.map (display_edge 300 400 70) 
+        List.map (display_edge 300 400 70)
             (make_broken_edges e3 (find_all_crossing_points e3 ev12)) ++
         "stroke"%string ::
         "[2 8] 0 setdash"%string ::
-        (display_edge 300 400 70 
+        (display_edge 300 400 70
             (Bedge (Bpt (cross_first_coordinate e1 e2) (-2))
                              (Bpt (cross_first_coordinate e1 e2) 2))) ::
         (display_edge 300 400 70
             (Bedge (Bpt 0 (cross_second_coordinate e1 e2))
                (Bpt 2 (cross_second_coordinate e1 e2)))) ::
-        display_break_points e3 
+        display_break_points e3
             (find_all_crossing_points e3 ev12) ++
         "stroke"%string :: ""%string ::
         postscript_end_of_file)).

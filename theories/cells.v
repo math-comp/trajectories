@@ -214,12 +214,19 @@ Definition close_cell (p : pt) (c : cell) :=
   match vertical_intersection_point p (low c),
         vertical_intersection_point p (high c) with
   | None, _ | _, None => c
-  | Some p1, Some p2 => 
+  | Some p1, Some p2 =>
     Bcell (left_pts c) (no_dup_seq [:: p2; p; p1]) (low c) (high c)
   end.
 
 Definition closing_cells (p : pt) (contact_cells: seq cell) : seq cell :=
   [seq close_cell p c | c <- contact_cells].
+
+Lemma closing_cellsE p cs :
+  closing_cells p cs =
+  generic_trajectories.closing_cells (RealField.sort R) eq_op <=%R +%R
+  (fun x y => x - y) *%R (fun x y => x / y) edge (@left_pt R) (@right_pt R)
+   p cs.
+Proof. by []. Qed.
 
 Lemma close_cell_preserve_3sides p c :
   [/\ low (close_cell p c) = low c,
@@ -255,7 +262,7 @@ Lemma inside_box_valid_bottom_top p g :
   g \in [:: bottom; top] -> valid_edge g p.
 Proof.
 move=>/andP[] _ /andP[] /andP[] /ltW a /ltW b /andP[] /ltW c /ltW d.
-rewrite /valid_edge/generic_trajectories.valid_edge. 
+rewrite /valid_edge/generic_trajectories.valid_edge.
 by rewrite !inE=> /orP[] /eqP ->; rewrite ?(a, b, c, d).
 Qed.
 
@@ -295,7 +302,7 @@ Definition adj_rel := [rel x y : cell | high x == low y].
 
 Definition adjacent_cells := sorted adj_rel.
 
-Lemma adjacent_catW s1 s2 : 
+Lemma adjacent_catW s1 s2 :
   adjacent_cells (s1 ++ s2) -> adjacent_cells s1 /\ adjacent_cells s2.
 Proof.
 case: s1 => [ // | cs1  s1 /=]; rewrite /adjacent_cells.
@@ -886,8 +893,8 @@ Qed.
 
 Lemma below_seq_higher_edge s c e p :
   {in [seq high i | i <- rcons s c] & & ,transitive (@edge_below R)} ->
-  adjacent_cells (rcons s c) -> s_right_form (rcons s c) -> 
-  seq_valid (rcons s c) e -> 
+  adjacent_cells (rcons s c) -> s_right_form (rcons s c) ->
+  seq_valid (rcons s c) e ->
   {in [seq high i | i <- rcons s c] &, no_crossing R} ->
   {in rcons s c, forall g, open_cell_side_limit_ok g} ->
   {in rcons s c, forall c1, strict_inside_open p c1 ->
@@ -913,7 +920,7 @@ have adj' : sorted (@edge_below R) (rcons sg g).
      by rewrite (@filter_map _ _ high) filter_rcons /= vgp map_rcons.
   rewrite sggq.
   apply: (sorted_filter_in e_trans).
-    apply/allP=> g1 /mapP[c' + g'eq]. 
+    apply/allP=> g1 /mapP[c' + g'eq].
     rewrite topredE !mem_rcons !inE.
     rewrite /g=>/orP[/eqP <- | c'in].
       by rewrite map_rcons mem_rcons inE g'eq eqxx.
@@ -947,12 +954,12 @@ apply: (edge_below_trans _ vale' noc); right; exact: llim.
 Qed.
 
 Lemma right_side_below_seq_higher_edge s c e p :
-  adjacent_cells (rcons s c) -> s_right_form (rcons s c) -> 
+  adjacent_cells (rcons s c) -> s_right_form (rcons s c) ->
   seq_valid (rcons s c) e ->
   {in [seq high i | i <- rcons s c], forall g, p_x e < p_x (right_pt g)} ->
   {in [seq high i | i <- rcons s c] &, no_crossing R} ->
   {in rcons s c, forall c1, open_cell_side_limit_ok c1} ->
-  {in rcons s c, forall c1, strict_inside_open p c1 -> 
+  {in rcons s c, forall c1, strict_inside_open p c1 ->
       valid_edge (high c) p -> p <<< high c}.
 Proof.
 move => adj rfs svals rlim noc csok.
@@ -1038,7 +1045,7 @@ Qed.
 Lemma pvert_y_bottom p : inside_box p -> pvert_y p bottom < p_y p.
 Proof.
 have tmp : bottom \in [:: bottom; top] by rewrite inE eqxx.
-move=> /[dup]/inside_box_valid_bottom_top=> /(_ _ tmp) val. 
+move=> /[dup]/inside_box_valid_bottom_top=> /(_ _ tmp) val.
 move=> /andP[] /andP[] + _ _.
 by rewrite (under_pvert_y val) -ltNge.
 Qed.
@@ -1120,7 +1127,7 @@ Definition edge_covered (e : edge) (os : seq cell) (cs : seq cell) :=
     connect_limits (rcons pcc opc) /\
     opc \in os /\
     left_limit (head_cell (rcons pcc opc)) = p_x (left_pt e)) \/
-  (exists pcc, pcc != [::] /\ 
+  (exists pcc, pcc != [::] /\
     {subset pcc <= cs} /\
     {in pcc, forall c, high c = e} /\
     connect_limits pcc /\
@@ -1213,7 +1220,7 @@ by rewrite ocd; case: cc => [ | a cc'] /=; rewrite !(mem_cat, inE) eqxx ?orbT.
 Defined.
 
 #[clearbody]
-Let vle : valid_edge le p.  
+Let vle : valid_edge le p.
 Proof. by have /andP[] := (allP sval _ headin). Defined.
 
 #[clearbody]
@@ -1253,7 +1260,7 @@ have hc1q : high c1 = low (head lcc cc).
   move: adj; rewrite ocd fc_eq -cats1 -!catA=> /adjacent_catW[] _ /=.
   by case: (cc) => [ | ? ?] /= /andP[] /eqP.
 have palc1 : p >>= low c1.
-  apply/negP=> /oc1 abs.  
+  apply/negP=> /oc1 abs.
   by move: ctfc; rewrite contains_pointE -hc1q abs.
 have nctc1 : ~~ contains_point p c1.
   by apply: allnct; rewrite fc_eq mem_rcons inE eqxx.
@@ -1362,7 +1369,7 @@ Proof. by split; last exact fclc_not_contain. Qed.
 
 Lemma fclc_not_end_aux c e :
   point e = p ->
-  (c \in fc) || (c \in lc) -> 
+  (c \in fc) || (c \in lc) ->
   (~ event_close_edge (low c) e) /\ (~ event_close_edge (high c) e).
 Proof.
 move=> pq /[dup] cin /fclc_not_contain/negP.

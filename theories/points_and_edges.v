@@ -570,6 +570,11 @@ Definition edge_below (e1 : edge) (e2 : edge) : bool :=
 ((left_pt e1 <<= e2) && (right_pt e1 <<= e2))
 || (~~  (left_pt e2 <<< e1) && ~~ (right_pt e2<<< e1)).
 
+Lemma edge_belowE e1 e2 : edge_below e1 e2 =
+  generic_trajectories.edge_below (RealField.sort R) eq_op <=%R +%R
+    (fun x y => x - y) *%R 1 edge left_pt right_pt e1 e2.
+Proof. by []. Qed.
+
 Notation "e1 '<|' e2" := (edge_below e1 e2)( at level 70, no associativity).
 
 Definition below_alt (e1 : edge) (e2 : edge) :=
@@ -1433,7 +1438,7 @@ Definition lexePt (p1 p2 : pt) : bool :=
 Lemma lexPtW p1 p2 : lexPt p1 p2 -> lexePt p1 p2.
 Proof.
 rewrite /lexPt /lexePt =>/orP [-> //=| /andP [] -> y_ineq].
-rewrite ltW //. 
+rewrite ltW //.
 by rewrite orbT.
 Qed.
 
@@ -1485,7 +1490,7 @@ Proof.
   by rewrite (lt_trans yineq yineq2) eqxx orbT.
 Qed.
 
-Lemma lexePt_lexPt_trans p1 p2 p3 : 
+Lemma lexePt_lexPt_trans p1 p2 p3 :
 lexePt p1 p2 -> lexPt p2 p3 -> lexPt p1 p3.
 Proof.
 rewrite /lexePt /lexPt => /orP  [x_ineq|/andP  [] /eqP -> y_ineq /orP [-> // |/andP []/eqP -> y_s]].
@@ -1921,17 +1926,17 @@ by rewrite (on_edge_same_point pone (pvert_on vpe)).
 Qed.
 
 Definition cmp_slopes e1 e2 :=
-  sg(((right_pt e2).y - (left_pt e2).y) * 
-     ((right_pt e1).x -(left_pt e1).x) - 
-     ((right_pt e1).y - (left_pt e1).y) * 
+  sg(((right_pt e2).y - (left_pt e2).y) *
+     ((right_pt e1).x -(left_pt e1).x) -
+     ((right_pt e1).y - (left_pt e1).y) *
      ((right_pt e2).x - (left_pt e2).x)).
 
-Definition pedge_below p e1 e2 := 
-  (pvert_y p e1 < pvert_y p e2) || 
+Definition pedge_below p e1 e2 :=
+  (pvert_y p e1 < pvert_y p e2) ||
   ((pvert_y p e1 == pvert_y p e2) && (0 <= cmp_slopes e1 e2)).
 
-Definition pedge_below' p e1 e2 := 
-  (pvert_y p e1 < pvert_y p e2) || 
+Definition pedge_below' p e1 e2 :=
+  (pvert_y p e1 < pvert_y p e2) ||
   ((pvert_y p e1 == pvert_y p e2) && (cmp_slopes e1 e2 <= 0)).
 
 Lemma same_left_edge_below_slopes e1 e2 :
@@ -2046,7 +2051,7 @@ Lemma cmp_slopesNC e1 e2 : -cmp_slopes e1 e2 = cmp_slopes e2 e1.
 Proof. by rewrite /cmp_slopes -sgrN [in LHS]opprB. Qed.
 
 Lemma contact_left_slope e1 e2 :
-  left_pt e1 === e2 -> 
+  left_pt e1 === e2 ->
   (right_pt e1 <<= e2) = (0 <= cmp_slopes e1 e2) /\
   (right_pt e1 <<< e2) = (0 < cmp_slopes e1 e2).
 Proof.
@@ -2081,7 +2086,7 @@ by rewrite /e2' /= [in LHS](mulrC (_.x - _)).
 Qed.
 
 Lemma contact_right_slope e1 e2 :
-  right_pt e1 === e2 -> 
+  right_pt e1 === e2 ->
   (left_pt e1 <<= e2) = (cmp_slopes e1 e2 <= 0) /\
   (left_pt e1 <<< e2) = (cmp_slopes e1 e2 < 0).
 Proof.
@@ -2380,7 +2385,7 @@ by move=> s12 s23; rewrite (le_trans s23 s12).
 Qed.
 
 Lemma edge_below_trans p (s : pred edge) :
-  {in s, forall e, p.x < (right_pt e).x} \/ 
+  {in s, forall e, p.x < (right_pt e).x} \/
   {in s, forall e, (left_pt e).x < p.x} ->
   {in s, forall e, valid_edge e p} -> {in s &, no_crossing} ->
   {in s & & , transitive edge_below}.
@@ -2590,7 +2595,7 @@ have hp : {in bottom :: s &,
 by move/(homo_path_in hp)=> /(_ (allss (bottom :: s))).
 Qed.
 
-Lemma edge_below_gap bottom s s' le r p g g' : 
+Lemma edge_below_gap bottom s s' le r p g g' :
 {in bottom::rcons s le ++ s' &, no_crossing} ->
 all (valid_edge^~ r) (bottom :: rcons s le ++ s') ->
 path edge_below bottom (rcons s le ++ s') ->
@@ -2617,7 +2622,7 @@ have aval' : all (valid_edge^~ r) (bottom :: rcons s le).
   apply/allP=> u uin; apply: (allP aval).
   move: uin; rewrite !(inE, mem_cat, mem_rcons).
   by move=> /orP[| /orP[]] ->; rewrite ?orbT.
-have aval'' : all (valid_edge^~ r) (le :: s'). 
+have aval'' : all (valid_edge^~ r) (le :: s').
   apply/allP=> u uin; apply: (allP aval).
   move: uin; rewrite !(inE, mem_cat, mem_rcons).
   by move=> /orP[] ->; rewrite ?orbT.
@@ -2638,7 +2643,7 @@ have g_le : pvert_y r g <= pvert_y r le.
 by apply: le_lt_trans le_g'.
 Qed.
 
-Lemma edge_above_gap bottom s s' he r p g g' : 
+Lemma edge_above_gap bottom s s' he r p g g' :
 {in bottom::rcons s he ++ s' &, no_crossing} ->
 all (valid_edge^~ r) (bottom :: rcons s he ++ s') ->
 path edge_below bottom (rcons s he ++ s') ->
@@ -2665,7 +2670,7 @@ have aval' : all (valid_edge^~ r) (bottom :: rcons s he).
   apply/allP=> u uin; apply: (allP aval).
   move: uin; rewrite !(inE, mem_cat, mem_rcons).
   by move=> /orP[| /orP[]] ->; rewrite ?orbT.
-have aval'' : all (valid_edge^~ r) (he :: s'). 
+have aval'' : all (valid_edge^~ r) (he :: s').
   apply/allP=> u uin; apply: (allP aval).
   move: uin; rewrite !(inE, mem_cat, mem_rcons).
   by move=> /orP[] ->; rewrite ?orbT.
