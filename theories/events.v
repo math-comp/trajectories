@@ -17,24 +17,29 @@ Section working_environment.
 
 Variable R : realFieldType.
 
-Notation pt := (pt R).
+Notation pt := (pt (RealField.sort R)).
 Notation edge := (edge R).
+Notation left_pt := (@left_pt R).
+Notation right_pt := (@right_pt R).
 Notation p_x := (p_x R).
 Notation p_y := (p_y R).
 
 Notation event := (event R edge).
 Notation point := (point R edge).
 Notation outgoing := (outgoing R edge).
-Notation valid_edge := (valid_edge R le edge (@left_pt R) (@right_pt R)).
+Notation valid_edge := (valid_edge R le edge left_pt right_pt).
 Notation point_under_edge :=
-  (point_under_edge R le +%R (fun x y => x - y) *%R 1 edge (@left_pt R)
-    (@right_pt R)).
+  (point_under_edge (RealField.sort R) le +%R (fun x y => x - y) *%R 1 edge left_pt
+    right_pt).
 Notation "p <<= g" := (point_under_edge p g).
 Notation "p >>> g" := (~~ (point_under_edge p g)).
 Notation point_strictly_under_edge :=
-  (point_strictly_under_edge  R eq_op le +%R (fun x y => x - y) *%R 1
-    edge (@left_pt R) (@right_pt R)).
+  (point_strictly_under_edge  (RealField.sort R) eq_op le +%R (fun x y => x - y) *%R 1
+    edge left_pt right_pt).
 Notation "p <<< g" := (point_strictly_under_edge p g).
+Notation edge_below :=
+  (edge_below (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
+   edge left_pt right_pt).
 
 Definition event_eqb (ea eb : event) : bool :=
   (point ea == point eb :> pt) && (outgoing ea == outgoing eb).
@@ -158,18 +163,18 @@ Definition out_left_event ev :=
 
 Lemma outleft_event_sort e :
   out_left_event e ->
-  forall ed, ed \in sort (@edge_below R) (outgoing e) -> left_pt ed == point e.
+  forall ed, ed \in sort edge_below (outgoing e) -> left_pt ed == point e.
 Proof.
 move=> outleft ed edin; apply: outleft.
-by have <- := perm_mem (permEl (perm_sort (@edge_below _) (outgoing e))).
+by have <- := perm_mem (permEl (perm_sort edge_below (outgoing e))).
 Qed.
 
 Lemma close_out_from_event_sort event future :
   close_out_from_event event future ->
-  all (end_edge^~ future) (sort (@edge_below R) (outgoing event)).
+  all (end_edge^~ future) (sort edge_below (outgoing event)).
 Proof.
 move/allP=> outP; apply/allP=> x xin; apply outP.
-by have <- := perm_mem (permEl (perm_sort (@edge_below R) (outgoing event))).
+by have <- := perm_mem (permEl (perm_sort edge_below (outgoing event))).
 Qed.
 
 Definition events_to_edges := flatten \o (map outgoing).
@@ -186,10 +191,10 @@ Qed.
 
 Lemma sort_edge_below_sorted s :
   {in s &, @no_crossing _} ->
-  sorted (@edge_below R) (sort (@edge_below R) s).
+  sorted edge_below (sort edge_below s).
 Proof.
 move=> noc.
-have /sort_sorted_in : {in s &, total (@edge_below _)}.
+have /sort_sorted_in : {in s &, total edge_below}.
   by move=> x1 x2 x1in x2in; apply/orP/noc.
 by apply; apply: allss.
 Qed.
@@ -201,7 +206,7 @@ Lemma sorted_outgoing (le he : edge) (e : event) :
   point e <<< he ->
   out_left_event e ->
   {in le :: he :: outgoing e &, no_crossing R} ->
-  sorted (@edge_below R) (le :: sort (@edge_below R) (outgoing e)).
+  sorted edge_below (le :: sort edge_below (outgoing e)).
 Proof.
  set ctxt := (le :: he :: _); move=> vl hl above under outs noc.
 have lein : le \in ctxt by rewrite /ctxt inE eqxx.
@@ -210,15 +215,15 @@ have osub : {subset outgoing e <= ctxt}.
   by move=> g gin; rewrite /ctxt !inE gin ?orbT.
 have [ls us noc''] :=
    outgoing_conditions above under lein hein vl hl osub noc outs.
-have /sort_sorted_in tmp : {in le :: outgoing e &, total (@edge_below R)}.
+have /sort_sorted_in tmp : {in le :: outgoing e &, total edge_below}.
   move=> e1 e2; rewrite !inE =>/orP[/eqP -> |e1in ]/orP[/eqP -> |e2in].
   - by rewrite edge_below_refl.
   - by rewrite ls.
   - by rewrite ls ?orbT.
   by apply/orP/noc''.
-rewrite /=; case oeq : (sort (@edge_below R) (outgoing e)) => [// | g1 gs] /=.
+rewrite /=; case oeq : (sort edge_below (outgoing e)) => [// | g1 gs] /=.
 rewrite ls; last first.
-  have <- := perm_mem (permEl (perm_sort (@edge_below R) (outgoing e))).
+  have <- := perm_mem (permEl (perm_sort edge_below (outgoing e))).
   by rewrite oeq inE eqxx.
 rewrite -[X in is_true X]/(sorted _ (g1 :: gs)) -oeq tmp //.
 by apply/allP=> x xin /=; apply/orP; right; exact: xin.

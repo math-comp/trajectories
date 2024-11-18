@@ -23,27 +23,34 @@ Notation Bpt := (Bpt R).
 Notation p_x := (p_x R).
 Notation p_y := (p_y R).
 Notation edge := (edge R).
-Notation valid_edge := (valid_edge R le edge (@left_pt R) (@right_pt R)).
+Notation left_pt := (@left_pt R).
+Notation right_pt := (@right_pt R).
+Notation valid_edge := (valid_edge (RealField.sort R) le edge left_pt right_pt).
 Notation point_under_edge :=
-  (point_under_edge R le +%R (fun x y => x - y) *%R 1 edge (@left_pt R)
-    (@right_pt R)).
+  (point_under_edge R le +%R (fun x y => x - y) *%R 1 edge left_pt
+    right_pt).
+
 Notation "p <<= g" := (point_under_edge p g).
 Notation "p >>> g" := (~~ (point_under_edge p g)).
 Notation point_strictly_under_edge :=
   (point_strictly_under_edge  R eq_op <=%R +%R (fun x y => x - y) *%R 1
-    edge (@left_pt R) (@right_pt R)).
+    edge left_pt right_pt).
 Notation "p <<< g" := (point_strictly_under_edge p g).
 Notation "p >>= g" := (~~ (point_strictly_under_edge p g)).
+Notation edge_below :=
+  (edge_below (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
+   edge left_pt right_pt).
+Notation "e1 '<|' e2" := (edge_below e1 e2)( at level 70, no associativity).
 Notation event := (event R edge).
 Notation point := (point R edge).
 Notation outgoing := (outgoing R edge).
 
 Notation cell := (cell R edge).
 Notation Bcell := (Bcell R edge).
-Notation low := (low R edge).
-Notation high := (high R edge).
-Notation left_pts := (left_pts R edge).
-Notation right_pts := (right_pts R edge).
+Notation low := (low (RealField.sort R) edge).
+Notation high := (high (RealField.sort R) edge).
+Notation left_pts := (left_pts (RealField.sort R) edge).
+Notation right_pts := (right_pts (RealField.sort R) edge).
 Notation set_left_pts := (set_left_pts (RealField.sort R) edge).
 
 Definition cell_eqb (ca cb : cell) : bool :=
@@ -93,7 +100,7 @@ Notation dummy_edge := (generic_trajectories.dummy_edge R 1 edge unsafe_Bedge).
 Notation dummy_cell := (dummy_cell R 1 edge unsafe_Bedge).
 Notation vertical_intersection_point :=
   (vertical_intersection_point R le +%R (fun x y => x - y) *%R
-    (fun x y => x / y) edge (@left_pt R) (@right_pt R)).
+    (fun x y => x / y) edge left_pt right_pt).
 
 Definition head_cell (s : seq cell) := head dummy_cell s.
 Definition last_cell (s : seq cell) := last dummy_cell s.
@@ -103,7 +110,7 @@ Proof. by move: c => []. Qed.
 
 Definition contains_point :=
   contains_point R eq_op le +%R (fun x y => x - y) *%R 1 edge
-  (@left_pt R) (@right_pt R).
+  left_pt right_pt.
 
 Lemma contains_pointE p c :
   contains_point p c = (p >>= low c) && (p <<= high c).
@@ -224,7 +231,7 @@ Definition closing_cells (p : pt) (contact_cells: seq cell) : seq cell :=
 Lemma closing_cellsE p cs :
   closing_cells p cs =
   generic_trajectories.closing_cells (RealField.sort R) eq_op <=%R +%R
-  (fun x y => x - y) *%R (fun x y => x / y) edge (@left_pt R) (@right_pt R)
+  (fun x y => x - y) *%R (fun x y => x / y) edge left_pt right_pt
    p cs.
 Proof. by []. Qed.
 
@@ -758,7 +765,7 @@ Definition disjoint_open_cells :=
 
 Lemma seq_edge_below s c :
   adjacent_cells (rcons s c) -> s_right_form (rcons s c) ->
-  path (@edge_below R) (head dummy_edge [seq low i | i <- rcons s c])
+  path edge_below (head dummy_edge [seq low i | i <- rcons s c])
      [seq high i | i <- rcons s c].
 Proof.
 elim: s => [ | c0 s Ih] // /[dup]/= /adjacent_cons adj' adj /andP[] rfc rfo.
@@ -770,7 +777,7 @@ Qed.
 
 Lemma seq_edge_below' s :
   adjacent_cells s -> s_right_form s ->
-  path (@edge_below R) (head dummy_edge [seq low i | i <- s])
+  path edge_below (head dummy_edge [seq low i | i <- s])
      [seq high i | i <- s].
 Proof.
 elim: s => [ | c0 s Ih] // /[dup]/= /adjacent_cons adj' adj /andP[] rfc rfo.
@@ -782,9 +789,9 @@ by rewrite -sq; apply: Ih.
 Qed.
 
 Lemma below_seq_higher_edge_aux s g e p  :
-  {in rcons s g & &, transitive (@edge_below R)} ->
+  {in rcons s g & &, transitive edge_below} ->
   all (fun g' => valid_edge g' p) (rcons s g) ->
-  sorted (@edge_below R) (rcons s g) ->
+  sorted edge_below (rcons s g) ->
   all (fun g' => valid_edge g' e) (rcons s g) ->
   {in rcons s g &, no_crossing R} ->
   {in rcons s g, forall g', p <<< g' -> p <<< g}.
@@ -804,7 +811,7 @@ have g0below : g0 <| g.
   by move=> /andP[]/allP + _; apply; rewrite mem_rcons inE eqxx.
 move:g1in; rewrite /= inE => /orP[/eqP g1g0 | intail].
   by apply: (order_edges_strict_viz_point' v0p vgp g0below); rewrite -g1g0.
-have tr' : {in rcons s g & &, transitive (@edge_below R)}.
+have tr' : {in rcons s g & &, transitive edge_below}.
   move=> g1' g2' g3' g1in g2in g3in.
   by apply: e_trans; rewrite inE ?g1in ?g2in ?g3in orbT.
 have svp' : all (fun x => valid_edge x p) (rcons s g) by case/andP: svp.
@@ -892,7 +899,7 @@ by have [uh //= | nuh] := boolP(p <<< high c);
 Qed.
 
 Lemma below_seq_higher_edge s c e p :
-  {in [seq high i | i <- rcons s c] & & ,transitive (@edge_below R)} ->
+  {in [seq high i | i <- rcons s c] & & ,transitive edge_below} ->
   adjacent_cells (rcons s c) -> s_right_form (rcons s c) ->
   seq_valid (rcons s c) e ->
   {in [seq high i | i <- rcons s c] &, no_crossing R} ->
@@ -908,13 +915,13 @@ have subp : {subset rcons sg g <= [seq high i | i <- rcons s c]}.
   move=> g1; rewrite map_rcons 2!mem_rcons 2!inE=>/orP[-> //| ].
   rewrite /sg=> /mapP[c1' + c1'eq]; rewrite mem_filter=>/andP[] _ c1'in.
   by apply/orP; right; apply/mapP; exists c1'.
-have e_trans' : {in rcons sg g & &, transitive (@edge_below R)}.
+have e_trans' : {in rcons sg g & &, transitive edge_below}.
   move=> g1 g2 g3 g1in g2in g3in.
   by apply: e_trans; apply: subp.
 have svp : all (fun g' => valid_edge g' p) (rcons sg g).
   apply/allP=> g'; rewrite -map_rcons => /mapP [c' + ->].
   by rewrite mem_rcons inE mem_filter => /orP[/eqP -> |  /andP[] + _].
-have adj' : sorted (@edge_below R) (rcons sg g).
+have adj' : sorted edge_below (rcons sg g).
   have sggq : rcons sg g =
              [seq i  <- [seq high j | j <- rcons s c] | valid_edge i p].
      by rewrite (@filter_map _ _ high) filter_rcons /= vgp map_rcons.

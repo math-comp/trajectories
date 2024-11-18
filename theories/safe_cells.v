@@ -43,6 +43,10 @@ Notation point_strictly_under_edge :=
     *%R 1 edge (@left_pt R)(@right_pt R)).
 Notation "p <<< e" := (point_strictly_under_edge p e).
 Notation "p >>= e" := (negb (point_strictly_under_edge p e)).
+Notation edge_below :=
+  (generic_trajectories.edge_below (RealField.sort R) eq_op <=%R +%R
+    (fun x y => x - y) *%R 1 edge (@left_pt R) (@right_pt R)).
+Notation "x <| y" := (edge_below x y).
 
 
 Variables closed : seq cell.
@@ -473,6 +477,10 @@ Notation point_strictly_under_edge :=
     *%R 1 edge (@left_pt R)(@right_pt R)).
 Notation "p <<< e" := (point_strictly_under_edge p e).
 Notation "p >>= e" := (negb (point_strictly_under_edge p e)).
+Notation edge_below :=
+  (generic_trajectories.edge_below (RealField.sort R) eq_op <=%R +%R
+    (fun x y => x - y) *%R 1 edge (@left_pt R) (@right_pt R)).
+Notation "x <| y" := (edge_below x y).
 
 Notation vertical_intersection_point :=
   (vertical_intersection_point (RealField.sort R) le +%R

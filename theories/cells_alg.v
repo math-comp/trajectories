@@ -35,6 +35,7 @@ Notation dummy_event := (dummy_event (RealField.sort R) 1 edge).
 Notation edge_below :=
   (generic_trajectories.edge_below (RealField.sort R) eq_op <=%R +%R
     (fun x y => x - y) *%R 1 edge (@left_pt R) (@right_pt R)).
+Notation "x <| y" := (edge_below x y).
 Notation valid_edge :=
   (generic_trajectories.valid_edge (RealField.sort R)
    le edge (@left_pt R) (@right_pt R)).
@@ -470,7 +471,7 @@ have req2 : path edge_below (low flc) [seq low i | i <- a ++ c1 :: b].
       by move: on0 headq; case: (open)=> [ // | ? ?] /=.
   rewrite headq' => pathoh.
   have : path edge_below bottom (bottom :: [seq high i | i <- open]).
-      by rewrite /= -edge_belowE edge_below_refl.
+      by rewrite /= edge_below_refl.
   have  := seq_low_high_shift on0 adj; rewrite headq => <-.
   rewrite -cats1 cat_path => /andP[] + _.
   rewrite ocd lceq Pab.
@@ -1622,7 +1623,6 @@ rewrite /=; apply/andP; split.
     by move=> /andP[] + _; do 3 move=> /andP[] _.
   rewrite map_rcons all_rcons.
   have := opening_cells_aux_high_last vle vhe oute'; rewrite oca_eq /= => ->.
-  rewrite -edge_belowE.
   have -> /= : bottom <| he.
     have lcco : lcc \in open by rewrite ocd !mem_cat inE eqxx !orbT.
     rewrite heq.

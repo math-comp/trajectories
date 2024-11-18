@@ -17,7 +17,7 @@ Section working_context.
 
 Variable (R : realFieldType).
 
-Notation pt := (pt R).
+Notation pt := (pt (RealField.sort R)).
 Notation Bpt := (Bpt _).
 Notation "p .x" := (generic_trajectories.p_x _ p)
     (at level 2, left associativity, format "p .x").
@@ -70,11 +70,11 @@ Notation area3 :=
 
 (* returns true if p is under e *)
 Notation point_under_edge :=
-  (point_under_edge R le +%R (fun x y => x - y) *%R 1 edge
+  (point_under_edge (RealField.sort R) le +%R (fun x y => x - y) *%R 1 edge
   left_pt right_pt).
 
 Notation point_strictly_under_edge :=
-  (point_strictly_under_edge R eq_op le +%R (fun x y => x - y) *%R 1 edge
+  (point_strictly_under_edge (RealField.sort R) eq_op le +%R (fun x y => x - y) *%R 1 edge
   left_pt right_pt).
 
 Lemma R_ltb_lt  x y : R_ltb R eq_op le x y = (x < y).
@@ -85,7 +85,7 @@ Lemma strictE p e :
     (fun x y => x - y) *%R 1 edge left_pt right_pt *) p e =
   (area3 p (left_pt e) (right_pt e) < 0).
 Proof.
-by rewrite /point_strictly_under_edge/generic_trajectories.point_strictly_under_edge R_ltb_lt subrr.
+by rewrite /point_strictly_under_edge R_ltb_lt subrr.
 Qed.
 
 Lemma underE p e :
@@ -93,7 +93,7 @@ Lemma underE p e :
     (fun x y => x - y) *%R 1 edge left_pt right_pt *) p e =
   (area3 p (left_pt e) (right_pt e) <= 0).
 Proof.
-by rewrite /point_under_edge/generic_trajectories.point_under_edge subrr.
+by rewrite /point_under_edge subrr.
 Qed.
 
 Notation "p '<<=' e" := (point_under_edge p e)( at level 70, no associativity).
@@ -566,9 +566,13 @@ Definition point_on_edge (p : pt) (e : edge) : bool :=
 
 Notation "p '===' e" := (point_on_edge p e) (at level 70, no associativity).
 
-Definition edge_below (e1 : edge) (e2 : edge) : bool :=
+(* Definition edge_below (e1 : edge) (e2 : edge) : bool :=
 ((left_pt e1 <<= e2) && (right_pt e1 <<= e2))
-|| (~~  (left_pt e2 <<< e1) && ~~ (right_pt e2<<< e1)).
+|| (~~  (left_pt e2 <<< e1) && ~~ (right_pt e2<<< e1)). *)
+
+Notation edge_below :=
+  (edge_below (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
+   edge left_pt right_pt).
 
 Lemma edge_belowE e1 e2 : edge_below e1 e2 =
   generic_trajectories.edge_below (RealField.sort R) eq_op <=%R +%R
