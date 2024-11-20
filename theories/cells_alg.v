@@ -5211,7 +5211,9 @@ Record disjoint_non_gp_invariant (bottom top : edge)
     left_opens : {in state_open_seq s, forall c, left_limit c <= lst_x _ _ s};
     btm_left_lex_snd_lst :
       {in state_open_seq s, forall c, lexePt (bottom_left_corner c)
-         (nth dummy_pt (left_pts (lst_open s)) 1)}}.
+         (nth dummy_pt (left_pts (lst_open s)) 1)};
+    cell_center_in :
+      {in state_closed_seq s, forall c, inside_closed' (cell_center c) c}}.
 
 Definition dummy_state :=
   Bscan [::] dummy_cell [::] [::] dummy_cell dummy_edge 0.
@@ -6179,6 +6181,25 @@ apply: inter_at_ext_no_crossing.
 by apply: (sub_in2 subo).
 Qed.
 
+Lemma simple_step_common_non_gp_invariant
+  bottom top s fop lsto lop cls lstc ev lsthe lstx evs
+  fc cc lcc lc le he:
+  bottom <| top ->
+  {in bottom :: top :: s &, forall e1 e2, inter_at_ext e1 e2} ->
+  {in s, forall g, inside_box bottom top (left_pt g) &&
+                   inside_box bottom top (right_pt g)} ->
+  (lstx <> p_x (point ev) \/ (lstx = p_x (point ev) /\ point ev >>> lsthe)) ->
+  open_cells_decomposition (fop ++ lsto :: lop) (point ev) =
+    (fc, cc, lcc, lc, le, he) ->
+  common_non_gp_invariant bottom top s
+     (Bscan fop lsto lop cls lstc lsthe lstx)
+     (ev :: evs) ->
+  common_non_gp_invariant bottom top s
+     (simple_step fc cc lc lcc le he cls lstc ev)
+    evs.
+Proof.
+Admitted.
+
 Lemma simple_step_disjoint_non_gp_invariant
   bottom top s fop lsto lop cls lstc ev lsthe lstx evs
   fc cc lcc lc le he:
@@ -6270,7 +6291,20 @@ have cngi : common_non_gp_invariant bottom top s
                 (close_cell (point ev) lcc) he (p_x (point ev))) evs.
   admit.
 have midrlstc : (1 < size (right_pts (close_cell (point ev) lcc)))%N.
-  admit.
+  have evnin:
+    point ev != Bpt (p_x (point ev)) (pvert_y (point ev) (high lcc)).
+    apply/eqP=> abs.
+    have := pvert_on vhlcc; rewrite -abs => {}abs.
+    by have := puh; rewrite strict_nonAunder // abs.
+  rewrite /close_cell.
+  rewrite !pvertE //.
+  cbn [no_dup_seq_aux].
+  case: ifP=> [/eqP /esym/eqP| diff]; first by rewrite (negbTE evnin).
+  by case: ifP.
+have center_in' :
+  {in rcons (cls ++ lstc :: closing_cells (point ev) cc)
+    (close_cell (point ev) lcc), forall c, inside_closed' (cell_center c) c}.
+  by admit.
 have ucc' : uniq [seq cell_center c | c <-
                           rcons (cls ++ (lstc :: closing_cells (point ev) cc))
                                 (close_cell (point ev) lcc)].
@@ -6471,6 +6505,8 @@ have btm_left_lex1 : {in (fc++nos) ++ lno :: lc,
   have := opening_cells_last_lexePt oute (underWC pal) puh vle vhe.
   rewrite -heq -leq /opening_cells oca_eq=> /(_ _ noc1 lebhe cnew).
   by rewrite nth1q.
+constructor=>//.
+rewrite /state_closed_seq/=.
 by constructor.
 Admitted.
 
@@ -6577,8 +6613,7 @@ constructor.
 - have := update_open_cell_common_non_gp_invariant bxwf nocs' inbox_s at_lstx
    under_lsthe comng.
   by rewrite /step/same_x at_lstx eqxx /= underW under_lsthe //= uocq.
-
-  have := step_keeps_pw cls lstc (inbox_events comi) oute rfo cbtom adj sval
+- have := step_keeps_pw cls lstc (inbox_events comi) oute rfo cbtom adj sval
     (esym hlo_eq) (fun (_ : _ = lstx) => evabove) nocs
     (pairwise_open_non_gp disng) => /=.
   rewrite /same_x  at_lstx eqxx /= underW under_lsthe //=.
