@@ -236,7 +236,7 @@ Qed.
 
 Lemma pue_f_on_edge_y a_x a_y b_x b_y m_x m_y :
   pue_f m_x m_y a_x a_y b_x b_y = 0 ->
-  (b_x - a_x) * m_y = m_x * (b_y -a_y)- (a_x * b_y - b_x *a_y).
+  (b_x - a_x) * m_y = m_x * (b_y - a_y)- (a_x * b_y - b_x *a_y).
 Proof.
 move=> abmeq0.
 apply/eqP; rewrite -subr_eq0; apply/eqP.
@@ -252,6 +252,14 @@ Proof.
 move=> on_ed.
 rewrite pue_f_linear /pue_f (pue_f_on_edge_y on_ed).
 mc_ring.
+Qed.
+
+Lemma pue_f_on_vertical the_x a_y b_y c_x c_y d_x d_y m_y :
+  (b_y - a_y) * pue_f the_x m_y c_x c_y d_x d_y =
+  (m_y - a_y) * pue_f the_x b_y c_x c_y d_x d_y +
+  (b_y - m_y) * pue_f the_x a_y c_x c_y d_x d_y.
+Proof.
+rewrite /pue_f; mc_ring.
 Qed.
 
 Lemma pue_f_triangle_on_edge a_x a_y b_x b_y p_x p_y p'_x p'_y :
@@ -416,6 +424,78 @@ move=> edge_cond <-.
 rewrite [X in (0 < X)](_ : _ = (px - ax) * (qy - py)); last first.
   by rewrite /pue_f; mc_ring.
 by rewrite pmulr_rgt0 subr_gt0.
+Qed.
+
+Lemma midpoint_vertical_decomposition (ax ay bx b_y the_x cy dy: R) :
+  pue_f the_x ((cy + dy) / (1 + 1)) ax ay bx b_y =
+  (pue_f the_x cy ax ay bx b_y + pue_f the_x dy ax ay bx b_y) / (1 + 1).
+Proof.
+have twon0: 2 != 0 :> R by rewrite pnatr_eq0.
+have [same_pt | diff] := eqVneq cy dy.
+  have -> : ((cy + dy) / (1 + 1)) = cy.
+    rewrite same_pt; apply: (mulIf twon0); rewrite mulfVK //.
+    by rewrite mulrDr !mulr1.
+  by apply: (mulIf twon0); rewrite mulfVK // mulrDr mulr1 same_pt.
+have half1 : (cy + dy) / 2 - cy = (dy - cy) / 2.
+  apply: (mulIf twon0); rewrite !(mulrDl, mulrBl) !mulfVK //.
+  by mc_ring.
+have half2 : dy - (cy + dy) / 2 = (dy - cy) / 2.
+  rewrite -mulNr.
+  apply: (mulIf twon0); rewrite !(mulrDl, mulrBl) !mulfVK //.
+  by mc_ring.
+have := pue_f_on_vertical the_x cy dy ax ay bx b_y ((cy + dy) / 2).
+rewrite half1 half2 -!mulrA -!mulrDr (mulrC (2 ^-1)).
+rewrite (addrC (pue_f _ dy _ _ _ _)).
+have dif' : dy - cy != 0 by move: diff; rewrite eq_sym subr_eq0.
+by move=> /(mulfI dif') ->.
+Qed.
+
+Lemma midpoint_decomposition (ax ay bx b_y cx cy dx dy : R):
+  pue_f ((cx + dx)/ (1 + 1)) ((cy + dy) / (1 + 1)) ax ay bx b_y =
+  (pue_f cx cy ax ay bx b_y + pue_f dx dy ax ay bx b_y) / (1 + 1).
+Proof.
+have twon0 : 2 != 0 :> R by rewrite pnatr_eq0.
+have [same_x | xdif] := eqVneq cx dx.
+  rewrite -same_x.
+  rewrite (_ : (cx + cx) / 2 = cx); last first.
+    by apply: (mulIf twon0); rewrite mulfVK // mulrDr mulr1.
+  by rewrite midpoint_vertical_decomposition.
+have difxn0 : dx - cx != 0.
+  by move: xdif; rewrite eq_sym -subr_eq0.
+have align: pue_f ((cx + dx) / 2) ((cy + dy) / 2) cx cy dx dy = 0.
+  rewrite /pue_f !(mulrAC _ (2 ^-1)) !mulrA -!mulNr.
+  apply: (mulIf twon0); rewrite !(mulrDl, mulrBl) !mulfVK //.
+  by mc_ring.
+have := @pue_f_on_edge cx cy dx dy ax ay bx b_y ((cx + dx) / 2)
+  ((cy + dy) / 2) align.
+have half1 : (cx + dx) / 2 - cx = (dx - cx) / 2.
+  apply: (mulIf twon0); rewrite !(mulrDl, mulrBl) !mulfVK //.
+  by mc_ring.
+have half2 : dx - (cx + dx) / 2 = (dx - cx) / 2.
+  rewrite -mulNr.
+  apply: (mulIf twon0); rewrite !(mulrDl, mulrBl) !mulfVK //.
+  by mc_ring.
+rewrite half1 half2.
+rewrite -!mulrA -!mulrDr => /(mulfI difxn0).
+by rewrite (mulrC 2^-1) (addrC (pue_f cx _ _ _ _ _)).
+Qed.
+
+Lemma half_between_le (x y : R) : 
+  x <= y -> x <= (x + y) / 2 <= y.
+Proof.
+move=> xley.
+have twon0 : 2 != 0 :> R by rewrite pnatr_eq0.
+have difge0 : 0 <= (y - x) / 2.
+  by apply: divr_ge0; rewrite // subr_ge0.
+apply/andP; split.
+  rewrite (_ : (x + y) / 2 = x + (y - x) / 2); last first.
+    apply: (mulIf twon0); rewrite (mulrDl _ _ 2) !mulfVK //.
+    mc_ring.
+  by rewrite cprD.
+rewrite (_ : (x + y) / 2 = y - (y - x) / 2); last first.
+  apply: (mulIf twon0); rewrite (mulrBl 2 _ _) !mulfVK //.
+  mc_ring.
+by rewrite gerBl.
 Qed.
 
 End ring_sandbox.
@@ -2694,6 +2774,58 @@ Qed.
 
 Definition non_inner (g : edge) (p : pt) :=
   p === g -> p = left_pt g \/ p = right_pt g.
+
+Lemma half_between_lt (x y : R) : x < y -> x < (x + y) / 2 < y.
+Proof.
+move=> xy.
+have cst2gt0 : (0 < 2 :> R) by apply: addr_gt0.
+apply/andP; split.
+  rewrite -(ltr_pM2r cst2gt0) -mulrA mulVf ?mulr1; last by apply: lt0r_neq0.
+  by rewrite mulrDr !mulr1 ler_ltD.
+rewrite -(ltr_pM2r cst2gt0) -mulrA mulVf ?mulr1; last by apply: lt0r_neq0.
+by rewrite mulrDr !mulr1 ltr_leD.
+Qed.
+
+Lemma half_between_edges (g1 g2 : edge) p :
+  valid_edge g1 p -> valid_edge g2 p -> p >>= g1 -> p <<< g2 ->
+  (Bpt (p_x R p) ((pvert_y p g1 + pvert_y p g2) / 2)) >>> g1 /\
+  (Bpt (p_x R p) ((pvert_y p g1 + pvert_y p g2) / 2)) <<< g2.
+Proof.
+move=> vg1 vg2 pal puh; set p1 := Bpt _ _.
+have samex : p_x R p1 = p_x R p by [].
+have v1g1 : valid_edge g1 p1 by rewrite (same_x_valid _ samex).
+have v1g2 : valid_edge g2 p1 by rewrite (same_x_valid _ samex).
+rewrite (under_pvert_y v1g1) (strict_under_pvert_y v1g2) -ltNge; apply/andP.
+apply: half_between_lt.
+have := puh; rewrite (strict_under_pvert_y vg2); apply: le_lt_trans.
+by rewrite leNgt -(strict_under_pvert_y vg1).
+Qed.
+
+Lemma midpoint_on_edge a b g :
+  a === g -> b === g -> midpoint R +%R (fun x y => x / y) 1 a b === g.
+Proof.
+have twon0 : 2 != 0 :> R by rewrite pnatr_eq0.
+move=> aon bon.
+have samex_imp_same : a.x = b.x -> a.y = b.y.
+  exact: (on_edge_same_point aon bon).
+move: samex_imp_same aon bon.
+case: a => [ax ay]; case: b => [bx b_y]; case: g => [[g1x g1y] [g2x g2y]/= glt].
+move=> same /andP /= [/eqP areaa /andP/= [g1lta altg2]].
+move=> /andP /= [/eqP areab /andP/= [g1ltb bltg2]].
+apply/andP; split.
+  rewrite /generic_trajectories.area3 /=.
+  move: (midpoint_decomposition g1x g1y g2x g2y ax ay bx b_y ).
+  rewrite /pue_f => ->.
+  by rewrite areaa areab addr0 mul0r.
+rewrite /midpoint /=.
+rewrite /valid_edge /=.
+have [aleb | agtb]:= lerP ax bx.
+  have /andP [alem mleb]:= half_between_le aleb.
+  by rewrite (le_trans _ alem) ?(le_trans mleb).
+have := half_between_le (ltW agtb).
+rewrite (addrC bx ax)=> /andP[blem mlea].
+by rewrite (le_trans _ blem) ?(le_trans mlea).
+Qed.
 
 End working_context.
 

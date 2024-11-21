@@ -18,22 +18,22 @@ Section working_environment.
 
 Variable R : realFieldType.
 
-Notation pt := (pt R).
-Notation Bpt := (Bpt R).
-Notation p_x := (p_x R).
-Notation p_y := (p_y R).
+Notation pt := (pt (RealField.sort R)).
+Notation Bpt := (Bpt (RealField.sort R)).
+Notation p_x := (p_x (RealField.sort R)).
+Notation p_y := (p_y (RealField.sort R)).
 Notation edge := (edge R).
 Notation left_pt := (@left_pt R).
 Notation right_pt := (@right_pt R).
 Notation valid_edge := (valid_edge (RealField.sort R) le edge left_pt right_pt).
 Notation point_under_edge :=
-  (point_under_edge R le +%R (fun x y => x - y) *%R 1 edge left_pt
+  (point_under_edge (RealField.sort R) le +%R (fun x y => x - y) *%R 1 edge left_pt
     right_pt).
 
 Notation "p <<= g" := (point_under_edge p g).
 Notation "p >>> g" := (~~ (point_under_edge p g)).
 Notation point_strictly_under_edge :=
-  (point_strictly_under_edge  R eq_op <=%R +%R (fun x y => x - y) *%R 1
+  (point_strictly_under_edge  (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
     edge left_pt right_pt).
 Notation "p <<< g" := (point_strictly_under_edge p g).
 Notation "p >>= g" := (~~ (point_strictly_under_edge p g)).
@@ -41,18 +41,19 @@ Notation edge_below :=
   (edge_below (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
    edge left_pt right_pt).
 Notation "e1 '<|' e2" := (edge_below e1 e2)( at level 70, no associativity).
-Notation event := (event R edge).
-Notation point := (point R edge).
-Notation outgoing := (outgoing R edge).
+Notation event := (event (RealField.sort R) edge).
+Notation point := (point (RealField.sort R) edge).
+Notation outgoing := (outgoing (RealField.sort R) edge).
 
-Notation cell := (cell R edge).
-Notation Bcell := (Bcell R edge).
+Notation cell := (cell (RealField.sort R) edge).
+Notation Bcell := (Bcell (RealField.sort R) edge).
 Notation low := (low (RealField.sort R) edge).
 Notation high := (high (RealField.sort R) edge).
 Notation left_pts := (left_pts (RealField.sort R) edge).
 Notation right_pts := (right_pts (RealField.sort R) edge).
 Notation set_left_pts := (set_left_pts (RealField.sort R) edge).
-
+Notation cell_center := (cell_center (RealField.sort R) +%R
+             (fun x y => x / y) 1 edge).
 Definition cell_eqb (ca cb : cell) : bool :=
   let: generic_trajectories.Bcell lptsa rptsa lowa higha := ca in
   let: generic_trajectories.Bcell lptsb rptsb lowb highb:= cb in
@@ -94,12 +95,12 @@ Definition unsafe_Bedge (a b : pt) :=
   if (ltrP (p_x a) (p_x b)) is LtrNotGe h then Bedge h else
     Bedge (ltr01 : p_x (Bpt 0 0) < p_x (Bpt 1 0)).
 
-Notation dummy_pt := (generic_trajectories.dummy_pt R 1).
-Notation dummy_event := (generic_trajectories.dummy_event R 1 edge).
-Notation dummy_edge := (generic_trajectories.dummy_edge R 1 edge unsafe_Bedge).
-Notation dummy_cell := (dummy_cell R 1 edge unsafe_Bedge).
+Notation dummy_pt := (generic_trajectories.dummy_pt (RealField.sort R) 1).
+Notation dummy_event := (generic_trajectories.dummy_event (RealField.sort R) 1 edge).
+Notation dummy_edge := (generic_trajectories.dummy_edge (RealField.sort R) 1 edge unsafe_Bedge).
+Notation dummy_cell := (dummy_cell (RealField.sort R) 1 edge unsafe_Bedge).
 Notation vertical_intersection_point :=
-  (vertical_intersection_point R le +%R (fun x y => x - y) *%R
+  (vertical_intersection_point (RealField.sort R) le +%R (fun x y => x - y) *%R
     (fun x y => x / y) edge left_pt right_pt).
 
 Definition head_cell (s : seq cell) := head dummy_cell s.
@@ -108,9 +109,12 @@ Definition last_cell (s : seq cell) := last dummy_cell s.
 Lemma left_pts_set c l: left_pts (set_left_pts c l) = l.
 Proof. by move: c => []. Qed.
 
-Definition contains_point :=
-  contains_point R eq_op le +%R (fun x y => x - y) *%R 1 edge
-  left_pt right_pt.
+Notation  contains_point :=
+  (contains_point (RealField.sort R) eq_op le +%R (fun x y => x - y) *%R 1 edge
+  left_pt right_pt).
+
+Notation midpoint :=
+  (midpoint (RealField.sort R) +%R (fun x y => x / y) 1).
 
 Lemma contains_pointE p c :
   contains_point p c = (p >>= low c) && (p <<= high c).
@@ -1429,6 +1433,85 @@ apply/andP; split.
  by apply: head_in_not_nil.
 by rewrite le_min in lemin; move: lemin=>/andP[].
 Qed.
+
+Lemma midpoint_swap a b c d :
+  midpoint (midpoint a b) (midpoint c d) =
+  midpoint (midpoint a d) (midpoint c b).
+Proof.
+rewrite /midpoint.
+apply/eqP; rewrite pt_eqE /= !mulrDl !addrA.
+rewrite !(addrAC _ (p_x d / (1 + 1) / (1 + 1))).
+rewrite !(addrAC _ (p_x b / (1 + 1) / (1 + 1))).
+rewrite !(addrAC _ (p_y d / (1 + 1) / (1 + 1))).
+rewrite !(addrAC _ (p_y b / (1 + 1) / (1 + 1))).
+by rewrite !eqxx.
+Qed.
+
+Lemma cell_center_close_cell_inside c p :
+  inter_at_ext (low c) (high c) -> low c != high c ->
+  open_cell_side_limit_ok c ->
+  valid_edge (low c) p -> valid_edge (high c) p ->
+  left_limit c < p_x p ->
+  inside_closed' (cell_center (close_cell p c)) (close_cell p c).
+Proof.
+move=> noc dif cok vlc vhc xdif.
+rewrite /inside_closed'.
+have twogt0: (0 : R) < 1 + 1 by apply: Num.Theory.addr_gt0.
+have [xrh xrl] : p_x (head dummy_pt (right_pts (close_cell p c))) = p_x p /\
+          p_x (last dummy_pt (right_pts (close_cell p c))) = p_x p.
+  rewrite /close_cell (pvertE vlc)(pvertE vhc) /=.
+  by case: ifP; case: ifP.
+have [xlh xll] :
+    p_x (head dummy_pt (left_pts (close_cell p c))) = left_limit c/\
+          p_x (last dummy_pt (left_pts (close_cell p c))) = left_limit c.
+  move: cok=> /andP[] + /andP[] + _.
+  have [_ _ ->] := close_cell_preserve_3sides p c.
+  case: (left_pts c) => [ | a [ | b tl]] //= _ /andP[] /eqP /[dup] eqa -> //.
+  rewrite -[_ && _]/(all (fun p => p_x p == left_limit c) (b :: tl)).
+  move=> /allP /(_ (last b tl) _) /eqP -> //.
+  by rewrite mem_last.
+have xcond :
+  left_limit (close_cell p c) < p_x (cell_center (close_cell p c))
+     < right_limit (close_cell p c).
+  rewrite /cell_center/midpoint.
+  rewrite xrl xrh xll xlh /=.
+  rewrite [left_limit (close_cell p c)]/left_limit.
+  have [_ _ ->] := close_cell_preserve_3sides p c.
+  rewrite -[p_x (last _ _)]/(left_limit _).
+  rewrite -mulrDr.
+  set one := (X in _ < _ * X / _ < _).
+  have one1 : one = 1.
+    rewrite /one -(mulr1 (_ ^-1)) -mulrDr mulVf //.
+    by move: twogt0; rewrite lt0r=> /andP[].
+  rewrite one1 mulr1.
+  rewrite /right_limit xrl.
+  by apply: half_between_lt.
+rewrite (proj1 (andP xcond)) andbT.
+have ab : cell_center (close_cell p c) >>> low (close_cell p c).
+  have [-> _ _] := close_cell_preserve_3sides p c.
+  rewrite /cell_center midpoint_swap.
+  have midl : midpoint (last dummy_pt (left_pts (close_cell p c)))
+               (last dummy_pt (right_pts (close_cell p c))) === low c.
+    have [_ _ ->] := close_cell_preserve_3sides p c.
+    apply: midpoint_on_edge.
+      by move: cok=> /andP[] _ /andP[] _ /andP[] _ /andP[] _ ->.
+    rewrite /close_cell (pvertE vlc) (pvertE vhc).
+    set w := last _ _.
+    have ->: w = Bpt (p_x p) (pvert_y p (low c)).
+      by rewrite /w /=; case: ifP=> A ; case: ifP=> B.
+    by apply: pvert_on.
+  have midh : midpoint (head dummy_pt (left_pts (close_cell p c)))
+               (head dummy_pt (right_pts (close_cell p c))) === high c.
+    have [_ _ ->] := close_cell_preserve_3sides p c.
+    apply: midpoint_on_edge.
+      by move: cok=> /andP[] _ /andP[] _ /andP[] _ /andP[] ->.
+    rewrite /close_cell (pvertE vlc) (pvertE vhc).
+    set w := head _ _.
+    have ->: w = Bpt (p_x p) (pvert_y p (high c)).
+      rewrite /w /=; case: ifP=> A ; case: ifP=> B //=.
+      by rewrite -(eqP B) (eqP A).
+    by rewrite (eqP A).
+  by apply: pvert_on.
 
 End proof_environment.
 

@@ -1263,7 +1263,7 @@ rewrite -(ler_pM2r cst2gt0) -mulrA mulVf ?mulr1; last by apply: lt0r_neq0.
 by rewrite mulrDr !mulr1 lerD.
 Qed.
 
-Lemma half_between (x y : R) : x < y -> x < (x + y) / 2 < y.
+Lemma half_between_lt (x y : R) : x < y -> x < (x + y) / 2 < y.
 Proof.
 move=> xy.
 have cst2gt0 : (0 < 2 :> R) by apply: addr_gt0.
@@ -1284,7 +1284,7 @@ have samex : p_x p1 = p_x p by [].
 have v1g1 : valid_edge g1 p1 by rewrite (same_x_valid _ samex).
 have v1g2 : valid_edge g2 p1 by rewrite (same_x_valid _ samex).
 rewrite (under_pvert_y v1g1) (strict_under_pvert_y v1g2) -ltNge; apply/andP.
-apply: half_between.
+apply: half_between_lt.
 have := puh; rewrite (strict_under_pvert_y vg2); apply: le_lt_trans.
 by rewrite leNgt -(strict_under_pvert_y vg1).
 Qed.
@@ -1344,10 +1344,10 @@ rewrite opening_cells_aux_eqn.
     rewrite !inE=> /orP[] /eqP abs.
       move: vle'; rewrite /valid_edge=> /andP[] + _; rewrite -abs.
       rewrite leNgt=> /negP[].
-      by have := half_between pxgt=> /andP[] + _; apply.
+      by have := half_between_lt pxgt=> /andP[] + _; apply.
     move: vlp; rewrite /valid_edge=> /andP[] _; rewrite -abs.
     rewrite leNgt=> /negP[].
-    by have := half_between pxgt=> /andP[] _ +.
+    by have := half_between_lt pxgt=> /andP[] _ +.
   have p1ale' : p1 >>= le' by rewrite (strict_nonAunder vlp1) p1onle'.
   have := half_between_edges vlp1 vhp1 p1ale' p1uh.
   set q := Bpt (p_x p1) ((pvert_y p1 le' + pvert_y p1 he) / 2).
@@ -1355,7 +1355,7 @@ rewrite opening_cells_aux_eqn.
   exists q.
   have [-> -> _] := close_cell_preserve_3sides p c0.
   rewrite right_limit_close_cell // left_limit_close_cell qal quh.
-  have := half_between pxgt=> /andP[] keepit ->; rewrite andbT /=.
+  have := half_between_lt pxgt=> /andP[] keepit ->; rewrite andbT /=.
   rewrite /c0/=.
   by case: ifP=>[] _; case: ifP=> [] _ /=; rewrite /left_limit /= keepit.
 move=> uns srt out sub /=.
@@ -1405,16 +1405,16 @@ have p1ug1 : p1 <<< g1.
   rewrite !inE=> /orP[] /eqP abs.
     move: vle'; rewrite /valid_edge=> /andP[] + _; rewrite -abs.
     rewrite leNgt=> /negP[].
-    by have := half_between pxgt=> /andP[] + _; apply.
+    by have := half_between_lt pxgt=> /andP[] + _; apply.
   move: vlp; rewrite /valid_edge=> /andP[] _; rewrite -abs.
   rewrite leNgt=> /negP[].
-  by have := half_between pxgt=> /andP[] _ +.
+  by have := half_between_lt pxgt=> /andP[] _ +.
 have p1ale' : p1 >>= le' by rewrite (strict_nonAunder vlp1) p1onle'.
 have := half_between_edges vlp1 vhp1 p1ale' p1ug1.
 set q := Bpt (p_x p1) ((pvert_y p1 le' + pvert_y p1 g1) / 2).
 move=> []qal qug1.
 exists q.
-have := half_between pxgt=> /andP[] keepit ->; rewrite andbT /=.
+have := half_between_lt pxgt=> /andP[] keepit ->; rewrite andbT /=.
 rewrite /c0/= qal qug1 /=.
 by case: ifP=> [] _ /=; rewrite /left_limit /= keepit.
 Qed.
