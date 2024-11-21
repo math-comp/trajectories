@@ -112,7 +112,6 @@ Proof. by move: c => []. Qed.
 Notation  contains_point :=
   (contains_point (RealField.sort R) eq_op le +%R (fun x y => x - y) *%R 1 edge
   left_pt right_pt).
-
 Notation midpoint :=
   (midpoint (RealField.sort R) +%R (fun x y => x / y) 1).
 
