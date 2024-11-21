@@ -1446,14 +1446,20 @@ rewrite !(addrAC _ (p_y b / (1 + 1) / (1 + 1))).
 by rewrite !eqxx.
 Qed.
 
+Lemma two_halves (x : R) : (x + x) / 2 = x.
+Proof.
+have twon0 : 2 != 0 :> R by rewrite pnatr_eq0.
+by apply: (mulIf twon0); rewrite mulfVK // mulrDr mulr1.
+Qed.
+
 Lemma cell_center_close_cell_inside c p :
-  inter_at_ext (low c) (high c) -> low c != high c ->
+  inter_at_ext (low c) (high c) -> low c != high c -> low c <| high c ->
   open_cell_side_limit_ok c ->
   valid_edge (low c) p -> valid_edge (high c) p ->
   left_limit c < p_x p ->
   inside_closed' (cell_center (close_cell p c)) (close_cell p c).
 Proof.
-move=> noc dif cok vlc vhc xdif.
+move=> noc dif cwf cok vlc vhc xdif.
 rewrite /inside_closed'.
 have twogt0: (0 : R) < 1 + 1 by apply: Num.Theory.addr_gt0.
 have [xrh xrl] : p_x (head dummy_pt (right_pts (close_cell p c))) = p_x p /\
@@ -1486,7 +1492,8 @@ have xcond :
   rewrite /right_limit xrl.
   by apply: half_between_lt.
 rewrite (proj1 (andP xcond)) andbT.
-have ab : cell_center (close_cell p c) >>> low (close_cell p c).
+have [ab bel] : cell_center (close_cell p c) >>> low (close_cell p c) /\
+          cell_center (close_cell p c) <<< high (close_cell p c).
   have [-> _ _] := close_cell_preserve_3sides p c.
   rewrite /cell_center midpoint_swap.
   have midl : midpoint (last dummy_pt (left_pts (close_cell p c)))
@@ -1508,9 +1515,50 @@ have ab : cell_center (close_cell p c) >>> low (close_cell p c).
     set w := head _ _.
     have ->: w = Bpt (p_x p) (pvert_y p (high c)).
       rewrite /w /=; case: ifP=> A ; case: ifP=> B //=.
-      by rewrite -(eqP B) (eqP A).
-    by rewrite (eqP A).
-  by apply: pvert_on.
+        by rewrite -(eqP B) (eqP A).
+      by rewrite (eqP A).
+    by apply: pvert_on.
+  set ml := (X in midpoint X _).
+  set mh := (X in midpoint _ X).
+  have [_ vh] := andP midh.
+  have [_ vl] := andP midl.
+  have same_x : p_x ml = p_x mh.
+    by rewrite /ml /mh /midpoint /= xrh xrl xlh xll.
+  have vlh : valid_edge (high c) ml.
+    by have := same_x_valid (high c) same_x => ->.
+  have mlab : ml >>= low c by rewrite strict_nonAunder // negb_and negbK midl.
+  have mll : ml <<= low c.
+    by rewrite under_onVstrict // midl.
+  have mldifl :  left_limit c < p_x ml < p_x p.
+    rewrite /ml/midpoint/= xrl xll.
+    by apply: (half_between_lt xdif).
+  have nl : p_x (left_pt (low c)) < p_x ml.
+    apply: (le_lt_trans  _ (proj1 (andP mldifl))).
+    apply: (le_trans _ (left_limit_max cok)).
+    by rewrite le_max le_refl orbT.
+  have nr : p_x ml < p_x (right_pt (low c)).
+    apply: (lt_le_trans (proj2 (andP mldifl))).
+    by move: vlc=> /andP[].
+  have mlu : ml <<< high c.
+    rewrite strict_nonAunder //; last first.
+    have := order_edges_viz_point' vl vlh cwf mll => ->; rewrite andbT.
+    apply/negP=> mlh.
+    move: noc; rewrite /inter_at_ext=> -[abs | ].
+      by rewrite abs eqxx in dif.
+    move=> /(_ ml midl mlh); rewrite !inE=> /orP[] /eqP abs.
+      by rewrite abs lt_irreflexive in nl.
+    by rewrite abs lt_irreflexive in nr.
+  have := (half_between_edges vl vlh mlab mlu); rewrite -/ml.
+  rewrite /midpoint same_x two_halves.
+  have := on_pvert midl; rewrite -/ml => ->.
+  have := same_pvert_y vh (esym same_x); rewrite -/mh => <-.
+  have := on_pvert midh; rewrite -/mh => ->.
+  by have [_ -> _] := close_cell_preserve_3sides p c.
+rewrite ab andbT /inside_closed_cell.
+rewrite (ltW (proj1 (andP xcond))) (ltW (proj2 (andP xcond))) !andbT.
+rewrite /contains_point.
+by rewrite (underW bel) (underWC ab).
+Qed.
 
 End proof_environment.
 
