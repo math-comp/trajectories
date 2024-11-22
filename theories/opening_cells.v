@@ -1263,32 +1263,6 @@ rewrite -(ler_pM2r cst2gt0) -mulrA mulVf ?mulr1; last by apply: lt0r_neq0.
 by rewrite mulrDr !mulr1 lerD.
 Qed.
 
-Lemma half_between_lt (x y : R) : x < y -> x < (x + y) / 2 < y.
-Proof.
-move=> xy.
-have cst2gt0 : (0 < 2 :> R) by apply: addr_gt0.
-apply/andP; split.
-  rewrite -(ltr_pM2r cst2gt0) -mulrA mulVf ?mulr1; last by apply: lt0r_neq0.
-  by rewrite mulrDr !mulr1 ler_ltD.
-rewrite -(ltr_pM2r cst2gt0) -mulrA mulVf ?mulr1; last by apply: lt0r_neq0.
-by rewrite mulrDr !mulr1 ltr_leD.
-Qed.
-
-Lemma half_between_edges (g1 g2 : edge) p :
-  valid_edge g1 p -> valid_edge g2 p -> p >>= g1 -> p <<< g2 ->
-  (Bpt (p_x p) ((pvert_y p g1 + pvert_y p g2) / 2)) >>> g1 /\
-  (Bpt (p_x p) ((pvert_y p g1 + pvert_y p g2) / 2)) <<< g2.
-Proof.
-move=> vg1 vg2 pal puh; set p1 := Bpt _ _.
-have samex : p_x p1 = p_x p by [].
-have v1g1 : valid_edge g1 p1 by rewrite (same_x_valid _ samex).
-have v1g2 : valid_edge g2 p1 by rewrite (same_x_valid _ samex).
-rewrite (under_pvert_y v1g1) (strict_under_pvert_y v1g2) -ltNge; apply/andP.
-apply: half_between_lt.
-have := puh; rewrite (strict_under_pvert_y vg2); apply: le_lt_trans.
-by rewrite leNgt -(strict_under_pvert_y vg1).
-Qed.
-
 Lemma opening_cells_non_empty e le he:
   valid_edge le (point e) ->
   valid_edge he (point e) ->
