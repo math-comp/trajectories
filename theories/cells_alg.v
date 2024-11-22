@@ -22,6 +22,8 @@ Notation p_x := (p_x (RealField.sort R)).
 Notation p_y := (p_y (RealField.sort R)).
 Local Notation Bpt := (Bpt (RealField.sort R)).
 Notation edge := (edge R).
+Notation left_pt := (@left_pt R).
+Notation right_pt := (@right_pt R).
 Notation event := (event (RealField.sort R) edge).
 Notation outgoing := (outgoing (RealField.sort R) edge).
 Notation point := (point (RealField.sort R) edge).
@@ -34,37 +36,41 @@ Notation dummy_cell :=
 Notation dummy_event := (dummy_event (RealField.sort R) 1 edge).
 Notation edge_below :=
   (generic_trajectories.edge_below (RealField.sort R) eq_op <=%R +%R
-    (fun x y => x - y) *%R 1 edge (@left_pt R) (@right_pt R)).
+    (fun x y => x - y) *%R 1 edge left_pt right_pt).
 Notation "x <| y" := (edge_below x y).
 Notation valid_edge :=
   (generic_trajectories.valid_edge (RealField.sort R)
-   le edge (@left_pt R) (@right_pt R)).
+   le edge left_pt right_pt).
 Notation vertical_intersection_point :=
   (vertical_intersection_point (RealField.sort R)
   le +%R (fun x y => x - y) *%R
-  (fun x y => x / y) edge (@left_pt R) (@right_pt R)).
+  (fun x y => x / y) edge left_pt right_pt).
 Notation point_under_edge :=
   (point_under_edge (RealField.sort R) le +%R (fun x y => x - y) *%R 1
-  edge (@left_pt R) (@right_pt R)).
+  edge left_pt right_pt).
 Notation "p <<= g" := (point_under_edge p g).
 Notation "p >>> g" := (~~ (point_under_edge p g)).
 Notation point_strictly_under_edge :=
   (point_strictly_under_edge  (RealField.sort R) eq_op <=%R +%R
-  (fun x y => x - y) *%R 1 edge (@left_pt R) (@right_pt R)).
+  (fun x y => x - y) *%R 1 edge left_pt right_pt).
 Notation "p <<< g" := (point_strictly_under_edge p g).
 Notation "p >>= g" := (~~ (point_strictly_under_edge p g)).
 
+Notation contains_point :=
+  (contains_point (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
+    edge left_pt right_pt).
+
 Notation open_cells_decomposition_contact :=
   (open_cells_decomposition_contact (RealField.sort R) eq_op le +%R
-  (fun x y => x - y) *%R 1 edge (@left_pt R) (@right_pt R)).
+  (fun x y => x - y) *%R 1 edge left_pt right_pt).
 Notation open_cells_decomposition_rec :=
   (open_cells_decomposition_rec (RealField.sort R) eq_op le +%R
-  (fun x y => x - y) *%R 1 edge (@unsafe_Bedge R) (@left_pt R)
-  (@right_pt R)).
+  (fun x y => x - y) *%R 1 edge (@unsafe_Bedge R) left_pt
+  right_pt).
 Notation open_cells_decomposition :=
   (open_cells_decomposition (RealField.sort R) eq_op le +%R
-  (fun x y => x - y) *%R 1 edge (@unsafe_Bedge R) (@left_pt R)
-  (@right_pt R)).
+  (fun x y => x - y) *%R 1 edge (@unsafe_Bedge R) left_pt
+  right_pt).
 
 Notation scan_state := (scan_state (RealField.sort R) edge).
 Notation sc_open1 := (sc_open1 (RealField.sort R) edge).
@@ -89,10 +95,10 @@ Notation cell_center :=
 
 Notation closing_cells :=
   (generic_trajectories.closing_cells (RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
-    *%R (fun x y => x / y) edge (@left_pt R) (@right_pt R)).
+    *%R (fun x y => x / y) edge left_pt right_pt).
 Notation close_cell :=
   (generic_trajectories.close_cell (RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
-    *%R (fun x y => x / y) edge (@left_pt R) (@right_pt R)).
+    *%R (fun x y => x / y) edge left_pt right_pt).
 
 (* TODO : these should probably be in cell.v *)
 Lemma high_set_left_pts (c : cell) l : high (set_left_pts c l) = high c.
@@ -110,28 +116,27 @@ Notation set_pts := (set_pts (RealField.sort R) edge).
   left points.*)
 Notation update_open_cell :=
   (update_open_cell (RealField.sort R) eq_op le +%R (fun x y => x - y)
-  *%R (fun x y => x / y) 1 edge (@unsafe_Bedge R) (@left_pt R) (@right_pt R)).
+  *%R (fun x y => x / y) 1 edge (@unsafe_Bedge R) left_pt right_pt).
 
 Notation update_open_cell_top :=
   (update_open_cell_top (RealField.sort R) eq_op le +%R (fun x y => x - y)
   *%R (fun x y => x / y) 1
-  edge (@unsafe_Bedge R) (@left_pt R) (@right_pt R)).
+  edge (@unsafe_Bedge R) left_pt right_pt).
 
 Notation Bscan := (Bscan (RealField.sort R) edge).
 
 Notation opening_cells_aux :=
   (opening_cells_aux (RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
-  *%R (fun x y => x / y) 1 edge (@unsafe_Bedge R) (@left_pt R) (
-   @right_pt R)).
+  *%R (fun x y => x / y) 1 edge (@unsafe_Bedge R) left_pt right_pt).
 
 Notation simple_step :=
   (generic_trajectories.simple_step (RealField.sort R) eq_op le +%R
   (fun x y => x - y) *%R (fun x y => x / y)
-  1 edge (@unsafe_Bedge R) (@left_pt R) (@right_pt R)).
+  1 edge (@unsafe_Bedge R) left_pt right_pt).
 
 Notation step :=
   (step (RealField.sort R) eq_op le +%R (fun x y => x - y) *%R
-  (fun x y => x / y) 1 edge (@unsafe_Bedge R) (@left_pt R) (@right_pt R)).
+  (fun x y => x / y) 1 edge (@unsafe_Bedge R) left_pt right_pt).
 
 Definition scan events st : seq cell * seq cell :=
   let final_state := foldl step st events in
@@ -140,7 +145,7 @@ Definition scan events st : seq cell * seq cell :=
 
 Notation start_open_cell :=
   (start_open_cell (RealField.sort R) eq_op le +%R (fun x y => x - y)
-  *%R (fun x y => x / y) edge (@left_pt R) (@right_pt R)).
+  *%R (fun x y => x / y) edge left_pt right_pt).
 
 (*
 Definition start (events : seq event) (bottom : edge) (top : edge) :
@@ -206,10 +211,9 @@ Lemma open_cells_decomposition_contact_none open_cells p :
   open_cells_decomposition_contact open_cells p = None ->
   open_cells != [::] -> ~~contains_point p (head dummy_cell open_cells).
 Proof.
-rewrite /contains_point.
 case: open_cells => [// | /= c0 q].
 by case : ifP=> ? //;
-  case: (open_cells_decomposition_contact q p)=> // [] [] [].
+  case: (open_cells_decomposition_contact q p)=> //= [] [] [].
 Qed.
 
 Lemma open_cells_decomposition_contact_main_properties open_cells p cc c' lc:
@@ -273,7 +277,7 @@ move=> [] <- <- <- <- <- <- [] w win ctw.
 have ex2 :exists2 w, w \in q & contains_point' p w.
   exists w; last by [].
   move: win ctw; rewrite inE => /orP[/eqP -> | //].
-  by move=> /contains_point'W; rewrite /contains_point ctc.
+  by move=> /contains_point'W; rewrite ctc.
 have := Ih fc1 cc1 lcc1 lc1 (low (head lcc1 cc1)) (high lcc1).
 rewrite ocdr_eq => /(_ erefl ex2).
 move=> [qeq [ctplcc1 [allct [allnct [nctlc [leeq heq]]]]]].
@@ -283,7 +287,7 @@ split; first by [].
 split.
   move=> c0; rewrite inE=> /orP[/eqP -> // | c0in]; last first.
     by rewrite ?allnct.
-  by rewrite /contains_point ctc.
+  by rewrite ctc.
 repeat (split; first by []).
 by rewrite qeq !mem_cat !map_f ?orbT //; case:(cc1) => [| a b] /=; subset_tac.
 Qed.
@@ -2468,7 +2472,7 @@ Lemma inside_closed_set_right_pts (c : cell) l q:
   last dummy_pt (right_pts c) = last dummy_pt l ->
   inside_closed' q c = inside_closed' q (set_right_pts c l).
 Proof.
-rewrite /inside_closed' /set_right_pts /inside_closed_cell /contains_point /=.
+rewrite /inside_closed' /set_right_pts /inside_closed_cell /=.
 by rewrite /right_limit /= => ->.
 Qed.
 
@@ -2631,7 +2635,7 @@ Lemma inside_open'_set_pts (c : cell) l1 l2 q :
    inside_open' q c = inside_open' q (set_pts c l1 l2).
 Proof.
 move=> same_lim.
-rewrite /inside_open' /inside_open_cell /contains_point /left_limit /=.
+rewrite /inside_open' /inside_open_cell /left_limit /=.
 by rewrite same_lim.
 Qed.
 
@@ -4713,7 +4717,7 @@ have inclosing : forall c, c \in cc -> inside_open' q c ->
     by apply: map_f.
   move: ins; rewrite inside_open'E andbA=>/andP[] ctn /andP[liml _] /=.
   move: ctn=>/andP [qlc qhc].
-  rewrite /contains_point/close_cell /=.
+  rewrite/close_cell /=.
   have [p1 vip1] := exists_point_valid (proj1 (andP (allval _ cin))).
   have [p2 vip2] := exists_point_valid (proj2 (andP (allval _ cin))).
   have [onl x1] := intersection_on_edge vip1.
@@ -6505,10 +6509,16 @@ have btm_left_lex1 : {in (fc++nos) ++ lno :: lc,
   have := opening_cells_last_lexePt oute (underWC pal) puh vle vhe.
   rewrite -heq -leq /opening_cells oca_eq=> /(_ _ noc1 lebhe cnew).
   by rewrite nth1q.
-constructor=>//.
-rewrite /state_closed_seq/=.
 by constructor.
 Admitted.
+
+Lemma update_closed_cell_center c p :
+  (1 < size (right_pts c))%N ->
+  cell_center (update_closed_cell c p) = cell_center c.
+Proof.
+rewrite /cell_center/update_closed_cell.
+by case: right_pts => [ | a [ | b tl]].
+Qed.
 
 Lemma update_open_cell_disjoint_non_gp_invariant
   bottom top s fop lsto lop cls lstc ev
@@ -6757,65 +6767,74 @@ constructor.
   move=> -> /=; rewrite /left_limit left_pts_set.
   move: sll at_ll; rewrite /left_limit.
   by case : (left_pts lsto) => [ | a [ | b l]] //.
-rewrite/state_open_seq /=.
-set pte := nth _ _ 1.
-have pteq : pte = point ev.
-  have := update_open_cellE2 oute vlo vho lstok at_ll sll evabove puho.
-  rewrite uocq /= => -[ | lno_update]; last first.
-    by rewrite /pte lno_update left_pts_set.
-  case oca_eq : opening_cells_aux => [nos1 lno1] /= lnoq.
-  have  []:= last_opening_cells_left_pts_prefix vlo vho puho oute oca_eq.
-  rewrite /pte lnoq.
-  by case: (left_pts lno1) => [ | a [ | b tl]] //= _ [].
-move=> c; rewrite -catA -cat_rcons !mem_cat orbCA orbC=> /orP[cold | cnew].
-  rewrite pteq; apply lexPtW.
-  apply: (bottom_left_opens disng _ evin); rewrite /state_open_seq /=.
-  by rewrite !(mem_cat, inE) orbCA cold orbT.
-have noc1 : {in rcons (low lsto :: sort edge_below (outgoing ev))
-  (high lsto) &, no_crossing R}.
-  have llstoin : low lsto \in cell_edges (fop ++ lsto :: lop).
-    by rewrite mem_cat map_f.
-  have hlstoin : high lsto \in cell_edges (fop ++ lsto :: lop).
-    by rewrite mem_cat map_f ?orbT.
-  by apply: (no_crossing_event nocs' (edges_sub comi) llstoin hlstoin evin).
-have lstorf : low lsto <| high lsto.
-  by apply: (allP rfo); rewrite /state_open_seq /= mem_cat inE eqxx orbT.
-have := opening_cells_last_lexePt oute (underWC evabove) puho vlo vho noc1
-lstorf.
-move=> mainop.
-have main_lno: lexePt (bottom_left_corner lno) (point ev).
-  have := update_open_cellE2 oute vlo vho lstok at_ll sll evabove puho.
-  rewrite uocq=> -[] /= ->.
-    have pin : (opening_cells_aux (point ev) (sort edge_below (outgoing ev))
-     (low lsto) (high lsto)).2 \in
-     (opening_cells (point ev) (outgoing ev) (low lsto) (high lsto)).
-      rewrite /opening_cells.
-      by case: opening_cells_aux => [a b]; rewrite mem_rcons inE eqxx.
-    by move: mainop=> /(_ _ pin).
-  apply: lexPtW.
-  have := (bottom_left_opens disng lstoin evin).
-  rewrite /bottom_left_corner left_pts_set.
-  by move: sll; case: (left_pts lsto) => [ | ? []].
-have main_nos: c \in nos -> lexePt (bottom_left_corner c) (point ev).
-  move=> cin.
-  have cin' : c \in (update_open_cell lsto ev).1 by rewrite uocq.
-  have := update_open_cellE1 oute vlo vho lstok at_ll sll evabove puho cin'.
-  have c'in2 a (ain : a \in (opening_cells_aux (point ev)
-          (sort edge_below (outgoing ev)) (low lsto) (high lsto)).1):
-      a \in opening_cells (point ev) (outgoing ev) (low lsto) (high lsto).
-    rewrite /opening_cells; move: ain.
-    by case: opening_cells_aux => [? ?] /= it; rewrite mem_rcons inE it orbT.
-  move=> /=[c' c'in [cc' | [l lprop cc']]].
-    by have := mainop c' (c'in2 _ c'in); rewrite -cc'.
-  rewrite cc' /bottom_left_corner left_pts_set lprop.
-  by have := mainop c' (c'in2 _ c'in).
-rewrite pteq.
-by move: cnew; rewrite mem_rcons inE => /orP[/eqP -> | /main_nos].
+- rewrite/state_open_seq /=.
+  set pte := nth _ _ 1.
+  have pteq : pte = point ev.
+    have := update_open_cellE2 oute vlo vho lstok at_ll sll evabove puho.
+    rewrite uocq /= => -[ | lno_update]; last first.
+      by rewrite /pte lno_update left_pts_set.
+    case oca_eq : opening_cells_aux => [nos1 lno1] /= lnoq.
+    have  []:= last_opening_cells_left_pts_prefix vlo vho puho oute oca_eq.
+    rewrite /pte lnoq.
+    by case: (left_pts lno1) => [ | a [ | b tl]] //= _ [].
+  move=> c; rewrite -catA -cat_rcons !mem_cat orbCA orbC=> /orP[cold | cnew].
+    rewrite pteq; apply lexPtW.
+    apply: (bottom_left_opens disng _ evin); rewrite /state_open_seq /=.
+    by rewrite !(mem_cat, inE) orbCA cold orbT.
+  have noc1 : {in rcons (low lsto :: sort edge_below (outgoing ev))
+    (high lsto) &, no_crossing R}.
+    have llstoin : low lsto \in cell_edges (fop ++ lsto :: lop).
+      by rewrite mem_cat map_f.
+    have hlstoin : high lsto \in cell_edges (fop ++ lsto :: lop).
+      by rewrite mem_cat map_f ?orbT.
+    by apply: (no_crossing_event nocs' (edges_sub comi) llstoin hlstoin evin).
+  have lstorf : low lsto <| high lsto.
+    by apply: (allP rfo); rewrite /state_open_seq /= mem_cat inE eqxx orbT.
+  have := opening_cells_last_lexePt oute (underWC evabove) puho vlo vho noc1
+  lstorf.
+  move=> mainop.
+  have main_lno: lexePt (bottom_left_corner lno) (point ev).
+    have := update_open_cellE2 oute vlo vho lstok at_ll sll evabove puho.
+    rewrite uocq=> -[] /= ->.
+      have pin : (opening_cells_aux (point ev) (sort edge_below (outgoing ev))
+      (low lsto) (high lsto)).2 \in
+      (opening_cells (point ev) (outgoing ev) (low lsto) (high lsto)).
+        rewrite /opening_cells.
+        by case: opening_cells_aux => [a b]; rewrite mem_rcons inE eqxx.
+      by move: mainop=> /(_ _ pin).
+    apply: lexPtW.
+    have := (bottom_left_opens disng lstoin evin).
+    rewrite /bottom_left_corner left_pts_set.
+    by move: sll; case: (left_pts lsto) => [ | ? []].
+  have main_nos: c \in nos -> lexePt (bottom_left_corner c) (point ev).
+    move=> cin.
+    have cin' : c \in (update_open_cell lsto ev).1 by rewrite uocq.
+    have := update_open_cellE1 oute vlo vho lstok at_ll sll evabove puho cin'.
+    have c'in2 a (ain : a \in (opening_cells_aux (point ev)
+            (sort edge_below (outgoing ev)) (low lsto) (high lsto)).1):
+        a \in opening_cells (point ev) (outgoing ev) (low lsto) (high lsto).
+      rewrite /opening_cells; move: ain.
+      by case: opening_cells_aux => [? ?] /= it; rewrite mem_rcons inE it orbT.
+    move=> /=[c' c'in [cc' | [l lprop cc']]].
+      by have := mainop c' (c'in2 _ c'in); rewrite -cc'.
+    rewrite cc' /bottom_left_corner left_pts_set lprop.
+    by have := mainop c' (c'in2 _ c'in).
+  rewrite pteq.
+  by move: cnew; rewrite mem_rcons inE => /orP[/eqP -> | /main_nos].
+rewrite /state_closed_seq/=.
+move=> c; rewrite mem_rcons inE => /orP[/eqP -> | cold].
+  have szc : (1 < size (right_pts lstc))%N.
+    by apply: (size_right_cls disng).
+  rewrite -inside_closed'_update // update_closed_cell_center //.
+  apply: (cell_center_in disng).
+  by rewrite /state_closed_seq/= mem_rcons inE eqxx.
+apply: (cell_center_in disng).
+by rewrite /state_closed_seq/= mem_rcons inE cold orbT.
 Qed.
 
 Definition start :=
   start R eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y) 1 edge
-  (@unsafe_Bedge _) (@left_pt _) (@right_pt _).
+   (@unsafe_Bedge _) left_pt right_pt.
 
 Lemma start_eq_initial (bottom top : edge) (ev : event) :
   start ev bottom top = initial_state bottom top [:: ev].
@@ -6824,7 +6843,7 @@ Proof. by []. Qed.
 Definition complete_last_open : edge -> edge -> cell -> cell :=
   complete_last_open
     R eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y) edge
-    (@left_pt _) (@right_pt _).
+    left_pt right_pt.
 
 Lemma map_eq [A B : Type] (f : A -> B)  l :
    List.map f l = [seq f x | x <- l].
@@ -6838,7 +6857,7 @@ Definition main_process bottom top evs :=
 
 Lemma complete_process_eq bottom top ev evs :
   complete_process  R eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y) 1 edge
-  (@unsafe_Bedge _) (@left_pt _) (@right_pt _) (ev :: evs) bottom top =
+  (@unsafe_Bedge _) left_pt right_pt (ev :: evs) bottom top =
   match scan evs (initial_state bottom top (ev :: evs)) with
    (a, b) => [seq complete_last_open bottom top c | c <- a] ++ b
   end.

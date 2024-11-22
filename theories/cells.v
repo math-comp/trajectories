@@ -54,6 +54,9 @@ Notation right_pts := (right_pts (RealField.sort R) edge).
 Notation set_left_pts := (set_left_pts (RealField.sort R) edge).
 Notation cell_center := (cell_center (RealField.sort R) +%R
              (fun x y => x / y) 1 edge).
+Notation update_closed_cell :=
+  (update_closed_cell (RealField.sort R) 1 edge).
+  
 Definition cell_eqb (ca cb : cell) : bool :=
   let: generic_trajectories.Bcell lptsa rptsa lowa higha := ca in
   let: generic_trajectories.Bcell lptsb rptsb lowb highb:= cb in
@@ -1558,6 +1561,14 @@ rewrite ab andbT /inside_closed_cell.
 rewrite (ltW (proj1 (andP xcond))) (ltW (proj2 (andP xcond))) !andbT.
 rewrite /contains_point.
 by rewrite (underW bel) (underWC ab).
+Qed.
+
+Lemma update_closed_cell_center c p :
+  (1 < size (right_pts c))%N ->
+  cell_center (update_closed_cell c p) = cell_center c.
+Proof.
+rewrite /cell_center/update_closed_cell.
+by case: right_pts => [ | a [ | b tl]].
 Qed.
 
 End proof_environment.
