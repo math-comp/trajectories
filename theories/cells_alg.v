@@ -6240,7 +6240,7 @@ have [/= pal puh vle vhe ncont] :=
   connect_properties  cbtom adj rfo sval bet_e ocd allnct allct
   lcc_ctn flcnct.
 move=> bottom_left_cond cl_ok rllstc hlstcq midptlstc btm_leftops leftops.
-move=> btm_left_lex_snd.
+move=> btm_left_lex_snd center_in.
 rewrite /simple_step.
 case oca_eq: opening_cells_aux => [nos lno].
 have evin : ev \in ev :: evs by rewrite inE eqxx.
@@ -6305,14 +6305,6 @@ have midrlstc : (1 < size (right_pts (close_cell (point ev) lcc)))%N.
   cbn [no_dup_seq_aux].
   case: ifP=> [/eqP /esym/eqP| diff]; first by rewrite (negbTE evnin).
   by case: ifP.
-have center_in' :
-  {in rcons (cls ++ lstc :: closing_cells (point ev) cc)
-    (close_cell (point ev) lcc), forall c, inside_closed' (cell_center c) c}.
-  by admit.
-have ucc' : uniq [seq cell_center c | c <-
-                          rcons (cls ++ (lstc :: closing_cells (point ev) cc))
-                                (close_cell (point ev) lcc)].
-  admit.
 have wcl' : {in rcons (cls ++ (lstc :: closing_cells (point ev) cc))
                                 (close_cell (point ev) lcc),
           forall c, left_limit c < right_limit c}.
@@ -6406,6 +6398,44 @@ have wcl' : {in rcons (cls ++ (lstc :: closing_cells (point ev) cc))
     by rewrite lon.
   have := strict_under_pvert_y vhob; rewrite lstheq.
   by move=> ->.
+have center_in' :
+  {in rcons (cls ++ lstc :: closing_cells (point ev) cc)
+    (close_cell (point ev) lcc), forall c, inside_closed' (cell_center c) c}.
+  move=> c; rewrite -cats1. rewrite -(cat_rcons lstc) -catA mem_cat.
+  move=> /orP[cold | cnew]; first by apply: center_in.
+  move: cnew.
+  rewrite /closing_cells -(map_cat (close_cell (point ev)) cc [:: lcc]).
+  move=> /[dup] cin /mapP [c' + /[dup] cc' ->]; rewrite cats1 => c'in.
+  have c'in2 : c' \in fop ++ lsto :: lop.
+    by rewrite ocd -cat_rcons !mem_cat c'in orbT.
+  have inter_at_extc' : inter_at_ext (low c') (high c').
+    by apply/nocs'; apply: sub_edges; rewrite mem_cat; apply/orP; left;
+    rewrite mem_cat map_f ?orbT.
+  have ldif : low c' != high c'.
+    admit.
+  have rfc' : low c' <| high c'.
+    by apply: (allP rfo).
+  have c'ok : open_cell_side_limit_ok c'.
+    by apply: (allP oks).
+  have [vlc' vhc'] : valid_edge (low c') (point ev) /\
+     valid_edge (high c') (point ev).
+    by apply/andP; apply (allP sval).
+  have leftc' : left_limit c' < p_x (point ev).
+    have cin2 : c \in rcons (closing_cells (point ev) cc)
+      (close_cell (point ev) lcc).
+      by rewrite -cats1 -(map_cat (close_cell (point ev)) cc [:: lcc]).
+    have:= wcl' c; rewrite -cats1 -catA /= cats1.
+    rewrite !(mem_cat, inE) cin2 !orbT.
+    rewrite cc' /left_limit.
+    have [_ _ ->] := close_cell_preserve_3sides (point ev) c'.
+    rewrite close_cell_right_limit; first by apply.
+    by split.
+  apply: (cell_center_close_cell_inside inter_at_extc' ldif rfc' c'ok
+             vlc' vhc' leftc').
+have ucc' : uniq [seq cell_center c | c <-
+                          rcons (cls ++ (lstc :: closing_cells (point ev) cc))
+                                (close_cell (point ev) lcc)].
+  admit.
 
 (* TODO avoid duplication #1 *)
   have allcont : all (contains_point (point ev)) (rcons cc lcc).
@@ -6511,14 +6541,6 @@ have btm_left_lex1 : {in (fc++nos) ++ lno :: lc,
   by rewrite nth1q.
 by constructor.
 Admitted.
-
-Lemma update_closed_cell_center c p :
-  (1 < size (right_pts c))%N ->
-  cell_center (update_closed_cell c p) = cell_center c.
-Proof.
-rewrite /cell_center/update_closed_cell.
-by case: right_pts => [ | a [ | b tl]].
-Qed.
 
 Lemma update_open_cell_disjoint_non_gp_invariant
   bottom top s fop lsto lop cls lstc ev
