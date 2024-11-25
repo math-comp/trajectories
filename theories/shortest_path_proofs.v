@@ -60,6 +60,16 @@ rewrite /cmp_option.
 by rewrite -leNgt le_eqVlt orbC => ->.
 Qed.
 
+
+Lemma cmp_option_trans (r : rel R) : ssrbool.transitive r ->
+  ssrbool.transitive (cmp_option _ r).
+Proof.
+move=> rtr [y |] [x |] [z|] //=.
+by apply: rtr.
+Qed.
+
+Arguments cmp_option_trans [r] _ [_ _ _].
+
 Lemma update_update q n1 n2 n3 p d p' d' :
     find (update (update q n1 p d) n2 p' d') n3 =
     find (update (update q n2 p' d') n1 p d) n3.
@@ -81,7 +91,8 @@ have [n1n3 | n1nn3] := eqVneq n1 n3.
           by rewrite int2.
         have int3 : find (update q n1 p' d') n1 = Some (p1, d1).
           by rewrite (update_discard _ _ _ _ _ _ n1inq).
-        have : ~~ cmp_option _ <%R d d1.
+        case/negP: cmp3.
+        by apply: (cmp_option_trans lt_trans cmp2).
 Admitted.
 
 End shortest_path_proofs.
