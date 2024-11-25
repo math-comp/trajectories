@@ -6592,8 +6592,13 @@ have ldifmain c : c \in fop ++ lsto :: lop -> low c != high c.
       move=> /andP[] /andP[] _ + _; rewrite sq s1q /= => /eqP lb.
       have lcin : low c \in [:: bottom, top & s].
         by apply: sub_edges; rewrite !mem_cat map_f.
-      admit.
-    admit.
+      by have := uniq_high => /andP[] + _; rewrite -lb abs map_f.
+    have lq : low c = high c2.
+      move: adj; rewrite sq s1q cat_rcons.
+      by move=> /adjacent_catW /= => -[] _ /andP[] /eqP/esym + _.
+    have := uniq_high => /andP[] _; rewrite sq s1q cat_rcons.
+    rewrite map_cat cat_uniq=> /andP[] _ /andP[] _ /=  /andP[] + _.
+    by rewrite inE negb_or -lq => /andP[] + _.
 have center_in' :
   {in rcons (cls ++ lstc :: closing_cells (point ev) cc)
     (close_cell (point ev) lcc), forall c, inside_closed' (cell_center c) c}.
@@ -6975,10 +6980,8 @@ have := opening_cells_aux_high vle vhe oute'.
     by apply: (proj1 (andP (allP sval c0 _))); rewrite sq inE eqxx.
   move: inbox_e=> /andP[] + _; rewrite under_onVstrict // -abs.
   by rewrite left_on_edge.
-
 by constructor.
-Admitted.
-
+Qed.
 
 Lemma update_open_cell_disjoint_non_gp_invariant
   bottom top s fop lsto lop cls lstc ev
