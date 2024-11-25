@@ -672,9 +672,9 @@ Lemma start_yields_safe_cells evs bottom top (open closed : seq cell):
          events_to_edges evs] &, forall e1 e2, inter_at_ext e1 e2} ->
   all (inside_box bottom top) [seq point e | e <- evs] ->
   {in evs, forall ev : event, out_left_event ev} ->
+  {in evs, forall ev : event, uniq (outgoing ev)} ->
   close_edges_from_events evs ->
   {in events_to_edges evs & evs, forall g e, non_inner g (point e)} ->
-  {in evs, forall e, uniq (outgoing e)} ->
   main_process bottom top evs = (open, closed) ->
   {in closed & events_to_edges evs, forall c g p,
     strict_inside_closed p c -> ~~(p === g)}.
@@ -686,8 +686,8 @@ have [ev0 | evsn0] := eqVneq evs [::].
   rewrite /start /=; rewrite ev0 /=.
   by move=> _ _ _ _ _ _ _ [] _ <-.
 move=> general_position no_crossing.
-move=> all_points_in out_edges_correct.
-move=> edges_closed no_event_in_edge outgoing_event_unique start_eq.
+move=> all_points_in out_edges_correct outgoing_event_unique.
+move=> edges_closed no_event_in_edge start_eq.
 have [e0 e0in] : exists e, e \in evs.
   by case: (evs) evsn0 => [ | a ?] //; exists a; rewrite mem_head.
 have inbox_e : inside_box bottom top (point e0).
@@ -709,7 +709,7 @@ have all_edges_in :   {in events_to_edges evs, forall g,
 have [closed_has_disjoint_cells no_intersection_closed_open]:=
    complete_disjoint_general_position general_position bottom_below_top
    startok no_crossing all_edges_in all_points_in sorted_lex (@subset_id _ _)
-   out_edges_correct edges_closed start_eq.
+   out_edges_correct outgoing_event_unique edges_closed start_eq.
 have [all_edges_covered all_points_covered]:=
    start_edge_covered_general_position general_position bottom_below_top
    startok no_crossing all_edges_in all_points_in sorted_lex (@subset_id _ _)

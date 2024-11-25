@@ -1396,6 +1396,39 @@ rewrite /c0/= qal qug1 /=.
 by case: ifP=> [] _ /=; rewrite /left_limit /= keepit.
 Qed.
 
+Notation update_open_cell :=
+  (update_open_cell (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R
+    (fun x y => x / y) 1 edge (@unsafe_Bedge R) left_pt right_pt).
+
+Lemma update_open_cell_edges lsto ev nos lno :
+   valid_edge (low lsto) (point ev) -> valid_edge (high lsto) (point ev) ->
+   out_left_event ev ->
+   update_open_cell lsto ev = (nos, lno) ->
+   [seq high c | c <- rcons nos lno] =
+   rcons (sort edge_below (outgoing ev)) (high lsto).
+Proof.
+move=> vl vh oute.
+rewrite /update_open_cell.
+case ogq: outgoing => [ | fog ogs]; first by rewrite /= => -[] <- <-.
+have oute': {in sort edge_below (fog :: ogs),
+  forall g, left_pt g == point ev}.
+  move=> g; rewrite -ogq mem_sort; exact: oute.
+have highp := opening_cells_aux_high vl vh oute'.
+have [fo [nos2 [lno2 foq]]] :
+  exists fo nos2 lno2, opening_cells_aux (point ev)
+    (sort edge_below (fog :: ogs))
+    (low lsto) (high lsto) = (fo :: nos2, lno2).
+  have : (0 < size (sort edge_below (fog :: ogs)))%N.
+    by rewrite size_sort.
+  have := highp.
+  case : opening_cells_aux => [ [ | a b] c] /= <- //.
+  by exists a, b, c.
+rewrite foq in highp.
+rewrite foq -highp map_rcons => -[] <- <- /=.
+have := opening_cells_aux_high_last vl vh oute'.
+by rewrite foq /= => ->.
+Qed.
+
 End opening_cells.
 
 End proof_environment.

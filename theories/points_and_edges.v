@@ -480,7 +480,7 @@ rewrite -!mulrA -!mulrDr => /(mulfI difxn0).
 by rewrite (mulrC 2^-1) (addrC (pue_f cx _ _ _ _ _)).
 Qed.
 
-Lemma half_between_le (x y : R) : 
+Lemma half_between_le (x y : R) :
   x <= y -> x <= (x + y) / 2 <= y.
 Proof.
 move=> xley.

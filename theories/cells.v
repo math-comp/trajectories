@@ -56,7 +56,7 @@ Notation cell_center := (cell_center (RealField.sort R) +%R
              (fun x y => x / y) 1 edge).
 Notation update_closed_cell :=
   (update_closed_cell (RealField.sort R) 1 edge).
-  
+
 Definition cell_eqb (ca cb : cell) : bool :=
   let: generic_trajectories.Bcell lptsa rptsa lowa higha := ca in
   let: generic_trajectories.Bcell lptsb rptsb lowb highb:= cb in
@@ -79,6 +79,12 @@ by apply: ReflectF=> [][].
 Qed.
 
 HB.instance Definition _ := hasDecEq.Build _ cell_eqP.
+
+Lemma high_set_left_pts (c : cell) l : high (set_left_pts c l) = high c.
+Proof. by case: c. Qed.
+
+Lemma low_set_left_pts (c : cell) l : low (set_left_pts c l) = low c.
+Proof. by case: c. Qed.
 
 Definition valid_cell c x := valid_edge (low c) x /\ valid_edge (high c) x.
 
