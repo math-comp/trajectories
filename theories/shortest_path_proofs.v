@@ -68,31 +68,38 @@ move=> rtr [y |] [x |] [z|] //=.
 by apply: rtr.
 Qed.
 
+Lemma cmp_option_le_lt_trans (y x z: option R) :
+  ~~ cmp_option _ <%R y x -> cmp_option _ <%R y z ->
+  cmp_option _ <%R x z.
+Proof.
+case: x => [x | ]; case: y => [y | ] // xley.
+rewrite /= -leNgt le_eqVlt in xley.
+case: (orP xley)=> [/eqP ->| xltkey ]; first by [].
+apply: (cmp_option_trans <%R lt_trans).
+exact: xltkey.
+Qed.
+
 Arguments cmp_option_trans [r] _ [_ _ _].
 
-Lemma update_update q n1 n2 n3 p d p' d' :
-    find (update (update q n1 p d) n2 p' d') n3 =
-    find (update (update q n2 p' d') n1 p d) n3.
+(* A sobering counter example: you cannot swapt updates, because they
+  may imply different choices between points at the same distance. *)
+Lemma update_update_counterx  n p1 p2 d :
+  p1 != p2 ->
+  find (update (update empty n p1 d) n p2 d) n !=
+  find (update (update empty n p2 d) n p1 d) n.
 Proof.
-have [n1n3 | n1nn3] := eqVneq n1 n3.
-  rewrite -n1n3.
-  have [n1n2 | n1nn2] := eqVneq n1 n2.
-    rewrite -n1n2.
-    case n1inq : (find q n1) => [ [p1  d1] | ].
-      case cmp1 : (cmp_option _ <%R d d1).
-        case cmp2 :(cmp_option _ <%R d' d).
-          have int1 : find (update q n1 p d) n1 = Some(p, d).
-            by apply: find_update_eq n1inq cmp1.
-          rewrite (find_update_eq _ _ _ _ _ _ int1 cmp2).
-          have [cmp3 | cmp3]:= boolP(cmp_option _ <%R d' d1).
-            have int2 : find (update q n1 p' d') n1 = Some(p', d').
-              by apply: find_update_eq n1inq cmp3.
-            rewrite (update_discard _ _ _ _ _ _ int2); last by apply: oltNgt.
-          by rewrite int2.
-        have int3 : find (update q n1 p' d') n1 = Some (p1, d1).
-          by rewrite (update_discard _ _ _ _ _ _ n1inq).
-        case/negP: cmp3.
-        by apply: (cmp_option_trans lt_trans cmp2).
-Admitted.
+move=> pdif.
+have testfail : ~~ cmp_option R <%R d d.
+  by case: d => [d | ] //=; rewrite lt_irreflexive.
+have inup1 : find (update empty n p1 d) n = Some(p1, d).
+  by rewrite find_update_None.
+rewrite (update_discard _ _ _ _ _ _ inup1) //.
+rewrite inup1.
+have inup2 : find (update empty n p2 d) n = Some(p2, d).
+  by rewrite find_update_None.
+rewrite (update_discard _ _ _ _ _ _ inup2) //.
+rewrite inup2.
+by apply/eqP=> - [] /eqP; rewrite (negbTE pdif).
+Qed.
 
 End shortest_path_proofs.
