@@ -38,3 +38,4 @@ theories/safe_cells.v
 
 -arg -w -arg -notation-overridden
 -arg -w -arg -ambiguous-paths
+-arg -w -arg -notation-incompatible-prefix

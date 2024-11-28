@@ -620,7 +620,7 @@ Lemma underWC p e :
 Proof. by move/negP=> it; apply/negP=> it'; case: it; apply : underW. Qed.
 
 Notation valid_edge :=
-  (generic_trajectories.valid_edge R le edge left_pt right_pt).
+  (generic_trajectories.valid_edge (RealField.sort R) le edge left_pt right_pt).
 
 Lemma valid_edge_extremities e0 p:
   (left_pt e0 == p) || (right_pt e0 == p) ->
@@ -2551,6 +2551,42 @@ Proof.
 move=> v1 v2 cmp; apply/negP=> g2g1.
 have := edge_below_pvert_y v2 v1 g2g1.
 by rewrite leNgt cmp.
+Qed.
+
+Lemma same_x_under_edge_y_trans r r' e :
+  valid_edge e r ->
+  p_x _ r = p_x _ r' -> p_y _ r' <= p_y _ r -> r <<= e -> r' <<= e.
+Proof.
+move=> vr sx yle bel.
+have vr' : valid_edge e r' by rewrite -(same_x_valid e sx).
+rewrite under_pvert_y //.
+apply: (le_trans yle).
+rewrite -(same_pvert_y vr sx).
+by rewrite -under_pvert_y.
+Qed.
+
+Lemma same_x_strict_under_edge_le_y_trans r r' e :
+  valid_edge e r ->
+  p_x _ r = p_x _ r' -> p_y _ r' <= p_y _ r -> r <<< e -> r' <<< e.
+Proof.
+move=> vr sx yle bel.
+have vr' : valid_edge e r' by rewrite -(same_x_valid e sx).
+rewrite strict_under_pvert_y //.
+apply: (le_lt_trans yle).
+rewrite -(same_pvert_y vr sx).
+by rewrite -strict_under_pvert_y.
+Qed.
+
+Lemma same_x_under_edge_lt_y_trans r r' e :
+  valid_edge e r ->
+  p_x _ r = p_x _ r' -> p_y _ r' < p_y _ r -> r <<= e -> r' <<< e.
+Proof.
+move=> vr sx ylt bel.
+have vr' : valid_edge e r' by rewrite -(same_x_valid e sx).
+rewrite strict_under_pvert_y //.
+apply: (lt_le_trans ylt).
+rewrite -(same_pvert_y vr sx).
+by rewrite -under_pvert_y.
 Qed.
 
 Lemma edges_partition_strictly_above p g1 g2 s1 s2:

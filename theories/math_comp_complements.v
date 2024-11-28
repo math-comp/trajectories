@@ -117,6 +117,22 @@ move=> tr; elim: s=> [ | init s Ih] //=.
 by rewrite (path_sortedE tr) all_rcons => /andP[] /andP[] -> _.
 Qed.
 
+Lemma sorted_last {T : eqType} (r : rel T) (x0 x : T) (s : seq T):
+  transitive r -> sorted r s ->
+  x \in s -> (x == last x0 s) || r x (last x0 s).
+Proof.
+move=> rtr.
+case s => [ | a tl] //=.
+elim: tl a x => [ | b tl Ih] a x; first by rewrite /= inE => _ ->.
+rewrite /= => /andP [rab stl].
+rewrite inE => /orP[/eqP xa | xin]; last by apply: Ih.
+apply/orP; right.
+move: (Ih b b stl); rewrite inE eqxx => /(_ isT).
+move=> /orP[/eqP <- | ].
+  by rewrite xa.
+apply: rtr; by rewrite xa.
+Qed.
+
 Lemma uniq_map_injective (T T' : eqType) (f : T -> T') (s : seq T) :
   uniq [seq f x | x <- s] -> {in s &, injective f}.
 Proof.
