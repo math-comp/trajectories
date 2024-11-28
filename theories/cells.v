@@ -846,22 +846,6 @@ Proof.
 by move=> /andP[] _ /andP[] /allP + _=> /[swap] x /[apply] /eqP.
 Qed.
 
-Lemma sorted_last {T : eqType} (r : rel T) (x0 x : T) (s : seq T):
-  transitive r -> sorted r s ->
-  x \in s -> (x == last x0 s) || r x (last x0 s).
-Proof.
-move=> rtr.
-case s => [ | a tl] //=.
-elim: tl a x => [ | b tl Ih] a x; first by rewrite /= inE => _ ->.
-rewrite /= => /andP [rab stl].
-rewrite inE => /orP[/eqP xa | xin]; last by apply: Ih.
-apply/orP; right.
-move: (Ih b b stl); rewrite inE eqxx => /(_ isT).
-move=> /orP[/eqP <- | ].
-  by rewrite xa.
-apply: rtr; by rewrite xa.
-Qed.
-
 Lemma open_cell_side_limit_ok_left_pt_above c j:
   open_cell_side_limit_ok c ->
   (j < size (left_pts c))%N ->
@@ -891,6 +875,20 @@ suff : (last dummy_pt (left_pts c)) <<< low c.
 apply: (same_x_strict_under_edge_le_y_trans vj (esym sx) _ abs).
 move: main; rewrite last_map eq_sym=> /orP[ | /ltW]; last by [].
 by rewrite le_eqVlt => ->.
+Qed.
+
+Lemma open_cell_side_limit_ok_left_limit_valid c p :
+  open_cell_side_limit_ok c ->
+  p_x p = left_limit c ->
+  valid_edge (low c) p && valid_edge (high c) p.
+Proof.
+move=> + sx.
+move=> /andP[] ls /andP[] /allP al /andP[] _ /andP[] /andP[] _ hh /andP[] _ ll.
+move: (al) => /(_ _ (last_in_not_nil dummy_pt ls)) => /eqP lll.
+move: (al) => /(_ _ (head_in_not_nil dummy_pt ls)) => /eqP hll.
+have := same_x_valid (low c) (eq_trans lll (esym sx)) => <-.
+have := same_x_valid (high c) (eq_trans hll (esym sx)) => <-.
+by rewrite hh ll.
 Qed.
 
 Lemma strict_inside_open_valid c (p : pt) :

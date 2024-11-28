@@ -5818,36 +5818,21 @@ Lemma same_x_point_above_low_lsto bottom top s fop lsto lop cls lstc
 Proof.
 move=> at_lstx comng.
 have comi := ngcomm comng.
-have lstx_ll : lstx = left_limit lsto.
-  rewrite -[lstx]/(lst_x _ _ (Bscan fop lsto lop cls lstc lsthe lstx)).
-  by rewrite (lstx_eq comi).
-have := lst_side_lex comng.
-have := has_snd_lst comng.
-set W := (X in size X); rewrite -/W.
-have : open_cell_side_limit_ok lsto.
+have lstx_ll : lstx = left_limit lsto by apply: (lstx_eq comi).
+rewrite lstx_ll in at_lstx.
+have lstok : open_cell_side_limit_ok lsto.
   by apply: (allP (sides_ok comi)); rewrite mem_cat inE eqxx orbT.
-rewrite /open_cell_side_limit_ok => /andP[] _ /andP[] + /andP[] + /andP[].
-move=> + + _ +.
-rewrite -/W.
-case wq : W => [ | p1 [ | p2 ps]] //= A /andP[] _ higherps + _ /andP[] ll _.
-  move: A => /andP[] _ /andP[] p2x allx.
-  have lx : p_x (last p2 ps) == left_limit lsto.
-    case : (ps) allx => [ | p3 pst] // /allP; apply=> /=.
-    by rewrite mem_last.
-  have samex : p_x (point ev) = p_x (last p2 ps).
-    by rewrite -at_lstx lstx_ll (eqP lx).
-  have cmpy : p_y (last p2 ps) <= p_y p2.
-    case psq : ps => [ | p3 pst] //.
-    apply ltW.
-    rewrite (path_sortedE (rev_trans lt_trans)) psq in higherps.
-    move: higherps=> /andP[] /allP /(_ (p_y (last p3 pst))) + _.
-    rewrite map_f; last by rewrite mem_last.
-    by move=> /(_ isT).
-  move=> /(under_edge_lower_y samex) ->.
-  rewrite -ltNge.
-  apply: (le_lt_trans cmpy).
-  move: ll; rewrite /lexPt.
-  by rewrite lt_neqAle samex (eqP p2x) eq_sym lx /=.
+have := lst_side_lex comng => /= /andP[] lx _.
+have := has_snd_lst comng=> /= /[dup] slo.
+move: (lstok) => /open_cell_side_limit_ok_left_pt_above => /[apply] n1ab.
+move: (lstok) =>/open_cell_side_limit_ok_left_pt_limit.
+move=> /(_ _ (mem_nth dummy_pt (has_snd_lst comng))) /= sx.
+have ycmp : p_y (nth dummy_pt (left_pts lsto) 1) < p_y (point ev).
+  by move: lx; rewrite /lexPt lt_neqAle sx at_lstx eqxx /=.
+have /andP[vl vh]:=
+  open_cell_side_limit_ok_left_limit_valid lstok (esym at_lstx).
+apply/negP=> bel; case/negP: n1ab.
+by apply: (same_x_under_edge_lt_y_trans vl) => //; rewrite sx.
 Qed.
 
 Lemma update_open_cell_common_invariant
