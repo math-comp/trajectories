@@ -531,4 +531,8 @@ Lemma sorted_lexPtEv_lexPt {evs : seq event} :
   sorted lexPtEv evs = sorted (@lexPt _) [seq point e | e <- evs].
 Proof. by rewrite sorted_map. Qed.
 
+Lemma events_to_edges_rcons evs (e : event) :
+  events_to_edges (rcons evs e) = events_to_edges evs ++ outgoing e.
+Proof. by rewrite /events_to_edges /= map_rcons flatten_rcons. Qed.
+
 End working_environment.

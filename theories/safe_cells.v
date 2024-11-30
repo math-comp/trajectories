@@ -2,7 +2,7 @@ From mathcomp Require Import all_ssreflect all_algebra.
 Require Export Field.
 Require Import generic_trajectories.
 Require Import math_comp_complements points_and_edges events cells.
-Require Import opening_cells cells_alg.
+Require Import opening_cells cells_alg general_position.
 
 Set Implicit Arguments.
 Unset Strict Implicit.

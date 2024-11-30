@@ -149,6 +149,50 @@ Proof.
 by move=> /splitPr [s1 s2]; exists s1, s2.
 Qed.
 
+(* TODO : propose for inclusion in math-comp *)
+Lemma uniq_index (T : eqType) (x : T) l1 l2 :
+   uniq (l1 ++ x :: l2) -> index x (l1 ++ x :: l2) = size l1.
+Proof.
+elim: l1 => [/= | a l1 Ih]; first by rewrite eqxx.
+rewrite /= => /andP[].
+case: ifP => [/eqP -> | _ _ /Ih -> //].
+by rewrite mem_cat inE eqxx orbT.
+Qed.
+
+Lemma index_map_in (T1 T2 : eqType) (f : T1 -> T2) (s : seq T1) :
+  {in s &, injective f} ->
+  {in s, forall x, index (f x) [seq f i | i <- s] = index x s}.
+Proof.
+elim: s => [ // | a s Ih] inj x xin /=.
+case: ifP => [/eqP/inj| fanfx].
+  rewrite inE eqxx; move=> /(_ isT xin) => ->.
+  by rewrite eqxx.
+case: ifP=> [/eqP ax | xna ]; first by rewrite ax eqxx in fanfx.
+congr (_.+1).
+apply: Ih=> //.
+  by move=> x1 x2 x1in x2in; apply: inj; rewrite !inE ?x1in ?x2in ?orbT.
+by move: xin; rewrite inE eq_sym xna.
+Qed.
+
+Lemma pairwise_subst {T : Type} [leT : rel T] (os ns s1 s2 : seq T) :
+  pairwise leT (s1 ++ os ++ s2) ->
+  pairwise leT ns ->
+  allrel leT s1 ns ->
+  allrel leT ns s2 ->
+  pairwise leT (s1 ++ ns ++ s2).
+Proof.
+rewrite !pairwise_cat !allrel_catr => /andP[] /andP[] _ -> /andP[] ->.
+by move=>/andP[] _ /andP[] _ -> -> -> ->.
+Qed.
+
+Lemma pairwise_subst1 {T : eqType} [leT : rel T] (oc nc : T)(s1 s2 : seq T) :
+  leT nc =1 leT oc -> leT^~ nc =1 leT^~ oc ->
+  pairwise leT (s1 ++ oc :: s2) = pairwise leT (s1 ++ nc :: s2).
+Proof.
+move=> l r.
+by rewrite !(pairwise_cat, pairwise_cons, allrel_consr) (eq_all l) (eq_all r).
+Qed.
+
 Section transitivity_proof.
 
 Variables (T : eqType) (r : rel T) (s1 s2 : mem_pred T).

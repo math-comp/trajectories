@@ -33,6 +33,10 @@ theories/no_crossing.v
 theories/opening_cells.v
 theories/points_and_edges.v
 theories/safe_cells.v
+theories/general_position.v
+theories/simple_step.v
+theories/initial_cell.v
+theories/first_degenerate_position.v
 
 -R theories trajectories
 
