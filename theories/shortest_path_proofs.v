@@ -81,7 +81,7 @@ Qed.
 
 Arguments cmp_option_trans [r] _ [_ _ _].
 
-(* A sobering counter example: you cannot swapt updates, because they
+(* A sobering counter example: you cannot swap updates, because they
   may imply different choices between points at the same distance. *)
 Lemma update_update_counterx  n p1 p2 d :
   p1 != p2 ->

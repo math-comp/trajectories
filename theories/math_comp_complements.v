@@ -55,14 +55,7 @@ Qed.
 Lemma middle_seq_not_nil  (A : eqType) (a b c : seq A) :
 b != [::] ->
 a ++ b ++ c != [::].
-Proof.
-rewrite -size_eq0 => /negP sizebneq0 /=.
-apply  /negP.
-rewrite -size_eq0 !size_cat /= !addn_eq0 .
-apply  /negP /andP => [] /andP .
-move => /andP [] _ /andP [] sizebeq0.
-by rewrite sizebeq0 in sizebneq0.
-Qed.
+Proof. by rewrite -!nilpE !cat_nilp=> /negbTE ->; rewrite andbF. Qed.
 
 Lemma rcons_neq0 (A : Type) (z : A) (s : seq A) : (rcons s z) <> nil.
 Proof.
