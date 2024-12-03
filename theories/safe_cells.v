@@ -82,58 +82,6 @@ Hypothesis noc : {in bottom :: top :: obstacles &,
 Hypothesis low_high : {in closed, forall c, low c <| high c}.
 Hypothesis low_dif_high : {in closed, forall c, low c != high c}.
 
-Lemma x_left_pts_left_limit (c : cell) (p : pt) :
-  closed_cell_side_limit_ok c ->
-  p \in (left_pts c : seq pt) -> p_x p = left_limit c.
-Proof.
-move=> + pin; move=> /andP[] ln0 /andP[] lsx _.
-by rewrite (eqP (allP lsx _ _)).
-Qed.
-
-Lemma x_right_pts_right_limit (c : cell) (p : pt) :
-  closed_cell_side_limit_ok c ->
-  p \in (right_pts c : seq pt) -> p_x p = right_limit c.
-Proof.
-move=> + pin; move=> /andP[] _ /andP[] _ /andP[] _ /andP[] _ /andP[] _.
-move=> /andP[] rn0 /andP[] rsx _.
-by rewrite (eqP (allP rsx _ _)).
-Qed.
-
-Lemma left_limit_left_pt_high_cl (c : cell) :
-  closed_cell_side_limit_ok c ->
-  p_x (left_pt (high c)) <= left_limit c.
-Proof.
-move=> /andP[] ln0 /andP[] lsx /andP[] _ /andP[] /andP[] _ /andP[] + _ _.
-by rewrite (eqP (allP lsx _ (head_in_not_nil _ ln0))).
-Qed.
-
-Lemma right_limit_right_pt_high_cl (c : cell) :
-  closed_cell_side_limit_ok c ->
-  right_limit c <= p_x (right_pt (high c)).
-Proof.
-move=> /andP[] _ /andP[] _ /andP[] _ /andP[] _ /andP[] _.
-move=> /andP[] rn0 /andP[] rsx /andP[] _ /andP[] /andP[] _ /andP[] _ + _.
-by rewrite (eqP (allP rsx _ (head_in_not_nil _ rn0))).
-Qed.
-
-Lemma left_limit_left_pt_low_cl (c : cell) :
-  closed_cell_side_limit_ok c ->
-  p_x (left_pt (low c)) <= left_limit c.
-Proof.
-move=> /andP[] ln0 /andP[] lsx /andP[] _ /andP[] _ /andP[].
-move=> /andP[] _ /andP[] + _ _.
-by rewrite (eqP (allP lsx _ (last_in_not_nil _ ln0))).
-Qed.
-
-Lemma right_limit_right_pt_low_cl (c : cell) :
-  closed_cell_side_limit_ok c ->
-  right_limit c <= p_x (right_pt (low c)).
-Proof.
-move=> /andP[] _ /andP[] _ /andP[] _ /andP[] _ /andP[] _.
-move=> /andP[] rn0 /andP[] rsx /andP[] _ /andP[] _ /andP[] _ /andP[] _ +.
-by rewrite (eqP (allP rsx _ (last_in_not_nil _ rn0))).
-Qed.
-
 Lemma right_valid :
   {in closed, forall c, {in (right_pts c : seq pt), forall p,
       valid_edge (low c) p /\ valid_edge (high c) p}}.
@@ -153,43 +101,6 @@ apply/andP; split; rewrite (x_right_pts_right_limit cok pin).
 by apply: right_limit_right_pt_high_cl.
 Qed.
 
-Lemma closed_cell_in_high_above_low p (c : cell) :
-  low c != high c ->
-  low c <| high c ->
-  inter_at_ext (low c) (high c) ->
-  closed_cell_side_limit_ok c ->
-  left_limit c < p_x p < right_limit c ->
-  p === high c -> p >>> low c.
-Proof.
-move=> dif bel noclh cok /andP[] midl midr on.
-have [vlp vhp] : valid_edge (low c) p /\ valid_edge (high c) p.
-  move: cok=> /andP[] ln0 /andP[] lsx /andP[].
-  move=> _ /andP[] /andP[] _ /andP[] lh _ /andP[] /andP[] _ /andP[] ll _.
-  move=> /andP[] rn0 /andP[] rsx /andP[].
-  move=> _ /andP[] /andP[] _ /andP[] _ rl /andP[] _ /andP[] _ rh.
-  rewrite (eqP (allP lsx _ (@last_in_not_nil pt dummy_pt _ ln0))) in ll.
-  rewrite (eqP (allP rsx _ (@head_in_not_nil pt dummy_pt _ rn0))) in rl.
-  rewrite (eqP (allP lsx _ (@head_in_not_nil pt dummy_pt _ ln0))) in lh.
-  rewrite (eqP (allP rsx _ (@last_in_not_nil pt dummy_pt _ rn0))) in rh.
-  split; rewrite /valid_edge/generic_trajectories.valid_edge.
-    by rewrite (ltW (le_lt_trans ll midl)) (ltW (lt_le_trans midr rh)).
-  by rewrite (ltW (le_lt_trans lh midl)) (ltW (lt_le_trans midr rl)).
-rewrite under_onVstrict // negb_or.
-move: noclh=> [abs | noclh]; first by rewrite abs eqxx in dif.
-apply/andP; split; last first.
-  apply/negP=> abs.
-  have := order_edges_strict_viz_point' vlp vhp bel abs.
-  by rewrite strict_nonAunder // on.
-apply/negP=> abs.
-have := noclh _ abs on; rewrite !inE=> /orP[] /eqP {}abs.
-  move: midl; apply/negP; rewrite -leNgt abs.
-  by apply: left_limit_left_pt_low_cl.
-(* TODO: at this place, the typechecking loops, this warrants a bug report. *)
-(*(  have := left_limit_max cok. *)
-move: midr; apply/negP; rewrite -leNgt abs.
-by apply: right_limit_right_pt_low_cl.
-Qed.
-
 (* I don't know yet if this is going to be used. *)
 Lemma above_low :
   {in closed, forall c p, p === high c -> valid_edge (low c) p ->
@@ -200,88 +111,6 @@ apply/negP=> pul.
 have lbh : low c <| high c by apply: low_high.
 have := order_edges_strict_viz_point' vl vh lbh pul.
 by rewrite strict_nonAunder // ponh.
-Qed.
-
-Lemma right_side_under_high (c : cell) (p : pt) :
-  closed_cell_side_limit_ok c ->
-  valid_edge (high c) p ->
-  p \in (right_pts c : seq pt) ->
-  p <<= high c.
-Proof.
-move=> cok vph pin.
-set p' := Bpt (p_x p) (pvert_y p (high c)).
-have sx: p_x p = p_x p' by rewrite /p'.
-have p'on : p' === high c by apply: pvert_on vph.
-rewrite (under_edge_lower_y sx) //.
-have := cok.
-do 5 move=> /andP[] _.
-move=> /andP[] rn0 /andP[] rsx /andP[] srt /andP[] lon _.
-have p'q : p' = head dummy_pt (right_pts c).
-  have := on_edge_same_point p'on lon.
-  have /eqP -> := allP rsx _ (head_in_not_nil dummy_pt rn0).
-  have /eqP -> := allP rsx _ pin=> /(_ erefl) samey.
-  apply/(@eqP pt).
-  rewrite pt_eqE samey eqxx andbT.
-  rewrite (eqP (allP rsx _ pin))/=.
-  by rewrite (eqP (allP rsx _ (head_in_not_nil dummy_pt rn0))).
-move: rn0 p'q pin srt.
-elim: (right_pts c) => [| p2 rpts Ih] // rn0 p'1 pin srt.
-move: pin; rewrite inE => /orP[/eqP -> | pin].
-  by rewrite p'1.
-rewrite /= in srt.
-(* TODO : use rev_trans here. *)
-have gt_trans : transitive (>%R : rel R).
-  by move=> x y z xy yz ; apply: (lt_trans yz xy).
-move: (srt); rewrite (path_sortedE gt_trans)=> /andP[] srt' _.
-apply: ltW; rewrite p'1.
-by apply: (allP srt'); rewrite map_f.
-Qed.
-
-Lemma in_bound_closed_valid (c : cell) p :
-  closed_cell_side_limit_ok c ->
-  left_limit c <= p_x p -> p_x p <= right_limit c ->
-  valid_edge (low c) p /\ valid_edge (high c) p.
-Proof.
-move=> cok lp pr.
-have llh := left_limit_left_pt_high_cl cok.
-have lll := left_limit_left_pt_low_cl cok.
-have rrh := right_limit_right_pt_high_cl cok.
-have rrl := right_limit_right_pt_low_cl cok.
-split; rewrite /valid_edge/generic_trajectories.valid_edge.
-  by rewrite (le_trans lll lp) (le_trans pr rrl).
-by rewrite (le_trans llh lp) (le_trans pr rrh).
-Qed.
-
-Lemma left_side_under_high (c : cell) p :
-  closed_cell_side_limit_ok c ->
-  valid_edge (high c) p ->
-  p \in (left_pts c : seq pt) ->
-  p <<= high c.
-Proof.
-move=> cok vph pin.
-set p' := Bpt (p_x p) (pvert_y p (high c)).
-have sx: p_x p = p_x p' by rewrite /p'.
-have p'on : p' === high c by apply: pvert_on vph.
-rewrite (under_edge_lower_y sx) //.
-have := cok.
-move=> /andP[] ln0 /andP[] lsx /andP[] srt /andP[] hon _.
-have p'q : p' = head dummy_pt (left_pts c).
-  have := on_edge_same_point p'on hon.
-  rewrite (eqP (allP lsx _ pin)).
-  rewrite (x_left_pts_left_limit cok (head_in_not_nil _ ln0)).
-  move=> /(_ erefl) samey.
-  apply/(@eqP pt); rewrite pt_eqE samey eqxx andbT.
-  rewrite (eqP (allP lsx _ pin)) eq_sym.
-  by rewrite (allP lsx _ (head_in_not_nil _ ln0)).
-move: ln0 p'q pin srt.
-case: (left_pts c)=> [| p2 lpts] // _ p'q pin srt.
-move: pin; rewrite (@in_cons pt) => /orP[/eqP -> | pin].
-  by rewrite p'q.
-apply: ltW; rewrite p'q.
-move: srt=> /=; rewrite (path_sortedE); last first.
-  by move=> x y z xy yz; apply: (lt_trans yz xy).
-move=> /andP[] /allP/(_ (p_y p)) + _; apply.
-by rewrite (@map_f pt).
 Qed.
 
 Lemma safe_cell_interior c p :
@@ -428,24 +257,6 @@ by have := Ih pc2 pcccl' highs' conn' rpcc' pright2.
 Qed.
 
 End safety_property.
-
-Lemma last_no_dup_seq {T : eqType} (s : seq T) d:
-  last d (no_dup_seq s) = last d s.
-Proof.
-elim: s d => [ | a [ | b s'] Ih] //.
-rewrite /=; case: ifP=> [/eqP ab | anb].
-  by apply: Ih.
-move=> d /=; apply: Ih.
-Qed.
-
-Lemma head_no_dup_seq {T : eqType} (s : seq T) d:
-  head d (no_dup_seq s) = head d s.
-Proof.
-elim: s d => [ | a [ | b s'] Ih] //.
-rewrite /=; case: ifP=> [/eqP ab | anb].
-  by move=> d; rewrite Ih ab.
-by [].
-Qed.
 
 Section main_statement.
 
@@ -665,7 +476,6 @@ move/hasP=> [e2 e2in /eqP ->].
 by apply: (@allP pt _ _ inbox_es); rewrite map_f.
 Qed.
 
-Notation event' := (generic_trajectories.event R edge).
 Lemma start_yields_safe_cells evs bottom top (open closed : seq cell):
   sorted (fun e1 e2 => p_x (point e1) < p_x (point e2)) evs ->
   {in [:: bottom, top &
@@ -679,7 +489,6 @@ Lemma start_yields_safe_cells evs bottom top (open closed : seq cell):
   {in closed & events_to_edges evs, forall c g p,
     strict_inside_closed p c -> ~~(p === g)}.
 Proof.
-set event' := generic_trajectories.event _ _.
 set p_x' := generic_trajectories.p_x R.
 set point' := generic_trajectories.point R edge.
 have [ev0 | evsn0] := eqVneq evs [::].

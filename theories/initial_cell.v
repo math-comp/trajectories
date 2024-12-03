@@ -571,8 +571,6 @@ by have := Ih _ _ cov' evsinr svalr btm_leftr llim' clevr outer nocr claer
   rfor adjr cbtomr sortev' scaneq.
 Qed. *)
 
-Check True.
-
 Lemma start_comm (bottom top : edge) (s : seq edge) events :
   bottom <| top ->
   open_cell_side_limit_ok (start_open_cell bottom top) ->
@@ -701,7 +699,6 @@ have cl_dis : {in [:: close_cell (point ev1) (start_open_cell bottom top)] &,
                 disjoint_closed_cells R}.
   by move=> e1 e2; rewrite !inE=> /eqP -> /eqP ->; left.
 have ipw : pairwise edge_below (bottom :: [seq high c | c <- nos ++ [::lno]]).
-  Search "openin" "pairwise".
   have noc0' : {in all_edges ([::] ++ start_open_cell bottom top :: [::])
     (ev1 :: evs) &, no_crossing R} by [].
   have := opening_cells_pairwise oute1 noc0' ev1a ev1u _ _ vb vt.
