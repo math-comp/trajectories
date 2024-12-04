@@ -1076,8 +1076,6 @@ have p_cov' : {in rcons cov_set ev, forall e, exists2 c,
 by constructor.
 Qed.
 
-Print disjoint_non_gp_invariant.
-
 Record safe_side_non_gp_invariant (bottom top : edge)
  (edge_set : seq edge) (processed_set : seq event)
  (s : scan_state) (events : seq event) :=
@@ -1092,8 +1090,6 @@ Record safe_side_non_gp_invariant (bottom top : edge)
        {in state_open_seq s ++ state_closed_seq s, forall c, low c != high c};
     sub_closed :
       {subset cell_edges (state_closed_seq s) <= bottom :: top :: edge_set};
-    closed_lt :
-        {in state_closed_seq s, forall c, left_limit c < right_limit c};
     closed_ok :
         all (@closed_cell_side_limit_ok R) (state_closed_seq s);
    (* TODO : disjoint_non_gp has the weaker right_limit <= p_x point  *)
@@ -1115,6 +1111,39 @@ Record safe_side_non_gp_invariant (bottom top : edge)
          in_safe_side_left p c ->
          p != point e :> pt};
 }.
+
+Lemma disjoint_non_gp_left_side_le_lsto bottom top s events st:
+  disjoint_non_gp_invariant bottom top s st events ->
+  {in state_open_seq st,
+    forall c, left_limit c <= left_limit (lst_open st)}.
+Proof.
+move=> dng c cin.
+rewrite -(lstx_eq (ngcomm (common_non_gp_inv_dis dng))).
+by apply: (left_opens dng).
+Qed.
+
+Lemma disjoint_non_gp_left_side_lsto bottom top s events st:
+  disjoint_non_gp_invariant bottom top s st events ->
+  {in events,
+    forall ev, left_limit (lst_open st) <= p_x (point ev)}.
+Proof.
+move=> dng ev ein.
+have lx : lexPt (nth dummy_pt (left_pts (lst_open st)) 1) (point ev).
+  have := lst_side_lex (common_non_gp_inv_dis dng).
+  rewrite (path_sortedE (@lexPt_trans _))=> /andP[] /allP /(_ (point ev)).
+  by rewrite map_f ?ein // => /(_ isT).
+have sl := has_snd_lst (common_non_gp_inv_dis dng).
+have px1 : 
+  p_x (nth dummy_pt (left_pts (lst_open st)) 1) = left_limit (lst_open st).
+  apply/eqP.
+  have : open_cell_side_limit_ok (lst_open st).
+    apply: (allP (sides_ok (ngcomm (common_non_gp_inv_dis dng)))).
+    by rewrite mem_cat inE eqxx orbT.
+  move=> /andP[] _ /andP[] + _.
+  by move=> /allP; apply; rewrite mem_nth.
+rewrite -px1; move: lx=> /orP[/ltW // | /andP[] + _].
+by rewrite le_eqVlt => ->.
+Qed.
 
 Lemma simple_step_safe_side_non_gp_invariant bottom top
   s previous_events ev future_events
@@ -1143,7 +1172,7 @@ move=> boxwf nocs' inbox_s evin lexev evsub out_evs cle
   n_inner uniq_edges.
 remember (Bscan _ _ _ _ _ _ _) as st eqn:stq.
 move=> oe simple_cond ssng.
-move: (ssng) => [] d_inv e_inv old_lt_fut rf_cl d_e subc rllt clok rl
+move: (ssng) => [] d_inv e_inv old_lt_fut rf_cl d_e subc clok rl
  A B C D.
 have c_inv := common_non_gp_inv_dis d_inv. 
 have [clae [pre_sval [adj [cbtom rfo]]]] := inv1 (ngcomm c_inv).
@@ -1214,23 +1243,6 @@ have subc' :
   have [_ -> _] := close_cell_preserve_3sides (point ev) c2.
   apply: subo; rewrite !mem_cat; apply/orP; left; apply/orP; right.
   by rewrite map_f // ocd -cat_rcons !mem_cat c2in orbT.
-(* Proving that open cells have a left side that is smaller than any
-   event first coordinate. *)
-(* Proving that cells have distinct left and right sides. *)
-have lltr :
- {in state_closed_seq rstate, forall c : cell, left_limit c < right_limit c}.
-  rewrite /state_closed_seq/= -cats1 -catA /= -cat_rcons.
-  move=> c; rewrite mem_cat=> /orP[cold | ].
-    by apply: rllt; rewrite stq.
-  rewrite cats1 -map_rcons=> /mapP [c' c'in ->].
-  have [vlc' vhc'] : valid_edge (low c') (point ev) /\
-                         valid_edge (high c')(point ev).
-     apply/andP; have := allP sval; rewrite ocd -cat_rcons=> /(_ c'); apply.
-     by rewrite !mem_cat c'in orbT.
-  have := right_limit_close_cell vlc' vhc'=> ->.
-  rewrite left_limit_close_cell //. (* ; last by rewrite inE eqxx.
-  by rewrite ocd -cat_rcons !mem_cat c'in orbT. *)
-  admit.
 (* proving a closed_cell ok invariant. *)
 have clok' : all (@closed_cell_side_limit_ok _) (state_closed_seq rstate).
   apply/allP; rewrite /state_closed_seq/= -cats1 -catA /= -cat_rcons.
