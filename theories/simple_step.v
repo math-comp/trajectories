@@ -1261,7 +1261,7 @@ have safe_side_bound : {in rcons cls lstc, forall c p,
        in_safe_side_left p c || in_safe_side_right p c ->
        p_x p <= right_limit c}.
   move=> c p cin /orP[] /andP[] /eqP -> _; last by rewrite le_refl.
-  by apply/ltW/rllt; rewrite /state_closed_seq stq.
+  by apply/ltW/(cl_large d_inv); rewrite /state_closed_seq stq.
 have not_safe_event : {in rcons (closing_cells (point ev) cc)
                                  (close_cell (point ev) lcc), forall c,
    ~~ (in_safe_side_left  (point ev) c || in_safe_side_right (point ev) c)}.
