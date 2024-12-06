@@ -718,13 +718,9 @@ have ipw : pairwise edge_below (bottom :: [seq high c | c <- nos ++ [::lno]]).
     move: ev1a.
     rewrite -(eqP (oute1 _ gin)) vlg (under_onVstrict vlg) left_on_edge.
     by move=> + /(_ isT isT)=> /[swap]/[apply].
-have rl_cl_evs : {in [:: close_cell (point ev1) (start_open_cell bottom top)] &
-     evs, forall c e, right_limit c <= p_x (point e)}.
-  move=> /= c e + ein; rewrite inE => /eqP ->; rewrite rlclq.
-  move: lexev; rewrite evsq /= (path_sortedE (@lexPtEv_trans _)).
-  move => /andP[] /allP /(_ _ ein) + _ => /orP[].
-    by rewrite le_eqVlt orbC => ->.
-  by rewrite le_eqVlt=> /andP[] -> .
+have rl_cl_evs : {in [:: close_cell (point ev1) (start_open_cell bottom top)],
+     forall c, right_limit c <= p_x (point ev1)}.
+  by move=> /= c; rewrite inE => /eqP ->; rewrite rlclq.
 have srcl0 : (2 < size (right_pts 
                 (close_cell (point ev1)
                   (start_open_cell bottom top))))%N.

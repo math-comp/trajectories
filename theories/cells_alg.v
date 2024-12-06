@@ -4630,6 +4630,34 @@ move: keptopen; rewrite -has_cat=>/hasP[it + it2].
 by rewrite mem_cat=> infclc; exists it; rewrite // !mem_cat orbCA infclc orbT.
 Qed.
 
+Lemma step_keeps_right_limit_better :
+  let '(fc, cc, lcc, lc, le, he) :=
+    open_cells_decomposition open (point e) in
+    let '(nos, lno) := opening_cells_aux (point e)
+       (sort edge_below (outgoing e)) le he in
+  {in  rcons(cls ++
+          lstc :: closing_cells (point e) cc) (close_cell (point e) lcc), 
+    forall c, right_limit c <= p_x (point e)}.
+Proof.
+case oe : (open_cells_decomposition _ _) =>
+ [[[[[fc cc] lcc] lc] le] he].
+case oca_eq:(opening_cells_aux _ _ _ _) => [nos lno].
+have [ocd [lcc_ctn [allct [allnct [flcnct [heq [leq [lein hein]]]]]]]] :=
+    decomposition_main_properties oe exi.
+move=> c; rewrite mem_rcons=> cin.
+have := sval; rewrite ocd /seq_valid !all_cat=> /andP[] _ /andP[] svalcc /=.
+move=> /andP[] /andP[] vllcc vhlcc _.
+move: cin; rewrite inE => /orP[/eqP -> | ].
+  by have := right_limit_close_cell vllcc vhlcc=> ->; apply: le_refl.
+rewrite mem_cat=> /orP[cold | ].
+  by apply: closed_right_limit; rewrite mem_rcons inE cold orbT.
+rewrite inE=> /orP[cold | ].
+  by apply: closed_right_limit; rewrite mem_rcons inE cold.
+move=> /mapP [c' c'in ->].
+have /andP[vlc' vhc'] := allP svalcc c' c'in.
+by rewrite (right_limit_close_cell vlc' vhc') le_refl.
+Qed.
+
 Lemma step_keeps_right_limit_closed_default :
   let '(fc, cc, lcc, lc, le, he) :=
     open_cells_decomposition open (point e) in
@@ -4642,25 +4670,13 @@ Proof.
 case oe : (open_cells_decomposition _ _) =>
  [[[[[fc cc] lcc] lc] le] he].
 case oca_eq:(opening_cells_aux _ _ _ _) => [nos lno].
-have [ocd [lcc_ctn [allct [allnct [flcnct [heq [leq [lein hein]]]]]]]] :=
-    decomposition_main_properties oe exi.
-move=> c ev; rewrite mem_rcons=> cin evin.
-suff rl_ev' : right_limit c <= p_x (point e).
-  apply: (le_trans rl_ev').
-  move: sort_evs; rewrite /= path_sortedE; last by apply: lexPtEv_trans.
-  move=> /andP[] /allP /(_ ev evin) /orP[/ltW // | /andP[] /eqP -> _] _.
-  by apply: le_refl.
-have := sval; rewrite ocd /seq_valid !all_cat=> /andP[] _ /andP[] svalcc /=.
-move=> /andP[] /andP[] vllcc vhlcc _.
-move: cin; rewrite inE => /orP[/eqP -> | ].
-  by have := right_limit_close_cell vllcc vhlcc=> ->; apply: le_refl.
-rewrite mem_cat=> /orP[cold | ].
-  by apply: closed_right_limit; rewrite mem_rcons inE cold orbT.
-rewrite inE=> /orP[cold | ].
-  by apply: closed_right_limit; rewrite mem_rcons inE cold.
-move=> /mapP [c' c'in ->].
-have /andP[vlc' vhc'] := allP svalcc c' c'in.
-by rewrite (right_limit_close_cell vlc' vhc') le_refl.
+move=>c ev cin evin.
+have := step_keeps_right_limit_better; rewrite oe oca_eq.
+move=> /(_  _ cin) => rl_ev'.
+apply: (le_trans rl_ev').
+move: sort_evs; rewrite /= path_sortedE; last by apply: lexPtEv_trans.
+move=> /andP[] /allP /(_ ev evin) /orP[/ltW // | /andP[] /eqP -> _] _.
+by apply: le_refl.
 Qed.
 
 Lemma last_closing_side_char pp fc cc lcc lc le he :
@@ -4978,8 +4994,8 @@ Record disjoint_non_gp_invariant (bottom top : edge)
     pairwise_open_non_gp : pairwise edge_below
      (bottom :: [seq high c | c <- state_open_seq s]);
     closed_at_left_non_gp :
-     {in state_closed_seq s & events,
-       forall c e, right_limit c <= p_x (point e)};
+     {in state_closed_seq s,
+       forall c, right_limit c <= lst_x _ _ s};
     size_right_cls : (1 < size (right_pts (lst_closed s)))%N;
     uniq_cc : uniq [seq cell_center c | c <- state_closed_seq s];
     cl_large : {in state_closed_seq s, forall c, left_limit c < right_limit c};
@@ -4999,6 +5015,26 @@ Record disjoint_non_gp_invariant (bottom top : edge)
       {in state_closed_seq s, forall c, inside_closed' (cell_center c) c};
     uniq_high : uniq (bottom :: [seq high c | c <- state_open_seq s])
       }.
+
+Lemma closed_at_left_non_gp_compat bottom top edge_set s events :
+  disjoint_non_gp_invariant bottom top edge_set s events ->
+  {in state_closed_seq s & events, forall c e,
+    right_limit c <= p_x (point e)}.
+Proof.
+move=> d_inv c e cin ein.
+have c_inv := common_non_gp_inv_dis d_inv.
+apply: (le_trans (closed_at_left_non_gp d_inv cin)).
+rewrite (lstx_eq (ngcomm c_inv)).
+have lstoin : lst_open s \in state_open_seq s.
+  by rewrite /state_open_seq /= mem_cat inE eqxx orbT.
+have := allP (sides_ok (ngcomm c_inv)) _ lstoin =>
+  /andP[] _ /andP[] samex _.
+have /eqP <- := allP samex _ (mem_nth dummy_pt (has_snd_lst c_inv)).
+have := lst_side_lex c_inv; rewrite (path_sortedE (@lexPt_trans _)).
+move=> /andP[] /allP /(_ _ (map_f _ ein)) + _.
+move=> /orP[/ltW // | /andP[] + _].
+by rewrite le_eqVlt => ->.
+Qed.
 
 Definition dummy_state :=
   Bscan [::] dummy_cell [::] [::] dummy_cell dummy_edge 0.

@@ -301,6 +301,19 @@ rewrite /close_cell.
 by do 2 (case: (vertical_intersection_point _ _) => //).
 Qed.
 
+Lemma top_right_close_cell p1 c :
+  p1 === high c ->
+  valid_edge (low c) p1 ->
+  head dummy_pt (right_pts (close_cell p1 c)) = p1.
+Proof.
+move=> /[dup] p1on /andP[] _ vh vl.
+rewrite /close_cell.
+rewrite (pvertE vl) (pvertE vh) /=.
+rewrite pt_eqE eqxx.
+rewrite (on_pvert p1on) eqxx /=.
+by case: ifP=> // /eqP <-.
+Qed.
+
 Lemma inbox_lexePt_right_bt g pt:
   inside_box pt ->
   g \in [:: bottom; top] -> lexePt pt (right_pt g).
