@@ -929,15 +929,47 @@ have gt_trans : transitive (>%R : rel R) by apply/rev_trans/lt_trans.
 move: (map_f p_y nth_in) => /(sorted_last (p_y dummy_pt) gt_trans).
 move=> /[apply] main.
 apply/negP=> abs.
-have sx : p_x (last dummy_pt (left_pts c)) = p_x (nth dummy_pt (left_pts c) j).
-  by rewrite (eqP (samex _ nth_in)).
 have vj : valid_edge (low c) (nth dummy_pt (left_pts c) j).
-  by rewrite -(same_x_valid (low c) sx).
+  by rewrite -(same_x_valid (low c) xlast).
 suff : (last dummy_pt (left_pts c)) <<< low c.
   by rewrite strict_nonAunder // onl.
-apply: (same_x_strict_under_edge_le_y_trans vj (esym sx) _ abs).
+apply: (same_x_strict_under_edge_le_y_trans vj (esym xlast) _ abs).
 move: main; rewrite last_map eq_sym=> /orP[ | /ltW]; last by [].
 by rewrite le_eqVlt => ->.
+Qed.
+
+Lemma open_cell_side_limit_ok_left_pt_strict_under c j:
+  open_cell_side_limit_ok c ->
+  (j.+1 < size (left_pts c))%N ->
+  nth dummy_pt (left_pts c) j.+1 <<< high c.
+Proof.
+move=> + js.
+move=> /andP[] _ /andP[] /allP samex /andP[] srt /andP[] onh _.
+have vh: valid_edge (high c) (head dummy_pt (left_pts c)).
+  by move: onh=> /andP[].
+have nth_in := mem_nth dummy_pt js.
+have xhead : p_x (head dummy_pt (left_pts c)) =
+  p_x (nth dummy_pt (left_pts c) j.+1).
+  have /(head_in_not_nil dummy_pt): (left_pts c) != [::].
+    by move: js; case: left_pts.
+  move=> /samex /eqP ->; by rewrite (eqP (samex _ nth_in)).
+move: srt.
+have gt_trans : transitive (>%R : rel R) by apply/rev_trans/lt_trans.
+have nthq : nth dummy_pt (left_pts c) j.+1 =
+  nth dummy_pt (behead (left_pts c)) j.
+  by move: js; case: (left_pts c).
+have : nth dummy_pt (left_pts c) j.+1 \in behead (left_pts c).
+  move: (js); case: (left_pts c) => [ | a tl] //=; rewrite ltnS.
+  by apply: mem_nth.
+case lptsq: (left_pts c) (js) => [ | a tl] //= _ nth_intl.
+rewrite (path_sortedE gt_trans)=> /andP[] /allP /(_ _ (map_f _ nth_intl)) /= .
+move=> main _.
+have vj : valid_edge (high c) (nth dummy_pt (left_pts c) j.+1).
+  by rewrite -(same_x_valid (high c) xhead).
+apply: (same_x_under_edge_lt_y_trans vh).
+    by rewrite xhead lptsq.
+  by rewrite lptsq.
+by rewrite under_onVstrict // onh.
 Qed.
 
 Lemma open_cell_side_limit_ok_left_limit_valid c p :
