@@ -1552,10 +1552,8 @@ have cl_safe_edge :
       have := same_x_under_edge_lt_y_trans
             vplsthe samex abs pblsthe => abs'.
       by case/negP: evabhsthe; apply/underW.
-      
       have main: p <<= lsthe -> False.
         move=> /[dup]pblsthe /pble_if pble.
-      
       move: oe'; case ccq : cc => [ | cc1 ccs] oe'.
         have := single_closing_side_char evin rfo cbtom adj sval p oe'.
         move: c'in; rewrite ccq /= inE => /eqP <-.
@@ -1573,7 +1571,6 @@ have cl_safe_edge :
       have := middle_closing_side_char evin rfo cbtom adj sval p oe'=> /negP.
       case; apply/hasP; exists (close_cell (point ev) c')=> //.
       by apply: map_f.
-
     rewrite stq /state_closed_seq /=; rewrite mem_rcons inE orbC=> /orP[].
       move=> lincls.
       have hdlx : lexPt (head dummy_pt (right_pts (last_cell (pcc0 :: pcc))))
@@ -1595,7 +1592,6 @@ have cl_safe_edge :
            (etrans xnth1 (etrans atlstx (esym samex))) pyle1).
         by rewrite -hlsto.
       by apply: (main (underW step2)).
-
     move=> /eqP atlstc.
     have glsthe : g = lsthe.
       rewrite -(pcchigh _ (mem_last _ _)) [last _ _]atlstc.
