@@ -1474,45 +1474,111 @@ have cl_safe_edge :
     move=> _ /= [pccsub [pcchigh [_ [_ rlpcc]]]].
     have /[dup] lsin : last_cell (pcc0 :: pcc) \in state_closed_seq st.
       by apply/pccsub; rewrite /last_cell /= mem_last.
+    have := same_x_valid lsthe samex; rewrite vlsthe=> vplsthe.
+    have pxhd : p_x p = p_x (right_pt g).
+      apply: le_anti.
+      move: pong=> /andP[] _ /andP[] _ -> /=.
+      have := closed_at_left_non_gp_compat d_inv lsin=> /(_ _ evinevs).
+      by rewrite rlpcc samex.
+    have [/eqP xhd hdon]:
+          p_x (head dummy_pt (right_pts (last_cell (pcc0 :: pcc)))) ==
+                  right_limit (last_cell (pcc0 :: pcc)) /\
+          head dummy_pt (right_pts (last_cell (pcc0 :: pcc))) === g.
+      rewrite -(pcchigh _ (mem_last _  _)).
+      have := cl_side d_inv lsin.
+      move=> /andP[] _ /andP[] _ /andP[] _ /andP[] _ /andP[] _.
+      move=> /andP[] sr /andP[] /allP xs /andP[] _ /andP[] hdon _.
+      split; last by [].
+      apply: xs; move: sr.
+      by case: right_pts => [ | a tl] //= _; rewrite inE eqxx.
+    have pxhd' : p_x p = 
+         p_x (head dummy_pt (right_pts (last_cell (pcc0 :: pcc)))).
+         by rewrite pxhd xhd rlpcc.
+    have atlstx : lstx = p_x (point ev).
+      apply: le_anti.
+      have := closed_at_left_non_gp d_inv lsin; rewrite rlpcc stq /= => rple.
+      have -> : p_x (point ev) <= lstx.
+        by rewrite -samex (le_trans (proj2 (andP (proj2 (andP pong))))).
+      by rewrite andbT.
+    case: simple_cond; first by rewrite atlstx.
+    move=> -[] _ evabhsthe.
+    have step3 : lsto \in fc.
+      (* TODO : this is a lemma about open_cells_decomposition*)
+      have := lstoin; rewrite ocd.
+      rewrite !(mem_cat, inE)=> /orP[] //.
+      move=> /orP[].
+        move=> /allct; rewrite /contains_point hlsto.
+        by rewrite (negbTE evabhsthe) andbF.
+      move=> /orP[/eqP islcc | inlc].
+        move: lcc_ctn; rewrite /contains_point.
+        by rewrite -islcc hlsto (negbTE evabhsthe) andbF.
+      have lbho := allP rfo _ lstoin.
+      have evbllsto := decomposition_under_low_lc oe' cbtom adj
+        (inside_box_between inbox_e) rfo sval inlc.
+      have abs := order_edges_strict_viz_point' vlo vho lbho evbllsto.
+      by case/negP: evabhsthe; rewrite -hlsto (underW abs).
+    have lstheble : lsthe <| le.
+      have := (pairwise_open_non_gp d_inv); rewrite ocd.
+      rewrite !map_cat /= => /andP[] _.
+      have [s1 [s2 fcq]] := mem_seq_split step3.
+        have [lstolstfc | lstodif] := eqVneq s2 [::].
+          have := adj; rewrite ocd fcq lstolstfc /= -catA /=.
+          move=> /adjacent_catW=> -[] _ /= fact1 _.
+          have sameg : high lsto = low (head lcc cc).
+            by move: fact1; case (cc) => [ | a tl] //= /andP[] /eqP.
+          by rewrite -hlsto sameg leq edge_below_refl.
+        rewrite fcq map_cat /=.
+        rewrite pairwise_cat=> /andP[] _ /andP[] + _.
+        rewrite pairwise_cat=> /andP[] _ /andP[] _ /= /andP[] /allP fact _.
+        have lin : last lsto s2 \in s2 by apply: last_in_not_nil.
+        have := fact _ (map_f _ lin).
+        rewrite hlsto.
+      have := adj; rewrite ocd fcq -catA=> /adjacent_catW [] _/=.
+      rewrite cat_path=> /andP[] _ main.
+      have -> : high (last lsto s2) = low (head lcc cc).
+        by move: main; case: (cc) => [ | a tl] /= /andP[] /eqP.
+      by rewrite leq.
+    have phd : p = head dummy_pt (right_pts (last_cell (pcc0 :: pcc))).
+      apply/eqP; rewrite pt_eqE.
+      rewrite pxhd' eqxx /=.
+      by rewrite (on_edge_same_point pong hdon pxhd').
+    have pble_if : p <<= lsthe -> p <<= le.
+      move=> pblsthe.
+      have vple : valid_edge le p by rewrite (same_x_valid _ samex).
+      have vpho : valid_edge lsthe p by rewrite (same_x_valid _ samex).
+        by apply: (order_edges_viz_point' vpho vple lstheble pblsthe).
+    have last_step_lt : p <<= lsthe -> p_y (point ev) < p_y p -> False.
+      move=> pblsthe abs.
+      have := same_x_under_edge_lt_y_trans
+            vplsthe samex abs pblsthe => abs'.
+      by case/negP: evabhsthe; apply/underW.
+      
+      have main: p <<= lsthe -> False.
+        move=> /[dup]pblsthe /pble_if pble.
+      
+      move: oe'; case ccq : cc => [ | cc1 ccs] oe'.
+        have := single_closing_side_char evin rfo cbtom adj sval p oe'.
+        move: c'in; rewrite ccq /= inE => /eqP <-.
+        rewrite pin=> /esym /orP[]; last first.
+          by move=> /andP[] _ /andP[] _ /(last_step_lt pblsthe).
+        move=> /andP[] _ /andP[].
+        by rewrite pble.
+      move: c'in; rewrite mem_rcons inE => /orP[/eqP c'lcc | ].
+        have /esym := last_closing_side_char evin rfo cbtom adj sval p oe' isT.
+        rewrite -c'lcc pin => /andP[] _ /andP[].
+        by move=>/(last_step_lt pblsthe).
+      rewrite ccq inE=> /orP[/eqP c'cc1 | c'ccs].
+        have /esym := first_closing_side_char evin rfo cbtom adj sval p oe'.
+        by rewrite -c'cc1 pin=> /andP[] _ /andP[]; rewrite pble.
+      have := middle_closing_side_char evin rfo cbtom adj sval p oe'=> /negP.
+      case; apply/hasP; exists (close_cell (point ev) c')=> //.
+      by apply: map_f.
+
     rewrite stq /state_closed_seq /=; rewrite mem_rcons inE orbC=> /orP[].
       move=> lincls.
       have hdlx : lexPt (head dummy_pt (right_pts (last_cell (pcc0 :: pcc))))
               (point ev).
         by apply: (cl_at_left_ss_compat ssng); rewrite // stq.
-      have [/eqP xhd hdon]:
-           p_x (head dummy_pt (right_pts (last_cell (pcc0 :: pcc)))) ==
-                   right_limit (last_cell (pcc0 :: pcc)) /\
-            head dummy_pt (right_pts (last_cell (pcc0 :: pcc))) === g.
-        rewrite -(pcchigh _ (mem_last _  _)).
-        have := cl_side d_inv lsin.
-        move=> /andP[] _ /andP[] _ /andP[] _ /andP[] _ /andP[] _.
-        move=> /andP[] sr /andP[] /allP xs /andP[] _ /andP[] hdon _.
-        split; last by [].
-        apply: xs; move: sr.
-        by case: right_pts => [ | a tl] //= _; rewrite inE eqxx.
-      have pxhd : p_x p = p_x (right_pt g).
-        apply: le_anti.
-        move: pong=> /andP[] _ /andP[] _ -> /=.
-        rewrite -rlpcc.
-        have := closed_at_left_non_gp_compat d_inv lsin=> /(_ ev).
-        by rewrite inE eqxx samex => /(_ isT).
-      have pxhd' : p_x p = 
-         p_x (head dummy_pt (right_pts (last_cell (pcc0 :: pcc)))).
-         by rewrite pxhd xhd rlpcc.
-      have phd : p = head dummy_pt (right_pts (last_cell (pcc0 :: pcc))).
-        apply/eqP; rewrite pt_eqE.
-        rewrite pxhd' eqxx /=.
-        by rewrite (on_edge_same_point pong hdon pxhd').
-      have rlle : right_limit (last_cell (pcc0 :: pcc)) <= lstx.
-        have := (closed_at_left_non_gp d_inv lsin).
-        by rewrite stq.
-      have atlstx: lstx = p_x (point ev).
-        apply: le_anti.
-          rewrite xevgelstx /= -samex pxhd' xhd.
-        have :=(closed_at_left_non_gp d_inv); rewrite stq; apply.
-        by rewrite -stq lsin.
-      case: simple_cond; first by rewrite atlstx.
-      move=> -[] _ evabhsthe.
       have lincls' : last_cell (pcc0 :: pcc) \in sc_closed st by rewrite stq.
       have step1 : lexePt p (nth dummy_pt (left_pts lsto) 1).
         have := cl_at_left_ss ssng lincls'; rewrite stq /=.
@@ -1528,83 +1594,15 @@ have cl_safe_edge :
         apply: (same_x_strict_under_edge_le_y_trans v1
            (etrans xnth1 (etrans atlstx (esym samex))) pyle1).
         by rewrite -hlsto.
-      have pble : p <<= le.
-        (* have cut : state_open_seq st = rcons fop lsto ++ lop.
-          by rewrite stq cat_rcons.
-        move: (adj) (rfo) (sval) (exi'); rewrite cut=> adj' rfo' sval' exi2'.
-        have rconsn0 : rcons fop lsto != [::] by apply/eqP/rcons_neq0.
-        have evab : point ev >>> high (last dummy_cell (rcons fop lsto)).
-          rewrite last_rcons.
-          by have := high_lsto_eq (ngcomm c_inv); rewrite stq /= => ->.
-        have := open_cells_decomposition_cat' adj' rfo' sval' exi2' rconsn0
-          evab. *)
-        have step3 : lsto \in fc.
-         (* TODO : this is a lemma about open_cells_decomposition*)
-          have := lstoin; rewrite ocd.
-          rewrite !(mem_cat, inE)=> /orP[] //.
-          move=> /orP[].
-            move=> /allct; rewrite /contains_point hlsto.
-            by rewrite (negbTE evabhsthe) andbF.
-          move=> /orP[/eqP islcc | inlc].
-          move: lcc_ctn; rewrite /contains_point.
-          by rewrite -islcc hlsto (negbTE evabhsthe) andbF.
-        have lbho := allP rfo _ lstoin.
-        have evbllsto := decomposition_under_low_lc oe' cbtom adj
-          (inside_box_between inbox_e) rfo sval inlc.
-        have abs := order_edges_strict_viz_point' vlo vho lbho evbllsto.
-        by case/negP: evabhsthe; rewrite -hlsto (underW abs).
-        apply: underW.
-        have vple : valid_edge le p by rewrite (same_x_valid _ samex).
-        have vpho : valid_edge lsthe p by rewrite (same_x_valid _ samex).
-        have lstheble : lsthe <| le.
-          have := (pairwise_open_non_gp d_inv); rewrite ocd.
-          rewrite !map_cat /= => /andP[] _.
-        
-          have [s1 [s2 fcq]] := mem_seq_split step3.
-            have [lstolstfc | lstodif] := eqVneq s2 [::].
-              have := adj; rewrite ocd fcq lstolstfc /= -catA /=.
-              move=> /adjacent_catW=> -[] _ /= fact1 _.
-              have sameg : high lsto = low (head lcc cc).
-                by move: fact1; case (cc) => [ | a tl] //= /andP[] /eqP.
-              by rewrite -hlsto sameg leq edge_below_refl.
-            rewrite fcq map_cat /=.
-            rewrite pairwise_cat=> /andP[] _ /andP[] + _.
-            rewrite pairwise_cat=> /andP[] _ /andP[] _ /= /andP[] /allP fact _.
-            have lin : last lsto s2 \in s2 by apply: last_in_not_nil.
-            have := fact _ (map_f _ lin).
-            rewrite hlsto.
-          have := adj; rewrite ocd fcq -catA=> /adjacent_catW [] _/=.
-          rewrite cat_path=> /andP[] _ main.
-          have -> : high (last lsto s2) = low (head lcc cc).
-            by move: main; case: (cc) => [ | a tl] /= /andP[] /eqP.
-          by rewrite leq.
-        by apply: (order_edges_strict_viz_point' vpho vple lstheble step2).
-      have := same_x_valid lsthe samex; rewrite vlsthe=> vplsthe.
-      have last_step_lt : p_y (point ev) < p_y p -> False.
-        move=> abs.
-        have := same_x_strict_under_edge_le_y_trans
-            vplsthe samex (ltW abs) step2 => abs'.
-          by case/negP: evabhsthe; apply/underW.
-      move: oe'; case ccq : cc => [ | cc1 ccs] oe'.
-        have := single_closing_side_char evin rfo cbtom adj sval p oe'.
-        move: c'in; rewrite ccq /= inE => /eqP <-.
-        rewrite pin=> /esym /orP[]; last first.
-          by move=> /andP[] _ /andP[] _ /last_step_lt.
-        move=> /andP[] _ /andP[].
-        by rewrite pble.
-      move: c'in; rewrite mem_rcons inE => /orP[/eqP c'lcc | ].
-        have /esym := last_closing_side_char evin rfo cbtom adj sval p oe' isT.
-        by rewrite -c'lcc pin => /andP[] _ /andP[] /last_step_lt.
-      rewrite ccq inE=> /orP[/eqP c'cc1 | c'ccs].
-        have /esym := first_closing_side_char evin rfo cbtom adj sval p oe'.
-        by rewrite -c'cc1 pin=> /andP[] _ /andP[]; rewrite pble.
-      have := middle_closing_side_char evin rfo cbtom adj sval p oe'=> /negP.
-      case; apply/hasP; exists (close_cell (point ev) c')=> //.
-      by apply: map_f.
-    (* rewrite leNgt=> /negP; apply.
-    rewrite samex -rlpcc; apply:rl; last by rewrite inE eqxx.
-    by apply/pccsub; rewrite /last_cell /= mem_last. *)
-    admit.
+      by apply: (main (underW step2)).
+
+    move=> /eqP atlstc.
+    have glsthe : g = lsthe.
+      rewrite -(pcchigh _ (mem_last _ _)) [last _ _]atlstc.
+      by have := high_lstc d_inv; rewrite stq.
+    suff pblsthe : p <<= lsthe by apply: (main pblsthe).
+    rewrite -glsthe under_onVstrict ?pong //.
+    by move: pong => /andP[].
   move=> [] opc [] pcc [] _ [] opch [] _ [] opco _.
   have [vlc'p vhc'p] : valid_edge (low c') p /\ valid_edge (high c') p.
     by move: vc'; rewrite /valid_cell !(same_x_valid _ samex).
