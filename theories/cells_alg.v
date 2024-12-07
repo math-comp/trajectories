@@ -4636,7 +4636,7 @@ Lemma step_keeps_right_limit_better :
     let '(nos, lno) := opening_cells_aux (point e)
        (sort edge_below (outgoing e)) le he in
   {in  rcons(cls ++
-          lstc :: closing_cells (point e) cc) (close_cell (point e) lcc), 
+          lstc :: closing_cells (point e) cc) (close_cell (point e) lcc),
     forall c, right_limit c <= p_x (point e)}.
 Proof.
 case oe : (open_cells_decomposition _ _) =>

@@ -2070,6 +2070,12 @@ have vp : valid_edge (high c) p.
 by have := strict_under_edge_lower_y (eq_trans px (esym xhd)) hdon => <-.
 Qed.
 
+Lemma in_safe_side_left_contains c p :
+  in_safe_side_left p c -> contains_point p c.
+Proof.
+by rewrite /contains_point=> /andP[] _ /andP[] /underW -> /andP[] /underWC ->.
+Qed.
+
 End proof_environment.
 
 
