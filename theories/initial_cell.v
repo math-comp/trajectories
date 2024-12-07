@@ -131,7 +131,7 @@ Notation simple_step :=
 Notation step :=
   (step (RealField.sort R) eq_op le +%R (fun x y => x - y) *%R
   (fun x y => x / y) 1 edge (@unsafe_Bedge R) left_pt right_pt).
-(* 
+(*
 Definition scan events st : seq cell * seq cell :=
   let final_state := foldl step st events in
   (sc_open1 final_state ++ lst_open final_state :: sc_open2 final_state,
@@ -390,7 +390,7 @@ have ev1in : inside_box bottom top (point ev1).
 have [vb vt] : valid_edge bottom (point ev1) /\ valid_edge top (point ev1).
   by rewrite !(inside_box_valid_bottom_top ev1in) // !inE eqxx ?orbT.
 move: (ev1in); rewrite /inside_box=> /andP[] /andP[] ev1a ev1u _.
-have [slptso nthq] := 
+have [slptso nthq] :=
   opening_cells_aux_event vb vt (underWC ev1a) ev1u oute1' oca_eq.
 have [slpts path_right] :
   (1 < size (left_pts (lst_open (initial_state bottom top events))))%N /\
@@ -579,7 +579,7 @@ Lemma start_comm (bottom top : edge) (s : seq edge) events :
   sorted (@lexPtEv _) events ->
   {subset flatten [seq outgoing e | e <- events] <= s} ->
   (* {in events, forall ev, out_left_event ev} ->
-  {in events, forall ev, uniq (outgoing ev)} -> 
+  {in events, forall ev, uniq (outgoing ev)} ->
   close_edges_from_events events ->*)
   events != [::] ->
   inv1_seq bottom top events [:: start_open_cell bottom top].
@@ -721,18 +721,18 @@ have ipw : pairwise edge_below (bottom :: [seq high c | c <- nos ++ [::lno]]).
 have rl_cl_evs : {in [:: close_cell (point ev1) (start_open_cell bottom top)],
      forall c, right_limit c <= p_x (point ev1)}.
   by move=> /= c; rewrite inE => /eqP ->; rewrite rlclq.
-have srcl0 : (2 < size (right_pts 
+have srcl0 : (2 < size (right_pts
                 (close_cell (point ev1)
                   (start_open_cell bottom top))))%N.
   rewrite /start_open_cell /close_cell /= (pvertE vb) (pvertE vt).
   case: ifP => [abs1 | A].
-    move: ev1u; rewrite (strict_under_pvert_y vt). 
+    move: ev1u; rewrite (strict_under_pvert_y vt).
     by rewrite -[X in p_y X](eqP abs1) /= lt_irreflexive.
   case: ifP => [abs2 | B].
     move: ev1a; rewrite (under_pvert_y vb).
     by rewrite [X in p_y X](eqP abs2) /= le_refl.
   by [].
-have srcl0W : (1 < size (right_pts 
+have srcl0W : (1 < size (right_pts
                 (close_cell (point ev1)
                   (start_open_cell bottom top))))%N.
   by rewrite ltnW.
@@ -745,7 +745,7 @@ have lr_cl : {in [:: close_cell (point ev1) (start_open_cell bottom top)],
     by have [_ _ ->] := close_cell_preserve_3sides (point ev1)
         (start_open_cell bottom top).
   by have := inside_box_left_ptsP startok ev1in.
-have cl0ok : 
+have cl0ok :
   {in [:: close_cell (point ev1) (start_open_cell bottom top)],
     forall c: cell, closed_cell_side_limit_ok c}.
   move=> c; rewrite inE => /eqP ->.
@@ -757,8 +757,8 @@ have cl0ok :
 have hclq : high (close_cell (point ev1) (start_open_cell bottom top)) = top.
   by have [_ -> _] :=
     close_cell_preserve_3sides (point ev1) (start_open_cell bottom top).
-have inth1_eq : 
-  nth dummy_pt 
+have inth1_eq :
+  nth dummy_pt
     (right_pts (close_cell (point ev1) (start_open_cell bottom top))) 1 =
   nth dummy_pt (left_pts lno) 1.
   move: srcl0; rewrite /close_cell /= (pvertE vb) (pvertE vt).
@@ -780,7 +780,7 @@ have llx : {in nos ++ [:: lno], forall c, left_limit c <= p_x (point ev1)}.
   by rewrite -cats1=> /(_ _ cin)=> ->.
 have cl0_center : {in [:: close_cell (point ev1) (start_open_cell bottom top)],
    forall c, inside_closed' (cell_center c) c}.
-  have ibt : inter_at_ext (low (start_open_cell bottom top)) 
+  have ibt : inter_at_ext (low (start_open_cell bottom top))
         (high (start_open_cell bottom top)).
      by apply: nocs'; rewrite !inE eqxx ?orbT.
   have lltx := inside_box_left_ptsP startok ev1in.

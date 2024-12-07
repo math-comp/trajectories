@@ -131,7 +131,7 @@ Notation simple_step :=
 Notation step :=
   (step (RealField.sort R) eq_op le +%R (fun x y => x - y) *%R
   (fun x y => x / y) 1 edge (@unsafe_Bedge R) left_pt right_pt).
-(* 
+(*
 Definition scan events st : seq cell * seq cell :=
   let final_state := foldl step st events in
   (sc_open1 final_state ++ lst_open final_state :: sc_open2 final_state,
