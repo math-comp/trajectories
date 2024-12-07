@@ -1161,6 +1161,14 @@ move=> + pin; move=> /andP[] ln0 /andP[] lsx _.
 by rewrite (eqP (allP lsx _ _)).
 Qed.
 
+Lemma mem_head_right_pts (c : cell):
+  closed_cell_side_limit_ok c ->
+  head dummy_pt (right_pts c) \in right_pts c.
+Proof.
+move=> /andP[] _ /andP[] _ /andP[] _ /andP[] _ /andP[] _.
+by case (right_pts c) => [ | ? ?] //=; rewrite inE eqxx.
+Qed.
+
 Lemma x_right_pts_right_limit (c : cell) (p : pt) :
   closed_cell_side_limit_ok c ->
   p \in (right_pts c : seq pt) -> p_x p = right_limit c.
@@ -2044,6 +2052,23 @@ move: yin; rewrite -has_pred1=> /(nth_find dummy_cell) => /eqP <-.
 by apply/disoc_i.
 Qed.
 
+Lemma in_safe_side_right_top_right c p:
+  closed_cell_side_limit_ok c ->
+  in_safe_side_right p c -> lexPt p (head dummy_pt (right_pts c)).
+Proof.
+move=> /andP[] _ /andP[] _ /andP[] _ /andP[] _ /andP[] _.
+move=> /andP[] sr /andP[] /allP sx /andP[] _ /andP[] hdon _.
+move=> /andP[] /eqP px /andP[] puh _.
+have xhd : p_x (head dummy_pt (right_pts c)) = right_limit c.
+  apply/eqP/sx.
+  by move: sr; case: (right_pts c) => [ | ? ?] //=; rewrite inE eqxx.
+rewrite /lexPt xhd px eqxx ltxx /=.
+have vh : valid_edge (high c) (head dummy_pt (right_pts c)).
+  by move: hdon=> /andP[].
+have vp : valid_edge (high c) p.
+  by rewrite -(same_x_valid (high c) (eq_trans xhd (esym px))).
+by have := strict_under_edge_lower_y (eq_trans px (esym xhd)) hdon => <-.
+Qed.
 
 End proof_environment.
 
