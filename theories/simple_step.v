@@ -833,9 +833,8 @@ have hlstcq' : high (close_cell (point ev) lcc) = he.
   have := close_cell_preserve_3sides (point ev) lcc.
   rewrite -[cells.close_cell _ _]/(close_cell _ _)=> -[] _ -> _.
   by rewrite heq.
-have midptlstc' :
-  path (@lexPt _) (nth dummy_pt (right_pts (close_cell (point ev) lcc)) 1)
-  [seq point x | x <- evs].
+have nth1_eq : nth dummy_pt (right_pts (close_cell (point ev) lcc)) 1 =
+  nth dummy_pt (left_pts lno) 1.
   rewrite /close_cell (pvertE vllcc) (pvertE vhlcc) /=.
   rewrite -[X in if X then _ else _]
     /({|generic_trajectories.p_x := p_x (point ev);
@@ -846,8 +845,9 @@ have midptlstc' :
   move=> /andP[] /negbTE -> _; rewrite andbF.
   rewrite [nth _ _ _](_ : _ = point ev); last first.
     by case: ifP=> [/eqP abs | diff].
-  move: lexev; rewrite -/(sorted (@lexPtEv _) (ev :: evs)).
-  by rewrite sorted_lexPtEv_lexPt.
+  have := last_opening_cells_left_pts_prefix vle vhe puh oute.
+  rewrite -leq -heq oca_eq => /(_ _ _ erefl) [].
+  by case: (left_pts lno) => [ | a [ | b tl]] // + -[].
 have btm_leftops' : {in (fc ++ nos) ++ lno :: lc & evs,
   forall c e, lexPt (bottom_left_corner c) (point e)}.
   move=> c e + ein; rewrite -catA=> cin.
@@ -924,7 +924,7 @@ have := opening_cells_aux_high vle vhe oute'.
     by apply: (proj1 (andP (allP sval c0 _))); rewrite sq inE eqxx.
   move: inbox_e=> /andP[] + _; rewrite under_onVstrict // -abs.
   by rewrite left_on_edge.
-by constructor.
+constructor=>//=.
 Qed.
 
 Record edge_covered_non_gp_invariant (bottom top : edge)

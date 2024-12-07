@@ -757,15 +757,12 @@ have cl0ok :
 have hclq : high (close_cell (point ev1) (start_open_cell bottom top)) = top.
   by have [_ -> _] :=
     close_cell_preserve_3sides (point ev1) (start_open_cell bottom top).
-have pmidcl0evs : 
-  path (@lexPt R) (nth dummy_pt (right_pts (close_cell (point ev1)
-                         (start_open_cell bottom top))) 1)
-    [seq point x | x <- evs].
+have inth1_eq : 
+  nth dummy_pt 
+    (right_pts (close_cell (point ev1) (start_open_cell bottom top))) 1 =
+  nth dummy_pt (left_pts lno) 1.
   move: srcl0; rewrite /close_cell /= (pvertE vb) (pvertE vt).
-  case: ifP=> abs; case: ifP=> B //= _.
-  rewrite -[path _ _ _]/(sorted (@lexPt _) 
-       [seq point e | e <- (ev1 :: evs)]).
-  by rewrite -sorted_lexPtEv_lexPt -evsq.
+  by case: ifP=> abs; case: ifP=> B.
 have btm_left_snd_lsto : {in nos ++ [:: lno], forall c,
   lexePt (bottom_left_corner c) (nth dummy_pt (left_pts lno) 1)}.
   by move: lex_left; rewrite /state_open_seq/=/initial_state evsq oca_eq /=.

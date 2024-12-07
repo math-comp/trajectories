@@ -5002,8 +5002,8 @@ Record disjoint_non_gp_invariant (bottom top : edge)
     cl_side : {in state_closed_seq s, forall c, closed_cell_side_limit_ok c};
     cl_at_lstx : right_limit (lst_closed s) = (lst_x _ _ s);
     high_lstc : high (lst_closed s) = lst_high _ _ s;
-    lexev_right_cls : path (@lexPt R)
-     (nth dummy_pt (right_pts (lst_closed s)) 1) [seq point x | x <- events];
+    nth1_eq : nth dummy_pt (right_pts (lst_closed s)) 1 =
+              nth dummy_pt (left_pts (lst_open s)) 1;
      bottom_left_opens :
        {in state_open_seq s & events,
          forall c e, lexPt (bottom_left_corner c) (point e)};
@@ -5015,6 +5015,15 @@ Record disjoint_non_gp_invariant (bottom top : edge)
       {in state_closed_seq s, forall c, inside_closed' (cell_center c) c};
     uniq_high : uniq (bottom :: [seq high c | c <- state_open_seq s])
       }.
+
+Lemma lexev_right_cls bottom top edge_set s events :
+  disjoint_non_gp_invariant bottom top edge_set s events -> path (@lexPt R)
+     (nth dummy_pt (right_pts (lst_closed s)) 1) [seq point x | x <- events].
+Proof.
+move=> d_inv.
+have := lst_side_lex (common_non_gp_inv_dis d_inv);
+by rewrite (nth1_eq d_inv).
+Qed.
 
 Lemma closed_at_left_non_gp_compat bottom top edge_set s events :
   disjoint_non_gp_invariant bottom top edge_set s events ->
