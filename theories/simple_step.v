@@ -1639,83 +1639,43 @@ have cl_safe_edge :
   have [puhc' palc'] : p <<< high c' /\ p >>> low c'.
     apply/andP;  move: pin=> /andP[] _ /andP[] + /andP[] + _.
     by have [-> -> _] := close_cell_preserve_3sides (point ev) c' => ->.
-  have : p >>= low opc by move: cnt=> /andP[].
-  rewrite strict_nonAunder // negb_and negbK=> /orP[ | stricter]; last first.
-    have := disoc adj pw (sides_ok (ngcomm c_inv)).
-    move=> /(_ opc c' opco c'in') [ab' | ].
-      by move: puhc'; rewrite strict_nonAunder // -ab' opch pong.
-    move=> /(_ p) + ; move=>/negP.
-    rewrite inside_open'E stricter valid_open_limit //.
-    move: cnt; rewrite contains_pointE=> /andP[] _ ->.
-    (* rewrite samex lolt //=; last by rewrite inE eqxx.
-    rewrite inside_open'E (underW puhc') palc' valid_open_limit //.
-    by rewrite samex lolt // inE eqxx. *)
-    admit.
-  move=> ponl.
-  have vbp : valid_edge bottom p.
-    by rewrite (same_x_valid _ samex) (inside_box_valid_bottom inbox_e).
-  have vtp : valid_edge top p.
-    rewrite (same_x_valid _ samex) /valid_edge/generic_trajectories.valid_edge.
-    by move: inbox_e=> /andP[] _ /andP[] _ /andP[] /ltW -> /ltW ->.
-  have bottom_b_c' : bottom <| low c'.
-    have [-> | ] := eqVneq bottom (low c'); first by apply: edge_below_refl.
-    have  [s1 [s2]] := mem_seq_split c'in'.
-    elim/last_ind: s1 => [ | s1 op' _] /= => odec.
-      by move: cbtom => /andP[]; rewrite odec /= => /eqP ->; rewrite eqxx.
-    have := adj.
-    rewrite odec cat_rcons=> /adjacent_catW /= [] _ /andP[] /eqP <- _ _.
-    have := pairwise_open_non_gp d_inv=> /= /andP[] /allP /(_ (high op')) + _.
-    apply; apply/mapP; exists op'=> //.
-    by rewrite // odec !mem_cat mem_rcons inE eqxx.
-  have pab : p >>> bottom.
-    apply/negP=> pub.
-    have:= order_edges_viz_point' vbp vlc'p bottom_b_c' pub.
-    by move: palc'=> /[swap] => ->.
-  have ldifh : low opc != high opc by apply: d_e; rewrite mem_cat opco.
-  have low_opc_s : low opc \in [:: bottom, top & s].
-    by apply: (edges_sub (ngcomm c_inv)); rewrite !mem_cat map_f.
-  have high_opc_s : high opc \in [:: bottom, top & s].
-    by apply: (edges_sub (ngcomm c_inv)); rewrite !mem_cat map_f ?orbT.
-  have := nocs' (low opc) (high opc) low_opc_s high_opc_s.
-  move=> [Q | ]; first by rewrite Q eqxx in ldifh.
-  have ponh : p === high opc by rewrite opch.
-  have opcok : open_cell_side_limit_ok opc.
-    by apply: (allP (sides_ok (ngcomm c_inv))).
-  move=> /(_ _ ponl ponh); rewrite !inE=> /orP[/eqP pleft | /eqP].
-    (* have : left_limit opc < p_x p.
-      by rewrite samex; apply: lolt; rewrite // inE eqxx.
-    have := left_limit_max opcok.
-    have [_ | ] := lerP (p_x (left_pt (high opc)))(p_x (left_pt (low opc))).
-      by move=> /le_lt_trans /[apply]; rewrite pleft lt_irreflexive.
-    move=> /lt_le_trans /[apply]=> /lt_trans /[apply].
-    by rewrite pleft lt_irreflexive. *)
-    admit.
-(* Here p is vertically aligned with p_x, but it must be an event,
-   because it is the end of an edge. *)
-  move=> prl.
-  have put : p <<< top.
-    apply: (order_edges_strict_viz_point' vhc'p vtp _ puhc').
-    move: cbtom=> /andP[] _.
-    have := pw.
-    have [s1 [s2 s1q]] := mem_seq_split c'in'.
-    rewrite s1q last_cat /= map_cat pairwise_cat /=.
-    move=> /andP[] _ /andP[] _ /andP[] allabovec' _ /eqP highlast.
-    case s2q : s2 => [ | c2 s3].
-      by rewrite -highlast s2q edge_below_refl.
-    have /(allP allabovec') : (high (last c' s2)) \in [seq high c | c <- s2].
-      by rewrite map_f // s2q /= mem_last.
-    by rewrite highlast.
-  have := (allP clae _ opco)=> /andP[] + _ => /orP[].
-    rewrite !inE => /orP[] /eqP=> ab'.
-      by move: pab; rewrite under_onVstrict // -ab' ponl.
-    by move: put; rewrite strict_nonAunder // -ab' ponl.
-  move=> /hasP[e2 + /eqP pe2]; rewrite inE=> /orP[/eqP e2ev | e2in].
-  (* if e' cannot be ev, because p cannot be ev because of pin *)
-    have := pin=> /andP[].
-    by rewrite prl pe2 e2ev close_cell_in // ?andbF.
-  have [ [] | [plstx pablsthe]]:= simple_cond.
-    admit.
-  admit.
+  have sb := edges_sub (ngcomm c_inv).
+  have hc's : high c' \in [:: bottom, top & s].
+    by apply: sb; rewrite !mem_cat map_f ?orbT.
+  have hos : high opc \in [:: bottom, top & s].
+    by apply: sb; rewrite !mem_cat map_f ?orbT.
+  have balt : below_alt (high c') (high opc).
+    by apply: (inter_at_ext_no_crossing nocs').
+  have pabo : p >>= high opc by rewrite strict_nonAunder // opch pong.
+  have opcNab : ~~ (high c' <| high opc).
+    apply/negP=> c'bo.
+    have := order_edges_strict_viz_point' vhc'p vphc c'bo puhc'.
+    by rewrite strict_nonAunder // opch pong.
+  have hobhc' := edge_below_from_point_above balt vhc'p vphc.
+  have [s1 [s2 sq]] := mem_seq_split c'in'.
+  have opcs1 : opc \in s1.
+    move: opco; rewrite sq mem_cat=> /orP[]; first by [].
+    rewrite inE => /orP[/eqP opcc' | opcs2].
+      by case/negP: pabo; rewrite opcc'.
+    case/negP: opcNab.
+    move: (pw); rewrite sq map_cat pairwise_cat => /andP[] _ /andP[] _.
+    by move=> /andP[] /allP /(_ _ (map_f _ opcs2)).
+  have opcbl : high opc <| low c'.
+    have [s3 [s4 s1q]] := mem_seq_split opcs1.
+    elim/last_ind : {-1}(s4) (erefl s4) => [ | s4' c2 _] s4q.
+      move: adj; rewrite sq s1q s4q -catA /= => /adjacent_catW[] _ /=.
+      by move=> /andP[] /eqP -> _; apply: edge_below_refl.
+    have hc2 : high c2 = low c'.
+      move: adj.
+      rewrite sq s1q s4q /= -catA /= => /adjacent_catW[] _ /adjacent_cons.
+      by rewrite cat_rcons => /adjacent_catW[] _ /= /andP[] /eqP.
+    move: pw; rewrite sq s1q s4q /= -catA !map_cat /=.
+    rewrite pairwise_cat /= => /andP[] _ /andP[] _ /andP[] + _.
+    rewrite all_cat map_rcons all_rcons => /andP[] /andP[] + _ _.
+    by rewrite hc2.
+  case/negP: palc'.
+  apply: (order_edges_viz_point' vphc vlc'p opcbl).
+  by rewrite under_onVstrict // opch pong.
 have op_safe_edge :
   {in events_to_edges (rcons previous_events ev) & state_open_seq rstate,
     forall g c p, in_safe_side_left p c -> ~ p === g}.
@@ -1970,6 +1930,6 @@ have lex_top_right :
   rewrite nth1q.
   by apply: lex_top_right_main.
 by constructor.
-Admitted.
+Qed.
 
 End working_environment.
