@@ -221,22 +221,10 @@ have oks' : all open_cell_side_limit_ok ((fc ++ nos) ++ lno :: lc).
 have lexfutev : {in evs, forall e,
      lexPt (last dummy_pt (left_pts lno)) (point e)}.
   move=> e ein.
-  have noce : {in le :: rcons (sort edge_below (outgoing ev)) he &,
-           no_crossing R}.
-    move=> g1 g2 g1in g2in; apply noco.
-      move: g1in; rewrite inE mem_rcons inE mem_sort orbA=> /orP[]g1in.
-        by move: g1in=> /orP[] /eqP ->; rewrite mem_cat ?lein ?hein.
-      by rewrite mem_cat orbC /events_to_edges /= mem_cat g1in.
-    move: g2in; rewrite inE mem_rcons inE mem_sort orbA=> /orP[]g2in.
-      by move: g2in=> /orP[] /eqP ->; rewrite mem_cat ?lein ?hein.
-    by rewrite mem_cat orbC /events_to_edges /= mem_cat g2in.
-  have lebhe : le <| he.
-    apply: (edge_below_from_point_above _ vl vp (underWC pal) puh).
-    by apply: noce; rewrite !(inE, mem_rcons) eqxx ?orbT.
   have lnoin: lno \in opening_cells (point ev) (outgoing ev) le he.
     by rewrite /opening_cells oca_eq mem_rcons inE eqxx.
   have :=
-    opening_cells_last_lexePt oute (underWC pal) puh vl vp noce lebhe lnoin.
+    opening_cells_last_lexePt oute (underWC pal) puh vl vp lnoin.
   move=> /lexePt_lexPt_trans; apply.
   move: (lexev).
   rewrite -/(sorted _ (ev :: evs)) sorted_lexPtEv_lexPt /=.
@@ -858,7 +846,7 @@ have btm_leftops' : {in (fc ++ nos) ++ lno :: lc & evs,
     lexPt (bottom_left_corner c) (point ev)}.
     by move=> ? ?; apply: btm_leftops; rewrite // inE eqxx.
   have := step_keeps_btom_left_corners_default inbox_es oute rfo cbtom adj sval
-    noc btm_left_ev.
+    btm_left_ev.
   by rewrite oe oca_eq=> /(_ (point e) lexeev) => /(_ c cin).
 have leftops' : {in ((fc ++ nos) ++ lno :: lc), forall c,
       left_limit c <= p_x (point ev)}.
@@ -873,12 +861,6 @@ have leftops' : {in ((fc ++ nos) ++ lno :: lc), forall c,
   have := opening_cells_left oute vle vhe.
   rewrite /opening_cells -leq -heq oca_eq le_eqVlt.
   by move=> /(_ c cnew) /eqP => ->.
-have lebhe : le <| he.
-  rewrite leq heq.
-  have ba : below_alt le he.
-    by apply/nocs; apply/sub_edges; rewrite mem_cat; apply/orP; left.
-  move: ba; rewrite leq heq=> ba.
-  by apply: (edge_below_from_point_above ba vle vhe (underWC pal) puh).
 have nth1q : nth dummy_pt (left_pts lno) 1 = point ev.
   have := last_opening_cells_left_pts_prefix vle vhe puh oute.
   rewrite -leq -heq oca_eq=> /(_ _ _ erefl) [].
@@ -889,11 +871,8 @@ have btm_left_lex1 : {in (fc++nos) ++ lno :: lc,
   rewrite nth1q; apply/lexPtW.
   apply: btm_leftops; last by rewrite inE eqxx.
   by rewrite ocd -cat_rcons !mem_cat orbCA orbC cold.
-  have noc1 : {in rcons (le :: sort edge_below (outgoing ev)) he &,
-                no_crossing R}.
-    by apply: (no_crossing_event nocs' sub_edges lein hein evin).
   have := opening_cells_last_lexePt oute (underWC pal) puh vle vhe.
-  rewrite -heq -leq /opening_cells oca_eq=> /(_ _ noc1 lebhe cnew).
+  rewrite -heq -leq /opening_cells oca_eq=> /(_ _ cnew).
   by rewrite nth1q.
 have := opening_cells_aux_high vle vhe oute'.
   rewrite -leq -heq oca_eq /= => unos.
@@ -1039,7 +1018,7 @@ have btm_left_lex' :
   {in state_open_seq (simple_step fc cc lc lcc le he cls lstc ev) & evs,
      forall c e, lexPt (bottom_left_corner c) (point e)}.
   have := step_keeps_btom_left_corners_default inbox0 out_e rfo cbtom adj
-     sval noc btm_left_lex_e.
+     sval btm_left_lex_e.
   rewrite /simple_step/= /= oe oca_eq /= /state_open_seq /=.
   rewrite catA=> main.
   move=> c e cin ein; apply: main=> //=.

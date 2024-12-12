@@ -2223,19 +2223,12 @@ have sublehe : {subset rcons (le :: sort edge_below (outgoing e)) he <=
   rewrite inE=> /orP[/eqP -> | ].
     by rewrite /all_edges; subset_tac.
   by apply: subo'.
-have noc2:
-   {in rcons (le :: sort edge_below (outgoing e)) he &, no_crossing R}.
-  by move=> x y xin yin; apply: noc; apply: sublehe.
 move=> x; rewrite !(mem_cat, inE) => /orP[xfc | ].
   by apply: lexPtW; apply: btom_left_corners; rewrite ocd; subset_tac.
 rewrite orbA=> /orP[xin | xlc]; last first.
   apply: lexPtW.
   apply: btom_left_corners; rewrite ocd; subset_tac.
-have noclh : below_alt le he.
-  by apply: noc2; rewrite ?(mem_rcons, inE) eqxx ?orbT.
-have lebhe : le <| he.
-  apply: (edge_below_from_point_above noclh vle vhe (underWC pal) puh).
-have := opening_cells_last_lexePt oute (underWC pal) puh vle vhe noc2 lebhe.
+have := opening_cells_last_lexePt oute (underWC pal) puh vle vhe.
 rewrite /opening_cells oca_eq; apply.
 by rewrite mem_rcons inE orbC.
 Qed.

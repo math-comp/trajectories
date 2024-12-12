@@ -567,14 +567,13 @@ Lemma opening_cells_last_lexePt e low_e high_e c :
 out_left_event e ->
 ~~(point e <<< low_e) -> point e <<< high_e ->
 valid_edge low_e (point e)-> valid_edge high_e (point e) ->
-{in  (rcons (low_e::(sort edge_below (outgoing e))) high_e) &, no_crossing R} ->
-low_e <| high_e ->
  c \in (opening_cells (point e) (outgoing e) low_e high_e) ->
  lexePt (last dummy_pt (left_pts c)) (point e).
 Proof.
 rewrite /opening_cells.
 move => /outleft_event_sort outlefte eabl eunh lowv highv.
-elim : (sort edge_below (outgoing e)) low_e eabl lowv outlefte => [/= | c' q IH] low_e eabl lowv outlefte nc linfh.
+elim : (sort edge_below (outgoing e)) low_e eabl lowv outlefte =>
+  [/= | c' q IH] low_e eabl lowv outlefte.
   have := pvertE highv; set high_p := Bpt _ _ => hp.
   have := pvertE lowv; set low_p := Bpt _ _ => lp.
   have := intersection_on_edge lp=> [][] poel lx_eq.
@@ -585,7 +584,11 @@ elim : (sort edge_below (outgoing e)) low_e eabl lowv outlefte => [/= | c' q IH]
              _ _ _ _ _ _ _ _ _ _ _]/(vertical_intersection_point _ _).
   rewrite lp hp.
   rewrite lx_eq in hx_eq.
-  have y_ineq := order_below_viz_vertical lowv highv lp hp linfh.
+  have := strict_under_pvert_y lowv.
+  rewrite (negbTE eabl)=> /esym/negbT; rewrite -leNgt => y_ineq1.
+  have := strict_under_pvert_y highv; rewrite eunh=> /esym => y_ineq2.
+  have := le_lt_trans y_ineq1 y_ineq2.
+  rewrite -[X in X < _]/(p_y low_p) -[X in _ < X]/(p_y high_p) => y_ineq.
   rewrite  inE => /eqP ->.
   case: ifP.
     rewrite -[pt_eqb R eq_op high_p (point e)]/(high_p == (point e) :> pt).
@@ -593,7 +596,7 @@ elim : (sort edge_below (outgoing e)) low_e eabl lowv outlefte => [/= | c' q IH]
     rewrite -[pt_eqb R eq_op high_p low_p]/(high_p == low_p :> pt).
     case : ifP => [/eqP <-/=|/= _].
       by rewrite /lexePt eqxx le_refl orbT .
-    by rewrite /lexePt hx_eq eqxx y_ineq /= orbT.
+    by rewrite /lexePt hx_eq eqxx (ltW y_ineq) /= orbT.
   rewrite /lexePt.
   rewrite -[pt_eqb _ _ _ _]/(high_p == point e :> pt).
   rewrite -[pt_eqb _ _ _ _]/(point e == low_p :> pt).
@@ -617,18 +620,6 @@ have outq: (forall e0 : edge, e0 \in q -> left_pt e0 == point e).
   move => e0 ein.
   apply outlefte.
   by rewrite inE ein orbT.
-have c'infh : c' <| high_e.
-  have := nc high_e c'.
-  rewrite /= !inE  !mem_rcons !inE  !eqxx !orbT /= => /(_ isT isT).
-  move=> /below_altC/no_crossingE.
-  have := outlefte c' cin => /eqP ->.
-  rewrite highv eunh => [] /(_ isT) [a _].
-  by apply: a.
-have nc' : {in  (rcons (c'::q) high_e) &, no_crossing R}.
-  move => e1 e2 e1in e2in.
-  apply nc.
-    by rewrite inE e1in orbT.
-  by rewrite inE e2in orbT.
 rewrite -[generic_trajectories.vertical_intersection_point
              _ _ _ _ _ _ _ _ _ _ _]/(vertical_intersection_point _ _).
 have := pvertE lowv; set low_p := Bpt _ _ => lp.
@@ -639,14 +630,14 @@ rewrite -[pt_eqb _ _ (point e) low_p]/(point e == low_p :> pt).
 case : ifP=> [/eqP <-/=|/= _].
   rewrite inE => /orP  [/eqP -> /=|].
     by rewrite lexePt_refl.
-  have := IH c' einfc' c'v outq nc' c'infh.
+  have := IH c' einfc' c'v outq.
   by rewrite oca_eq.
 rewrite inE => /orP  [/eqP -> /=|].
   have : p_y low_p <= p_y (point e).
     by rewrite leNgt -(strict_under_edge_lower_y lx_eq poel).
   rewrite /lexePt lx_eq eqxx=> ->.
   by rewrite orbT.
-have := IH c' einfc' c'v outq nc' c'infh.
+have := IH c' einfc' c'v outq.
 by rewrite oca_eq.
 Qed.
 

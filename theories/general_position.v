@@ -546,7 +546,7 @@ have btm_left_lex1 : {in nos ++ [:: lno] & evs,
     move: lexev; rewrite evsq /= path_sortedE; last by apply: lexPtEv_trans.
     by move=> /andP [] /allP + _; apply.
   have := step_keeps_btom_left_corners_default inbox_es oute rf0' cbtom0
-    adj0 sval0 noc0 btm_left_lex0; rewrite oe0 oca_eq=> /(_ _ eev).
+    adj0 sval0 btm_left_lex0; rewrite oe0 oca_eq=> /(_ _ eev).
   by apply.
 rewrite /state_open_seq/state_closed_seq/=.
 have cov_p1 : {in [:: e], forall e',
@@ -653,7 +653,7 @@ have btm_left_lex' :
   {in state_open_seq (simple_step fc cc lc lcc le he cls lstc ev) & evs,
      forall c e, lexPt (bottom_left_corner c) (point e)}.
   have := step_keeps_btom_left_corners_default inbox0 out_e rfo cbtom adj
-     sval noc btm_left_lex_e.
+     sval btm_left_lex_e.
   rewrite /simple_step/= /= oe oca_eq /= /state_open_seq /=.
   rewrite catA=> main.
   move=> c e cin ein; apply: main=> //=.

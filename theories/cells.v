@@ -264,7 +264,6 @@ Lemma closing_cellsE p cs :
    p cs.
 Proof. by []. Qed.
 
-(* TODO : move to other file *)
 Lemma close_cell_in (p' : pt) c :
   valid_cell c p' ->
   p' \in (right_pts (close_cell p' c): seq pt).
