@@ -898,9 +898,6 @@ Record edge_covered_non_gp_invariant (bottom top : edge)
    non_in_ec :
       {in edge_set & events, forall g e, non_inner g (point e)};
    inj_high : {in state_open_seq s &, injective high};
-   bot_left_cells :
-       {in state_open_seq s & events,
-          forall c e, lexPt (bottom_left_corner c) (point e)};
    }.
 
 (* TODO: this proof is simply duplicated from the general position,
@@ -935,7 +932,7 @@ rewrite /state_open_seq/state_closed_seq /= => sval [] adj [] cbtom rfo.
 move=> lstxq lstheq sub_edges cle out_es uniq_evs.
 move=> /[dup] inbox0 /andP[] inbox_e inbox_es no_dup lexev oks.
 move=> bottom_left_corner_cond slt.
-move=> /andP[] lexnth1 pathlex n_inner inj_high btm_left_lex.
+move=> /andP[] lexnth1 pathlex n_inner inj_high.
 have out_e : out_left_event ev by apply: out_es; rewrite inE eqxx.
 have noc : {in all_edges (state_open_seq st) (ev :: evs) &, no_crossing R}.
   by move=> g1 g2 g1in g2in; apply: nocs; apply: sub_edges.
@@ -946,7 +943,7 @@ have d_inv' :=
   simple_step_disjoint_non_gp_invariant boxwf nocs' inbox_s simple_cond oe d_inv.
 have btm_left_lex_e : {in (state_open_seq st), forall c,
                          lexPt (bottom_left_corner c) (point ev)}.
-  by move=> c cin; apply: btm_left_lex; rewrite // inE eqxx.
+  by move=> c cin; apply: (bottom_left_opens d_inv); rewrite // inE eqxx.
 have n_inner2 : {in state_open_seq st,
          forall c, non_inner (high c) (point ev)}.
   move=> c cin.
