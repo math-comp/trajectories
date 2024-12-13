@@ -1473,9 +1473,9 @@ have cl_safe_edge :
       have -> : p_x (point ev) <= lstx.
         by rewrite -samex (le_trans (proj2 (andP (proj2 (andP pong))))).
       by rewrite andbT.
-    case: simple_cond; first by rewrite atlstx.
+    case: simple_cond; first by case.
     move=> -[] _ evablsthe.
-    have step3 : lsto \in fc.
+    have Lemma_step3 : lsto \in fc.
       (* TODO : this is a lemma about open_cells_decomposition*)
       have := lstoin; rewrite ocd.
       rewrite !(mem_cat, inE)=> /orP[] //.
@@ -1493,7 +1493,7 @@ have cl_safe_edge :
     have lstheble : lsthe <| le.
       have := (pairwise_open_non_gp d_inv); rewrite ocd.
       rewrite !map_cat /= => /andP[] _.
-      have [s1 [s2 fcq]] := mem_seq_split step3.
+      have [s1 [s2 fcq]] := mem_seq_split Lemma_step3.
         have [lstolstfc | lstodif] := eqVneq s2 [::].
           have := adj; rewrite ocd fcq lstolstfc /= -catA /=.
           move=> /adjacent_catW=> -[] _ /= fact1 _.
@@ -1550,20 +1550,20 @@ have cl_safe_edge :
               (point ev).
         by apply: (cl_at_left_ss_compat ssng); rewrite // stq.
       have lincls' : last_cell (pcc0 :: pcc) \in sc_closed st by rewrite stq.
-      have step1 : lexePt p (nth dummy_pt (left_pts lsto) 1).
+      have Lemma_step1 : lexePt p (nth dummy_pt (left_pts lsto) 1).
         have := cl_at_left_ss ssng lincls'; rewrite stq /=.
         by rewrite -phd.
-      have step2 : p <<< lsthe.
+      have Lemma_step2 : p <<< lsthe.
         have := same_x_valid lsthe (etrans xnth1 atlstx).
         rewrite vlsthe=> v1.
         have pyle1 : p_y p <= p_y (nth dummy_pt (left_pts lsto) 1).
-          by move: step1; rewrite /lexePt xnth1 atlstx -samex ltxx eqxx.
+          by move: Lemma_step1; rewrite /lexePt xnth1 atlstx -samex ltxx eqxx.
         have := open_cell_side_limit_ok_left_pt_strict_under lstok.
         have := has_snd_lst c_inv; rewrite stq /= => /[swap] /[apply] nth1u.
         apply: (same_x_strict_under_edge_le_y_trans v1
            (etrans xnth1 (etrans atlstx (esym samex))) pyle1).
         by rewrite -hlsto.
-      by apply: (main (underW step2)).
+      by apply: (main (underW Lemma_step2)).
     move=> /eqP atlstc.
     have glsthe : g = lsthe.
       rewrite -(pcchigh _ (mem_last _ _)) [last _ _]atlstc.
@@ -1746,7 +1746,7 @@ have cl_safe_event :
 
     have := same_x_valid lsthe samex; rewrite vlsthe=> vplsthe.
 
-    have step3 : lsto \in fc.
+    have Lemma_step3 : lsto \in fc.
       (* TODO : this is a lemma about open_cells_decomposition*)
       have := lstoin; rewrite ocd.
       rewrite !(mem_cat, inE)=> /orP[] //.
@@ -1766,7 +1766,7 @@ have cl_safe_event :
       have lstheble : lsthe <| le.
       have := (pairwise_open_non_gp d_inv); rewrite ocd.
       rewrite !map_cat /= => /andP[] _.
-      have [s1 [s2 fcq]] := mem_seq_split step3.
+      have [s1 [s2 fcq]] := mem_seq_split Lemma_step3.
         have [lstolstfc | lstodif] := eqVneq s2 [::].
           have := adj; rewrite ocd fcq lstolstfc /= -catA /=.
           move=> /adjacent_catW=> -[] _ /= fact1 _.
