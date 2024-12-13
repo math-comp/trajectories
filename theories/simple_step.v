@@ -298,11 +298,6 @@ have := last_opening_cells_left_pts_prefix vl vp puh oute.
 have comi' : common_invariant bottom top s
   (simple_step fc cc lc lcc le he cls lstc ev) evs.
   by apply: (simple_step_common_invariant boxwf nocs inbox_s oe comi).
-(* have sll :
-  (1 < size (left_pts (lst_open
-      (simple_step fc cc lc lcc le he cls lstc ev))))%N.
-  have := last_opening_cells_left_pts_prefix vl vp puh oute.
-  by rewrite /simple_step oca_eq /= => /(_ _ _ erefl) []. *)
 have lst_side_lex' : path (@lexPt _) (nth dummy_pt (left_pts lno) 1)
   [seq point e | e <- evs].
   move: snd_cond; case: (left_pts lno) sll' => [ | a [ | b tl]] //= _.
@@ -545,23 +540,6 @@ have center_in' :
     by apply/nocs'; apply: sub_edges; rewrite mem_cat; apply/orP; left;
     rewrite mem_cat map_f ?orbT.
   have ldif : low c' != high c' by apply: ldifmain.
-    (* have [s1 [s2 sq]]:= mem_seq_split c'in2.
-    elim/last_ind: {-1} (s1) (erefl s1) => [ | s1' c2 _] s1q.
-      apply/eqP=> abs.
-      have := cbtom; rewrite /cells_bottom_top/cells_low_e_top.
-      move=> /andP[] /andP[] _ + _; rewrite sq s1q /= => /eqP lb.
-      move: inbox_es=> /andP[] /andP[] /andP[] + _ _ _ => /negP; apply.
-      rewrite -lb abs.
-      have /= incc := open_cells_decomposition_point_on cbtom adj bet_e sval oe.
-      move: c'in; rewrite mem_rcons inE => /orP[/eqP c'lcc | /incc].
-        by rewrite c'lcc underW.
-      move=> /[dup] /andP[] _ vhc'.
-      by rewrite under_onVstrict//  => ->.
-    have := adj; rewrite sq s1q cat_rcons.
-    move=> /adjacent_catW [] _ /= /andP[] /eqP <- _.
-    have := uniq_high; rewrite sq s1q cat_rcons map_cat /=.
-    rewrite cat_uniq => /andP[] _ /andP[] _ /= /andP[] + _.
-    by rewrite inE negb_or => /andP[] + _. *)
   have rfc' : low c' <| high c'.
     by apply: (allP rfo).
   have c'ok : open_cell_side_limit_ok c'.
