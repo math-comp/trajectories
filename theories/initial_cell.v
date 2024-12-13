@@ -889,28 +889,22 @@ have egc : {in [:: ev], forall e,
   split; last by tauto.
   have ocin' : oc \in nos' ++ [:: lno'] by tauto.
   by rewrite /= inE ocin' orbT.
-have c_inv : 
-    common_non_gp_invariant bottom top 
+have d_inv' : 
+    disjoint_non_gp_invariant bottom top 
       (outgoing ev ++ flatten [seq outgoing e  | e <- evs])
       (Bscan nos lno [::] [::] (close_cell (point ev) 
         (start_open_cell bottom top)) top (p_x (point ev))) evs.
-  have := common_non_gp_inv_dis d_inv; rewrite oca_eq => -[cm has2 lex2].
-  constructor; [ | assumption | assumption].
-  move: cm=> -[] a b c d e f g h i j k l.
-  constructor=> //.
-  rewrite /state_open_seq/= => gg; rewrite mem_cat orbC=> /orP[] ggin.
-    by rewrite !(inE, mem_cat) ggin !orbT.
-  suff : gg \in [:: bottom, top & outgoing ev].
-    by rewrite !inE mem_cat=> /orP[-> | /orP[] ->]; rewrite ?orbT.
+  move: d_inv; rewrite oca_eq.
+  apply: disjoint_non_gp_invariant_trans.
+    by move: sub_edges; rewrite evsq.
+  rewrite /state_open_seq/=.
+  move=> g; rewrite mem_cat orbC cats1=> /orP[] gin.
+    by rewrite 2!inE mem_cat gin !orbT.
   have := opening_cells_subset vb vt oute; rewrite /opening_cells oca_eq.
-  have [cg cgin ggq] : exists2 cg, cg \in rcons nos lno &
-    gg = low cg \/ gg = high cg.
-    move: ggin; rewrite cats1 mem_cat=> /orP[] /mapP [cg cgin ggq].
-      by exists cg=> //; left.
-    by exists cg=> //; right.
-  move=> /(_ _ cgin); move: ggq=> [] ->.
-    by move=> /andP[] + _; rewrite !inE => /orP[] ->; rewrite ?orbT.
-  by move=> /andP[] _ +; rewrite !inE => /orP[] ->; rewrite ?orbT.
+  move: gin; rewrite in_cell_edges_has_cell=> /hasP[c cin gc].
+  move=> /(_ _ cin) /andP[]; move: gc.
+  by move=> /orP[] /eqP ->; [ move=> + _ | move=> _ +];
+    rewrite !(inE, mem_cat)=> /orP[/eqP -> | ->]; rewrite ?eqxx ?orbT.
 have evc : {in [:: ev], forall e, exists2 c, c \in [:: close_cell (point ev)
   (start_open_cell bottom top)] & point e \in right_pts c /\ point e >>> low c}.
   move=> ?; rewrite inE=> /eqP ->.

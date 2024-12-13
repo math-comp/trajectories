@@ -915,7 +915,7 @@ Record edge_covered_non_gp_invariant (bottom top : edge)
    processed_covered : {in processed_set, forall e,
        exists2 c, c \in (state_closed_seq s) &
            point e \in (right_pts c : seq pt) /\ point e >>> low c}  ;
-   common_inv_ec : common_non_gp_invariant bottom top edge_set
+   dis_inv_ec : disjoint_non_gp_invariant bottom top edge_set
      s events;
    non_in_ec :
       {in edge_set & events, forall g e, non_inner g (point e)};
@@ -950,7 +950,8 @@ have nocs : {in bottom :: top :: s &, no_crossing R}.
   by apply: inter_at_ext_no_crossing.
 set st := Bscan _ _ _ _ _ _ _.
 move=> oe + simple_cond.
-move=> [] covered p_covered /[dup] Cinv [] [] /[dup] inv_s [] clae.
+move=> [] covered p_covered d_inv.
+move: (common_non_gp_inv_dis d_inv) => [] [] /[dup] inv_s [] clae.
 move=> - [] []; first by [].
 rewrite /state_open_seq/state_closed_seq /= => sval [] adj [] cbtom rfo.
 move=> lstxq lstheq sub_edges cle out_es uniq_evs.
@@ -963,8 +964,8 @@ have noc : {in all_edges (state_open_seq st) (ev :: evs) &, no_crossing R}.
 case oca_eq :
   (opening_cells_aux (point ev) (sort edge_below (outgoing ev)) le he) =>
       [nos lno].
-have Cinv' :=
-  simple_step_common_non_gp_invariant boxwf nocs' inbox_s simple_cond oe Cinv.
+have d_inv' :=
+  simple_step_disjoint_non_gp_invariant boxwf nocs' inbox_s simple_cond oe d_inv.
 have btm_left_lex_e : {in (state_open_seq st), forall c,
                          lexPt (bottom_left_corner c) (point ev)}.
   by move=> c cin; apply: btm_left_lex; rewrite // inE eqxx.

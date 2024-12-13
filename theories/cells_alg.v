@@ -5009,6 +5009,22 @@ Record disjoint_non_gp_invariant (bottom top : edge)
     uniq_high : uniq (bottom :: [seq high c | c <- state_open_seq s])
       }.
 
+Lemma disjoint_non_gp_invariant_trans (bottom top : edge)
+  edge_set1 edge_set2 st events :
+  {subset edge_set1 <= edge_set2} ->
+  {subset all_edges (state_open_seq st) events <=
+    [:: bottom, top & edge_set1]} ->
+  disjoint_non_gp_invariant bottom top edge_set2 st events ->
+  disjoint_non_gp_invariant bottom top edge_set1 st events.
+Proof.
+move=> ss1 es [] h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17.
+constructor=> //.
+move: h3 => -[] h18 h19 h20.
+constructor=> //.
+move: h18=> -[] h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32.
+by constructor.
+Qed.
+
 Lemma lexev_right_cls bottom top edge_set s events :
   disjoint_non_gp_invariant bottom top edge_set s events -> path (@lexPt R)
      (nth dummy_pt (right_pts (lst_closed s)) 1) [seq point x | x <- events].
