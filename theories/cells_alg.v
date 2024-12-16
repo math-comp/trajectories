@@ -4991,23 +4991,77 @@ Record disjoint_non_gp_invariant (bottom top : edge)
        forall c, right_limit c <= lst_x _ _ s};
     size_right_cls : (1 < size (right_pts (lst_closed s)))%N;
     uniq_cc : uniq [seq cell_center c | c <- state_closed_seq s];
-    cl_large : {in state_closed_seq s, forall c, left_limit c < right_limit c};
     cl_side : {in state_closed_seq s, forall c, closed_cell_side_limit_ok c};
-    cl_at_lstx : right_limit (lst_closed s) = (lst_x _ _ s);
     high_lstc : high (lst_closed s) = lst_high _ _ s;
     nth1_eq : nth dummy_pt (right_pts (lst_closed s)) 1 =
               nth dummy_pt (left_pts (lst_open s)) 1;
      bottom_left_opens :
        {in state_open_seq s & events,
          forall c e, lexPt (bottom_left_corner c) (point e)};
-    left_opens : {in state_open_seq s, forall c, left_limit c <= lst_x _ _ s};
     btm_left_lex_snd_lst :
       {in state_open_seq s, forall c, lexePt (bottom_left_corner c)
          (nth dummy_pt (left_pts (lst_open s)) 1)};
     cell_center_in :
       {in state_closed_seq s, forall c, inside_closed' (cell_center c) c};
-    uniq_high : uniq (bottom :: [seq high c | c <- state_open_seq s])
-      }.
+    uniq_high : uniq (bottom :: [seq high c | c <- state_open_seq s])}.
+
+
+Lemma cl_at_lstx bottom top edge_set s events :
+  disjoint_non_gp_invariant bottom top edge_set s events ->
+  right_limit (lst_closed s) = (lst_x _ _ s).
+Proof.
+move=> d_inv.
+have lstcin : lst_closed s \in state_closed_seq s.
+  by rewrite /state_closed_seq/= mem_rcons inE eqxx.
+have lstcok := cl_side d_inv lstcin.
+have lstoin : lst_open s \in state_open_seq s.
+  by rewrite /state_open_seq/= !mem_cat inE eqxx !orbT.
+have lstok := allP (sides_ok (ngcomm (common_non_gp_inv_dis d_inv))) _ lstoin.
+move: lstcok; do 6 (move=> /andP[] _); move=> /andP[] + _.
+move=>/allP /(_ _ (mem_nth dummy_pt (size_right_cls d_inv))) /eqP <-.
+rewrite (nth1_eq d_inv).
+move: lstok=> /andP[] _ /andP[] /allP + _.
+move=> /(_ _ (mem_nth dummy_pt (has_snd_lst (common_non_gp_inv_dis d_inv)))).
+move=> /eqP ->.
+by rewrite (lstx_eq (ngcomm (common_non_gp_inv_dis d_inv))).
+Qed.
+  
+
+Lemma cl_large bottom top edge_set s events :
+  disjoint_non_gp_invariant bottom top edge_set s events ->
+  {in state_closed_seq s, forall c, left_limit c < right_limit c}.
+Proof.
+move=> d_inv c cin.
+have := cell_center_in d_inv cin=> /andP[] /andP[] _ /andP[] _ rb.
+move=> /andP[] _ lb.
+by apply: lt_le_trans lb rb.
+Qed.
+
+Lemma left_opens bottom top edge_set s events :
+  disjoint_non_gp_invariant bottom top edge_set s events ->
+  {in state_open_seq s, forall c, left_limit c <= lst_x _ _ s}.
+Proof.
+move=> d_inv c cin.
+have lstok : open_cell_side_limit_ok (lst_open s).
+  apply: (allP (sides_ok (ngcomm (common_non_gp_inv_dis d_inv)))).
+  by rewrite /state_open_seq mem_cat inE eqxx orbT.
+have n1in : nth dummy_pt (left_pts (lst_open s)) 1 \in
+  (left_pts (lst_open s)).
+  apply: (mem_nth _ (has_snd_lst (common_non_gp_inv_dis d_inv))).
+have -> : lst_x R edge s = left_limit (lst_open s).
+  by apply: (lstx_eq (ngcomm (common_non_gp_inv_dis d_inv))).
+move: lstok => /andP[] _ /andP[] /allP /(_ _ n1in) /eqP <- _.
+have cok : open_cell_side_limit_ok c.
+  by apply: (allP (sides_ok (ngcomm (common_non_gp_inv_dis d_inv)))).
+have <- : p_x (last dummy_pt (left_pts c)) = left_limit c.
+  move: cok => /andP[] + /andP[] + _; case: left_pts => [ | a tl] // _.
+  by move=> /allP /(_ _ (mem_last _ _)) /eqP /= ->.
+have : lexePt (last dummy_pt (left_pts c))
+          (nth dummy_pt (left_pts (lst_open s)) 1).
+  by apply: (btm_left_lex_snd_lst d_inv).
+move=> /orP[/ltW | /andP[] + _]; first by [].
+by rewrite le_eqVlt => ->.
+Qed.
 
 Lemma disjoint_non_gp_invariant_trans (bottom top : edge)
   edge_set1 edge_set2 st events :
@@ -5017,7 +5071,7 @@ Lemma disjoint_non_gp_invariant_trans (bottom top : edge)
   disjoint_non_gp_invariant bottom top edge_set2 st events ->
   disjoint_non_gp_invariant bottom top edge_set1 st events.
 Proof.
-move=> ss1 es [] h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17.
+move=> ss1 es [] h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14.
 constructor=> //.
 move: h3 => -[] h18 h19 h20.
 constructor=> //.

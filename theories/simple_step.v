@@ -326,14 +326,17 @@ Lemma simple_step_disjoint_non_gp_invariant
     evs.
 Proof.
 move=> boxwf nocs' inbox_s simple_cond oe.
-move=> /[dup] /closed_at_left_non_gp_compat.
-move=> + []; rewrite /state_open_seq/state_closed_seq/=.
-move=> rl oc_dis c_dis comng pw rlx sr ucc wcl.
+move=> /[dup] d_inv /[dup] /closed_at_left_non_gp_compat.
+have := cl_large d_inv.
+have := left_opens d_inv.
+have := cl_at_lstx d_inv.
+move=> + + + + []; rewrite /state_open_seq/state_closed_seq/=.
+move=> rllstc leftops wcl rl oc_dis c_dis comng pw rlx sr ucc.
 have := comng=> -[] /= comi lft_cond1 lft_cond2.
 have := comi=> -[]; rewrite /state_open_seq/state_closed_seq/=.
 move=> inv1 lstxq lstheq sub_edges cle out_es uniqout inbox_es
   no_dup lexev oks.
-move=> bottom_left_cond cl_ok rllstc hlstcq midptlstc btm_leftops leftops.
+move=> bottom_left_cond cl_ok hlstcq midptlstc btm_leftops.
 move=> btm_left_lex_snd center_in uniq_high.
 move: (inv1) => [] clae [] sval' [] adj [] cbtom rfo.
 move: sval' => [ //| sval].
