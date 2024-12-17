@@ -5025,7 +5025,6 @@ move=> /(_ _ (mem_nth dummy_pt (has_snd_lst (common_non_gp_inv_dis d_inv)))).
 move=> /eqP ->.
 by rewrite (lstx_eq (ngcomm (common_non_gp_inv_dis d_inv))).
 Qed.
-  
 
 Lemma cl_large bottom top edge_set s events :
   disjoint_non_gp_invariant bottom top edge_set s events ->
