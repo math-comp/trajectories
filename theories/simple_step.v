@@ -795,9 +795,6 @@ have ucc' : uniq [seq cell_center c | c <-
     by apply: (main _ _ ijint).
   have jiint : (j <= i < (size cc).+1)%N by rewrite ji i_s.
   by apply/esym/(main _ _ jiint).
-
-have rlstc' : right_limit (close_cell (point ev) lcc) = (p_x (point ev)).
-  by apply: close_cell_right_limit.
 have hlstcq' : high (close_cell (point ev) lcc) = he.
   have := close_cell_preserve_3sides (point ev) lcc.
   rewrite -[cells.close_cell _ _]/(close_cell _ _)=> -[] _ -> _.
@@ -829,19 +826,6 @@ have btm_leftops' : {in (fc ++ nos) ++ lno :: lc & evs,
   have := step_keeps_btom_left_corners_default inbox_es oute rfo cbtom adj sval
     btm_left_ev.
   by rewrite oe oca_eq=> /(_ (point e) lexeev) => /(_ c cin).
-have leftops' : {in ((fc ++ nos) ++ lno :: lc), forall c,
-      left_limit c <= p_x (point ev)}.
-  move=> c; rewrite -catA -cat_rcons !mem_cat orbCA orbC => /orP[cold | cnew].
-    have : lstx <= p_x (point ev).
-      rewrite lstxq /left_limit.
-      have := bottom_left_cond ev evin=> /orP[ | /andP[/eqP -> _]].
-        by rewrite lt_neqAle=> /andP[].
-      by apply: le_refl.
-    apply: le_trans.
-    by apply: leftops; rewrite ocd -cat_rcons !mem_cat orbCA cold orbT.
-  have := opening_cells_left oute vle vhe.
-  rewrite /opening_cells -leq -heq oca_eq le_eqVlt.
-  by move=> /(_ c cnew) /eqP => ->.
 have nth1q : nth dummy_pt (left_pts lno) 1 = point ev.
   have := last_opening_cells_left_pts_prefix vle vhe puh oute.
   rewrite -leq -heq oca_eq=> /(_ _ _ erefl) [].

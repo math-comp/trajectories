@@ -462,8 +462,6 @@ Lemma initial_disjoint_non_gp_invariant bottom top s events:
     (initial_state bottom top events) (behead events).
 Proof.
 move=> boxwf startok nocs' evin lexev evsub out_evs uniqout cle evsn0.
-(*have ici := initial_common_invariant boxwf startok nocs' evin lexev evsub
-            out_evs uniqout cle evsn0. *)
 have icomng := initial_common_non_gp_invariant boxwf startok nocs' evin lexev
     evsub out_evs uniqout cle evsn0.
 have [ev1 [evs evsq]] : exists ev1 evs, events = ev1 :: evs.
@@ -565,15 +563,6 @@ have srcl0W : (1 < size (right_pts
                 (close_cell (point ev1)
                   (start_open_cell bottom top))))%N.
   by rewrite ltnW.
-have lr_cl : {in [:: close_cell (point ev1) (start_open_cell bottom top)],
-  forall c, left_limit c < right_limit c}.
-  move=> c; rewrite inE => /eqP -> {c}; rewrite rlclq.
-  have -> : left_limit (close_cell (point ev1) (start_open_cell bottom top)) =
-        left_limit (start_open_cell bottom top).
-    rewrite /left_limit.
-    by have [_ _ ->] := close_cell_preserve_3sides (point ev1)
-        (start_open_cell bottom top).
-  by have := inside_box_left_ptsP startok ev1in.
 have cl0ok :
   {in [:: close_cell (point ev1) (start_open_cell bottom top)],
     forall c: cell, closed_cell_side_limit_ok c}.
