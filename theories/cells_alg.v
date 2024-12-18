@@ -5107,6 +5107,29 @@ move=> /orP[/ltW // | /andP[] + _].
 by rewrite le_eqVlt => ->.
 Qed.
 
+Lemma dif_low_high bottom top edge_set s events :
+  disjoint_non_gp_invariant bottom top edge_set s events ->
+  {in state_open_seq s, forall c, low c != high c}.
+Proof.
+move=> d_inv c cin.
+have [s1 [s2 sq]] := mem_seq_split cin.
+move: (uniq_high d_inv); rewrite sq.
+have := inv1 (ngcomm (common_non_gp_inv_dis d_inv)) => -[] _ [] _ [] + [] cbt _.
+rewrite sq /adjacent_cells.
+case s1q : s1 => [ | a s1'].
+  rewrite /= inE negb_or=> _ /andP[] /andP[] + _ _.
+  by move: cbt; rewrite sq s1q /= => /andP[] /andP[] _ /eqP ->.
+rewrite -s1q /= => + /andP[] _ us.
+rewrite map_cat cat_uniq in us.
+move: us=> /andP[] _ /andP[] + _; rewrite s1q=> us.
+rewrite /= cat_path=> /andP[] _ /= /andP[] /eqP <- _.
+apply/eqP=> abs.
+case/negP: us.
+apply/hasP; exists (high (last a s1')).
+  by rewrite abs map_f // inE eqxx.
+apply/map_f/mem_last.
+Qed.
+  
 Definition dummy_state :=
   Bscan [::] dummy_cell [::] [::] dummy_cell dummy_edge 0.
 
