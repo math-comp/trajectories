@@ -868,13 +868,56 @@ have safe_main : {in events_to_edges [:: ev] &
   forall g c p, in_safe_side_left p c || in_safe_side_right p c ->
     ~ p === g}.
   move=> g ?; rewrite /events_to_edges /= cats0 !inE => gin /eqP -> p.
-  move=> /orP[] /andP[].
-    admit.
-  admit.
-constructor=> //.
-    admit.
-  admit.
-admit.
-Admitted.
+  move=> /orP[] /andP[] /eqP + /andP[] puh /andP[] pal pnin pong.
+    rewrite /left_limit; have [_ _ ->] :=
+      close_cell_preserve_3sides (point ev) (start_open_cell bottom top).
+    rewrite -[p_x (last _ _)]/(left_limit (start_open_cell bottom top))=> xq.
+    have := inside_box_left_ptsP startok (allP inbox_es _ (map_f _ evin)).
+    rewrite -xq ltNge=> /negP; case.
+    move: pong=> /andP[] _ /andP[] + _.
+    by rewrite (eqP (oute g gin)).
+  rewrite right_limit_close_cell // => samex.
+  have evong : point ev === g by rewrite -(eqP (oute g gin)) left_on_edge.
+  have samey := on_edge_same_point pong evong samex.
+  have pev : p == point ev by rewrite pt_eqE samex samey !eqxx.
+  by case/negP: pnin; rewrite rpts /pts !inE pev !orbT.
+have safe_o : {in events_to_edges [:: ev] & nos ++ [:: lno],
+  forall g c p, in_safe_side_left p c -> ~ p === g}.
+  move=> g c gin cin p pin.
+  have xl : p_x p = left_limit c by move: pin=> /andP[] /eqP.
+  have samex : p_x p = p_x (point ev).
+    have := opening_cells_left oute vb vt; rewrite /opening_cells oca_eq.
+    by move: cin; rewrite cats1=> /[swap] /[apply] <-.
+  move: (pin) => /andP[] _ /andP[] _ /andP[] _ pnin.
+  move=> pong.
+  move: gin; rewrite /events_to_edges /= cats0=> gin.
+  have evong : point ev === g by rewrite -(eqP (oute g gin)) left_on_edge.
+  have samey := on_edge_same_point pong evong samex.
+  have pev : p == point ev by rewrite pt_eqE samex samey !eqxx.
+  case/negP: pnin; have := (opening_cells_in vb vt oute).
+  rewrite /opening_cells /= oca_eq (eqP pev)=> /(_ c); apply.
+  by rewrite -cats1.
+have e_viz_cl : {in [:: ev] & 
+                    [:: close_cell (point ev) (start_open_cell bottom top)],
+    forall e c p, in_safe_side_left p c || in_safe_side_right p c ->
+     p != point e}.
+  move=> ? ?; rewrite !inE => /eqP -> /eqP -> p.
+  move=> /orP[] /andP[] /eqP + /andP[] puh /andP[] pal pnin.
+    rewrite /left_limit; have [_ _ ->] :=
+      close_cell_preserve_3sides (point ev) (start_open_cell bottom top).
+    rewrite -[p_x (last _ _)]/(left_limit (start_open_cell bottom top))=> xq.
+    apply/eqP=> abs.
+    have := inside_box_left_ptsP startok (allP inbox_es _ (map_f _ evin)).
+    by rewrite -abs xq ltxx.
+  by move: pnin; rewrite rpts !inE !negb_or=> /andP[] _ /andP[] ->.
+have safe_op : {in [:: ev] & nos ++ [:: lno], forall e c p,
+  in_safe_side_left p c -> p != point e}.
+  move=> ? c; rewrite !inE => /eqP -> cin p pin.
+  apply/eqP => abs.
+  have := opening_cells_in vb vt oute.
+  rewrite /opening_cells oca_eq -cats1 -abs=> /(_ _ cin)=> {}abs.
+  by move: pin=> /andP[] _ /andP[] _ /andP[] _; rewrite abs.
+by constructor.
+Qed.
 
 End working_environment.
