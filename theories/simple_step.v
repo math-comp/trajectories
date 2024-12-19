@@ -169,6 +169,7 @@ move=> /andP[] inbox_e inbox_es.
 move=> no_dup lexev oks lexpt1.
 move: (inv)=> [] clae [] []; first by [].
 move=> sval [] adj [] cbtom rfo.
+move=> -[ | strd]; first by [].
 have oute : out_left_event ev.
   by apply: out_es; rewrite inE eqxx.
 have oute' : {in sort edge_below (outgoing ev),
@@ -254,6 +255,25 @@ have no_dup' : {in [seq high c | c <- (fc ++ nos) ++ lno :: lc] & evs,
   move: lexev; rewrite (path_sortedE (@lexPtEv_trans _))=> /andP[] + _.
   move=> /allP /(_ _ ein).
   by rewrite /lexPtEv -lefte (eqP (oute g gnos)) lexPt_irrefl.
+have stradle' : evs = [::] \/
+  {in [seq high c | c <- (fc ++ nos) ++ lno :: lc],
+    forall g, lexPt (left_pt g) (point (head dummy_event evs)) &&
+      lexePt (point (head dummy_event evs)) (right_pt g)}.
+  have allin0 : all (inside_box bottom top) [seq point e | e <- ev :: evs].
+    by rewrite /= inbox_e inbox_es.
+  have := step_keeps_lex_edge_default allin0 oute rfo cbtom adj sval cle clae
+          strd.
+  rewrite oe oca_eq => main.
+  case evsq: evs => [ | ev1 evs']; first by left.
+  right.
+  move=> g gin; apply: main.
+        by apply: (allP inbox_es); rewrite evsq /= inE eqxx.
+      by have := lexev; rewrite evsq /= => /andP[].
+    move=> e2; rewrite evsq inE=> /orP[/eqP -> | ]; first by apply: lexePt_refl.
+    move=> e2in; have := lexev; rewrite evsq /= => /andP[] _.
+    rewrite (path_sortedE (@lexPtEv_trans _))=> /andP[] /allP /(_ _ e2in).
+    by move=> /lexPtW.
+  by move: gin; rewrite /state_open_seq/= -catA.
 by constructor.
 Qed.
 
@@ -336,7 +356,7 @@ have := comng=> -[] /= comi lft_cond1 lft_cond2.
 have := comi=> -[]; rewrite /state_open_seq/state_closed_seq/=.
 move=> inv1 lstxq lstheq sub_edges cle out_es uniqout inbox_es
   no_dup lexev oks.
-move=> bottom_left_cond cl_ok hlstcq midptlstc btm_leftops.
+move=> bottom_left_cond strd cl_ok hlstcq midptlstc btm_leftops.
 move=> btm_left_lex_snd center_in uniq_high.
 move: (inv1) => [] clae [] sval' [] adj [] cbtom rfo.
 move: sval' => [ //| sval].
@@ -918,7 +938,7 @@ move=> - [] []; first by [].
 rewrite /state_open_seq/state_closed_seq /= => sval [] adj [] cbtom rfo.
 move=> lstxq lstheq sub_edges cle out_es uniq_evs.
 move=> /[dup] inbox0 /andP[] inbox_e inbox_es no_dup lexev oks.
-move=> bottom_left_corner_cond slt.
+move=> bottom_left_corner_cond strd slt.
 move=> /andP[] lexnth1 pathlex n_inner inj_high.
 have out_e : out_left_event ev by apply: out_es; rewrite inE eqxx.
 have noc : {in all_edges (state_open_seq st) (ev :: evs) &, no_crossing R}.
@@ -1390,7 +1410,6 @@ have in_safe_side_left_close_cell :
   move=> c cin p; rewrite /in_safe_side_left.
   have [-> -> ->] := close_cell_preserve_3sides (point ev) c.
   by rewrite left_limit_close_cell.
-
 have lex_top_right_main : (* TODO: this should be the invariant, where
   (point ev) is the second point on left_pts lsto, or the second point on
   right_pts lstc. *)

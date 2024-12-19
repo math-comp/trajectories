@@ -1974,6 +1974,9 @@ have [ab | anb] := (eqVneq a b).
 by move=> c; rewrite 2!inE Ih.
 Qed.
 
+Lemma update_closed_cell_add c p :
+  p \in right_pts (update_closed_cell c p).
+Proof. by rewrite /update_closed_cell /= !inE eqxx orbT. Qed.
 
 (* Thanks to the disoc lemma, we only need to prove that the high edges
   of all open cells satisfy the pairwise property for edge_below to

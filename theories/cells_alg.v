@@ -4965,7 +4965,11 @@ Record common_invariant bottom top edge_set s
    above_low_lsto :
      {in events, forall e,
         lexPt (last dummy_pt (left_pts (lst_open s)))
-              (point e)}
+              (point e)};
+   stradle : 
+     events = [::] \/ {in [seq high c | c <- state_open_seq s], forall g,
+     lexPt (left_pt g) (point (head dummy_event events)) &&
+     lexePt (point (head dummy_event events)) (right_pt g)}
 }.
 
 Record common_non_gp_invariant bottom top edge_set s (events : seq event) :=
@@ -4995,7 +4999,8 @@ Record disjoint_non_gp_invariant (bottom top : edge)
     high_lstc : high (lst_closed s) = lst_high _ _ s;
     nth1_eq : nth dummy_pt (right_pts (lst_closed s)) 1 =
               nth dummy_pt (left_pts (lst_open s)) 1;
-     bottom_left_opens :
+    bottom_left_opens : (* TODO : remove, as a consequence of
+                           btm_left_lex_snd_lst and lst_side_lex *)
        {in state_open_seq s & events,
          forall c e, lexPt (bottom_left_corner c) (point e)};
     btm_left_lex_snd_lst :

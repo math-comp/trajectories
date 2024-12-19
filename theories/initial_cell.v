@@ -348,6 +348,32 @@ have no_dup : {in [seq high c | c <- nos ++ [:: lno]] & future_events,
   move : evlexfut; rewrite (path_sortedE (@lexPtEv_trans _))=> /andP[] + _.
   move=> /allP /(_ e ein); rewrite /lexPtEv -lefte.
   by rewrite gc' (eqP (oute _  gev)) lexPt_irrefl.
+have inbox0' : all (inside_box bottom top) 
+  [seq point x | x <- (ev :: future_events)].
+  by rewrite -evsq.
+have strd0 : {in [seq high c | c <- [:: start_open_cell bottom top]],
+  forall g, lexPt (left_pt g) (point ev) && lexePt (point ev) (right_pt g)}.
+  move=> g; rewrite inE => /eqP -> /=.
+  have := inside_box_lexPt_top (proj1 (andP inbox_all_events0)).
+  by move=> /andP[] -> /lexPtW ->.
+have stradle' : future_events = [::] \/
+ {in [seq high c | c <- nos ++ [:: lno]], forall g,
+  lexPt (left_pt g) (point (head dummy_event future_events)) &&
+  lexePt (point (head dummy_event future_events)) (right_pt g)}.
+  case evsq2 : future_events => [ | ev1 evs]; first by left.
+  right.
+  have := step_keeps_lex_edge_default inbox0' oute 
+    rf0' cbtom0 adj0 sval0 cle0' clae0 strd0.
+    rewrite oe oca_eq=> main.
+  move=> g /mapP [c cin gc] /=; apply: main.
+        by apply: (allP inbox_all_events0); rewrite evsq2 !inE eqxx !orbT.
+      by have := lexev; rewrite evsq evsq2 /= => /andP[].
+    move=> e2; rewrite evsq2 inE =>/orP[/eqP -> |e2in].
+      by apply: lexePt_refl.
+    have := lexev; rewrite evsq evsq2 /= => /andP[] _.
+    rewrite (path_sortedE (@lexPtEv_trans _))=> /andP[] /allP /(_ _ e2in).
+    by move=> /lexPtW.
+  by rewrite gc; apply: map_f.
 by constructor.
 Qed.
 

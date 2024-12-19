@@ -428,7 +428,7 @@ move=> /[dup] cle /andP[cl_e_fut' cle'] out_fut'.
 move=> uniq_evs'.
 move=> /= /[dup]  inbox_all_events' /andP[inbox_e inbox_all_events].
 move=> no_dup lexevs oks.
-move=> bottom_left_corner_cond.
+move=> bottom_left_corner_cond strd.
 move=> /andP[] /andP[] lstxlte lstx_fut' ltfut' edges_pairwise cl_at_left.
 move: (inv1)=> [] clae [] pre_sval [] adj [] cbtom rfo.
 have sval : seq_valid (fop ++ lsto :: lop) (point ev') by case: pre_sval.
@@ -586,7 +586,7 @@ move=> - [] []; first by [].
 rewrite /state_open_seq/state_closed_seq /= => sval [] adj [] cbtom rfo.
 move=> lstxq lstheq sub_edges cle out_es uniq_evs.
 move=> /[dup] inbox0 /andP[] inbox_e inbox_es no_dup lexev oks.
-move=> bottom_left_corner_cond.
+move=> bottom_left_corner_cond strd.
 move=> /andP[] lstxlt pathlt n_inner inj_high btm_left_lex.
 have out_e : out_left_event ev by apply: out_es; rewrite inE eqxx.
 have noc : {in all_edges (state_open_seq st) (ev :: evs) &, no_crossing R}.
