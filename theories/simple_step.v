@@ -1166,7 +1166,7 @@ move=> boxwf nocs' inbox_s evin lexev evsub out_evs cle
 have evinevs : ev \in ev :: future_events by rewrite inE eqxx.
 remember (Bscan _ _ _ _ _ _ _) as st eqn:stq.
 move=> oe simple_cond ssng.
-move: (ssng) => [] d_inv e_inv old_lt_fut rf_cl d_e subc clok rl
+move: (ssng) => [] d_inv e_inv old_lt_fut rf_cl d_e subc rl
  A B C D.
 have c_inv := common_non_gp_inv_dis d_inv.
 have lstoin : lsto \in state_open_seq st.
@@ -1367,20 +1367,6 @@ have subc' :
   have [_ -> _] := close_cell_preserve_3sides (point ev) c2.
   apply: subo; rewrite !mem_cat; apply/orP; left; apply/orP; right.
   by rewrite map_f // ocd -cat_rcons !mem_cat c2in orbT.
-(* proving a closed_cell ok invariant. *)
-have clok' : all (@closed_cell_side_limit_ok _) (state_closed_seq rstate).
-  apply/allP; rewrite /state_closed_seq/= -cats1 -catA /= -cat_rcons.
-    move=> c; rewrite mem_cat=> /orP[cin | cin].
-    by apply: (allP clok); rewrite stq.
-  move: cin; rewrite /closing_cells cats1 -map_rcons=> /mapP[c' c'in ->].
-  have ccont : contains_point (point ev) c'.
-    by move: c'in; rewrite mem_rcons inE => /orP[/eqP -> | /allct].
-  have c'in' : c' \in state_open_seq st.
-    by rewrite ocd -cat_rcons !mem_cat c'in orbT.
-  have /(allP sval) /= /andP[vlc' vhc'] := c'in'.
-  have c'ok : open_cell_side_limit_ok c'.
-    by apply: (allP (sides_ok (ngcomm c_inv))).
-  by apply close_cell_ok.
 have safe_side_bound : {in rcons cls lstc, forall c p,
        in_safe_side_left p c || in_safe_side_right p c ->
        p_x p <= right_limit c}.

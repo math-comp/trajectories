@@ -865,12 +865,6 @@ have cl_edges : {subset cell_edges
   have [-> -> _] := 
     close_cell_preserve_3sides (point ev) (start_open_cell bottom top).
   by move=> /orP[] /=; rewrite inE => /eqP ->; rewrite !inE eqxx ?orbT.
-have clok : all (@closed_cell_side_limit_ok R) 
-  (state_closed_seq (Bscan nos lno [::] [::]
-   (close_cell (point ev) (start_open_cell bottom top)) top
-    (p_x (point ev)))).
-  have := cl_side d_inv; rewrite /initial_state evsq /= oca_eq.
-  by rewrite /state_closed_seq /= => ->; rewrite // inE eqxx.
 set p_top := Bpt (p_x (point ev)) (pvert_y (point ev) top).
 set p_bottom := Bpt (p_x (point ev)) (pvert_y (point ev) bottom).
 set pts := [:: p_top; (point ev); p_bottom].
