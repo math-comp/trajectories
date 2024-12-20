@@ -5010,6 +5010,50 @@ Record disjoint_non_gp_invariant (bottom top : edge)
       {in state_closed_seq s, forall c, inside_closed' (cell_center c) c};
     uniq_high : uniq (bottom :: [seq high c | c <- state_open_seq s])}.
 
+Lemma cl_low_high bottom top edge_set s events :
+  disjoint_non_gp_invariant bottom top edge_set s events ->
+  {subset cell_edges (state_closed_seq s) <= [:: bottom, top & edge_set]} ->
+  {in [:: bottom, top & edge_set] &, forall g1 g2, inter_at_ext g1 g2} ->
+  {in state_closed_seq s, forall c, (low c <| high c) && (low c != high c)}.
+Proof.
+move=> d_inv clsub nocs' c cin.
+have lin : low c \in cell_edges (state_closed_seq s).
+  by rewrite mem_cat map_f.
+have hin : high c \in cell_edges (state_closed_seq s).
+  by rewrite mem_cat map_f // orbT.
+have nochl : below_alt (high c) (low c).
+  by apply: (inter_at_ext_no_crossing nocs'); apply: clsub.
+have := cell_center_in d_inv cin.
+rewrite inside_closed'E=> /andP[] cu /andP[] ca /andP[] llc crl.
+have vl : valid_edge (low c) (cell_center c).
+  have := cl_side d_inv cin.
+  move => /andP[] sl /andP[] xsq /andP[] _ /andP[] _ /andP[] lll.
+  move => /andP[] sr /andP[] xsrq /andP[] _ /andP[] _ lrl.
+  have llin : last dummy_pt (left_pts c) \in left_pts c.
+    by move: sl; case: (left_pts c) => [ | a tl] //= _; rewrite mem_last.
+  have lrin : last dummy_pt (right_pts c) \in right_pts c.
+    by move: sr; case: (right_pts c) => [ | a tl] //= _; rewrite mem_last.
+  move: lll=> /andP[] _ /andP[] + _; rewrite (eqP (allP xsq _ llin))=> vl1.
+  rewrite /valid_edge (le_trans vl1 (ltW llc)).
+  move: lrl => /andP[] _ /andP[] _ +; rewrite (eqP (allP xsrq _ lrin))=> vl2.
+  by rewrite (le_trans crl vl2).
+have vh : valid_edge (high c) (cell_center c).
+  have := cl_side d_inv cin.
+  move => /andP[] sl /andP[] xsq /andP[] _ /andP[] hlh /andP[] _.
+  move => /andP[] sr /andP[] xsrq /andP[] _ /andP[] hrh _.
+  have hlin : head dummy_pt (left_pts c) \in left_pts c.
+    by move: sl; case: (left_pts c) => [ | a tl] //= _; rewrite inE eqxx.
+  have hrin : head dummy_pt (right_pts c) \in right_pts c.
+    by move: sr; case: (right_pts c) => [ | a tl] //= _; rewrite inE eqxx.
+  move: hlh=> /andP[] _ /andP[] + _; rewrite (eqP (allP xsq _ hlin))=> vl1.
+  rewrite /valid_edge (le_trans vl1 (ltW llc)).
+  move: hrh => /andP[] _ /andP[] _ +; rewrite (eqP (allP xsrq _ hrin))=> vl2.
+  by rewrite (le_trans crl vl2).
+rewrite (edge_below_from_point_under nochl vh vl cu ca) /=.
+apply/eqP=> abs.
+by move: ca; rewrite abs cu.
+Qed.
+
 
 Lemma cl_at_lstx bottom top edge_set s events :
   disjoint_non_gp_invariant bottom top edge_set s events ->

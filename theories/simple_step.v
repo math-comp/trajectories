@@ -1051,7 +1051,6 @@ Record safe_side_non_gp_invariant (bottom top : edge)
     left_proc : {in processed_set,
                    forall e1, lexePt (point e1)
                      (nth dummy_pt (left_pts (lst_open s)) 1)};
-    rf_closed : {in state_closed_seq s, forall c, low c <| high c};
     diff_edges :
        {in state_open_seq s ++ state_closed_seq s, forall c, low c != high c};
     sub_closed :
@@ -1077,6 +1076,15 @@ Record safe_side_non_gp_invariant (bottom top : edge)
          in_safe_side_left p c ->
          p != point e :> pt};
 }.
+
+Lemma rf_closed bottom top edge_set processed_set s events:
+  {in [:: bottom, top & edge_set] &, forall g1 g2, inter_at_ext g1 g2} ->
+  safe_side_non_gp_invariant bottom top edge_set processed_set s events ->
+  {in state_closed_seq s, forall c, low c <| high c}.
+Proof.
+move=> nocs' s_inv c cin.
+by have /andP[]:= cl_low_high (disjoint_ss s_inv) (sub_closed s_inv) nocs' cin.
+Qed.
 
 Lemma left_proc_compat bottom top edge_set processed_set s events :
   safe_side_non_gp_invariant bottom top edge_set processed_set s events ->
@@ -1165,7 +1173,7 @@ move=> boxwf nocs' inbox_s evin lexev evsub out_evs cle
 have evinevs : ev \in ev :: future_events by rewrite inE eqxx.
 remember (Bscan _ _ _ _ _ _ _) as st eqn:stq.
 move=> oe simple_cond ssng.
-move: (ssng) => [] d_inv e_inv old_lt_fut rf_cl d_e subc rl
+move: (ssng) => [] d_inv e_inv old_lt_fut d_e subc rl
  A B C D.
 have c_inv := common_non_gp_inv_dis d_inv.
 have lstoin : lsto \in state_open_seq st.
@@ -1794,16 +1802,6 @@ have op_safe_event :
   have := cl_safe_event _ c' ein; apply.
     by rewrite /rstate /state_closed_seq/= rcons_cat /= mem_cat inE c'in ?orbT.
   by rewrite pin' orbT.
-have rf_closed1 : {in state_closed_seq rstate, forall c, low c <| high c}.
-  move=> c; rewrite /rstate/state_closed_seq/=.
-  rewrite appE -cat_rcons -cats1 -catA.
-  rewrite mem_cat=> /orP[cin | ].
-    by apply: rf_cl; rewrite /state_closed_seq stq/=.
-  rewrite cats1 -map_rcons=> /mapP[c' c'in ->].
-  have [-> -> _] := close_cell_preserve_3sides (point ev) c'.
-  have := inv1 (ngcomm c_inv).
-  move=> [] _ [] _ [] _ [] _ /allP; apply.
-  by rewrite ocd -cat_rcons !mem_cat c'in orbT.
 have nth1q : nth dummy_pt (left_pts lno) 1 = point ev.
   have := last_opening_cells_left_pts_prefix vl vp puh oute.
   rewrite /= oca_eq => /(_ _ _ erefl) [].
