@@ -5054,6 +5054,29 @@ apply/eqP=> abs.
 by move: ca; rewrite abs cu.
 Qed.
 
+Lemma low_diff_high_open bottom top edge_set s events :
+  disjoint_non_gp_invariant bottom top edge_set s events ->
+  {in state_open_seq s, forall c : cell, low c != high c}.
+Proof.
+move=> d_inv c cin.
+have := inv1 (ngcomm (common_non_gp_inv_dis d_inv)).
+move=> -[] _ [] _ [] adj [] cbtom _.
+have [s1 [s2 sq]] := mem_seq_split cin.
+elim/last_ind: {-1} (s1) (erefl s1) => [ | s1' c2 _] s1q.
+  apply/eqP=> abs.
+  have := cbtom; rewrite /cells_bottom_top/cells_low_e_top.
+  move=> /andP[] /andP[] _ + _; rewrite sq s1q /= => /eqP lb.
+  have lcin : low c \in [:: bottom, top & edge_set].
+    apply: (edges_sub (ngcomm (common_non_gp_inv_dis d_inv))).
+    by rewrite !mem_cat map_f.
+  by have := uniq_high d_inv => /= /andP[] + _; rewrite -lb abs map_f.
+have lq : low c = high c2.
+  move: adj; rewrite sq s1q cat_rcons.
+  by move=> /adjacent_catW /= => -[] _ /andP[] /eqP/esym + _.
+have := uniq_high d_inv => /= /andP[] _; rewrite sq s1q cat_rcons.
+rewrite map_cat cat_uniq=> /andP[] _ /andP[] _ /=  /andP[] + _.
+by rewrite inE negb_or -lq => /andP[] + _.
+Qed.
 
 Lemma cl_at_lstx bottom top edge_set s events :
   disjoint_non_gp_invariant bottom top edge_set s events ->

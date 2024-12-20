@@ -533,22 +533,6 @@ have wcl' : {in rcons (cls ++ (lstc :: closing_cells (point ev) cc))
     by rewrite lon.
   have := strict_under_pvert_y vhob; rewrite lstheq.
   by move=> ->.
-have ldifmain c : c \in fop ++ lsto :: lop -> low c != high c.
-    move=> cin2.
-    have [s1 [s2 sq]]:= mem_seq_split cin2.
-    elim/last_ind: {-1} (s1) (erefl s1) => [ | s1' c2 _] s1q.
-      apply/eqP=> abs.
-      have := cbtom; rewrite /cells_bottom_top/cells_low_e_top.
-      move=> /andP[] /andP[] _ + _; rewrite sq s1q /= => /eqP lb.
-      have lcin : low c \in [:: bottom, top & s].
-        by apply: sub_edges; rewrite !mem_cat map_f.
-      by have := uniq_high => /andP[] + _; rewrite -lb abs map_f.
-    have lq : low c = high c2.
-      move: adj; rewrite sq s1q cat_rcons.
-      by move=> /adjacent_catW /= => -[] _ /andP[] /eqP/esym + _.
-    have := uniq_high => /andP[] _; rewrite sq s1q cat_rcons.
-    rewrite map_cat cat_uniq=> /andP[] _ /andP[] _ /=  /andP[] + _.
-    by rewrite inE negb_or -lq => /andP[] + _.
 have center_in' :
   {in rcons (cls ++ lstc :: closing_cells (point ev) cc)
     (close_cell (point ev) lcc), forall c, inside_closed' (cell_center c) c}.
@@ -562,7 +546,8 @@ have center_in' :
   have inter_at_extc' : inter_at_ext (low c') (high c').
     by apply/nocs'; apply: sub_edges; rewrite mem_cat; apply/orP; left;
     rewrite mem_cat map_f ?orbT.
-  have ldif : low c' != high c' by apply: ldifmain.
+  have ldif : low c' != high c'.
+    by apply: (low_diff_high_open d_inv).
   have rfc' : low c' <| high c'.
     by apply: (allP rfo).
   have c'ok : open_cell_side_limit_ok c'.
@@ -1360,7 +1345,7 @@ have low_diff_high' :
   rewrite cats1 -map_rcons=> /mapP[c' c'in ->].
   have [-> -> _] := close_cell_preserve_3sides (point ev) c'.
   by apply: d_e; rewrite mem_cat ocd -cat_rcons !mem_cat c'in !orbT.
-(* Provint that closed cells used edges only from the initial set. *)
+(* Proving that closed cells used edges only from the initial set. *)
 have subc' :
   {subset cell_edges (state_closed_seq rstate) <= [:: bottom, top & s]}.
   move=> g; rewrite /state_closed_seq/= -cats1 -catA /= -cat_rcons.
