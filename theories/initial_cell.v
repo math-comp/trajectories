@@ -848,16 +848,6 @@ have rf_closed' : {in [:: close_cell (point ev) (start_open_cell bottom top)],
   have [-> -> _] := close_cell_preserve_3sides (point ev) 
     (start_open_cell bottom top).
   exact: boxwf.
-have dif_edges : let st := Bscan nos lno [::] [::] (close_cell (point ev)
-  (start_open_cell bottom top)) top (p_x (point ev)) in
-  {in state_open_seq st ++ state_closed_seq st, forall c, low c != high c}.
-  lazy zeta=> c; rewrite mem_cat /state_closed_seq orbC /= => /orP[].
-    rewrite inE=> /eqP ->.
-    have [-> -> _] := close_cell_preserve_3sides (point ev) 
-      (start_open_cell bottom top).
-    have := (allP inbox_es _ (map_f _ evin)) => /andP[] /andP[] /negP A B _ /=.
-    by apply/eqP=> abs; case A; rewrite abs; apply/underW.
-  have := dif_low_high d_inv; rewrite /initial_state evsq oca_eq; apply.
 have cl_edges : {subset cell_edges
           [:: close_cell (point ev) (start_open_cell bottom top)]
        <= [:: bottom, top & events_to_edges events]}.

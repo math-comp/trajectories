@@ -1036,8 +1036,6 @@ Record safe_side_non_gp_invariant (bottom top : edge)
     left_proc : {in processed_set,
                    forall e1, lexePt (point e1)
                      (nth dummy_pt (left_pts (lst_open s)) 1)};
-    diff_edges :
-       {in state_open_seq s ++ state_closed_seq s, forall c, low c != high c};
     sub_closed :
       {subset cell_edges (state_closed_seq s) <= bottom :: top :: edge_set};
    (* TODO : disjoint_non_gp has the weaker right_limit <= p_x point,
@@ -1158,7 +1156,7 @@ move=> boxwf nocs' inbox_s evin lexev evsub out_evs cle
 have evinevs : ev \in ev :: future_events by rewrite inE eqxx.
 remember (Bscan _ _ _ _ _ _ _) as st eqn:stq.
 move=> oe simple_cond ssng.
-move: (ssng) => [] d_inv e_inv old_lt_fut d_e subc rl
+move: (ssng) => [] d_inv e_inv old_lt_fut subc rl
  A B C D.
 have c_inv := common_non_gp_inv_dis d_inv.
 have lstoin : lsto \in state_open_seq st.
@@ -1327,24 +1325,6 @@ have e_inv' :edge_covered_non_gp_invariant bottom top s
       inbox_s oe e_inv simple_cond.
   rewrite /simple_step/generic_trajectories.simple_step/=.
   by rewrite oca_eq.
-(* Proving that low and high edges of every cell are distinct. *)
-have low_diff_high' :
-  {in state_open_seq rstate ++
-      state_closed_seq rstate, forall c : cell, low c != high c}.
-  move=> c; rewrite mem_cat=> /orP[].
-    rewrite /state_open_seq /= -catA -cat_rcons !mem_cat orbCA.
-    move=> /orP[ | cold]; last first.
-      by apply: d_e; rewrite ocd -cat_rcons !mem_cat orbCA cold orbT.
-    have uo : uniq (outgoing ev).
-     by apply: (uniq_ec (ngcomm c_inv)) (mem_head _ _).
-    have := opening_cells_low_diff_high oute uo vl vp pal puh.
-    by rewrite /opening_cells oca_eq; apply.
-  rewrite /state_closed_seq /= -cats1 -!catA /= -cat_rcons.
-  rewrite mem_cat => /orP[cold | ].
-    by apply: d_e; rewrite mem_cat stq /state_closed_seq/= cold orbT.
-  rewrite cats1 -map_rcons=> /mapP[c' c'in ->].
-  have [-> -> _] := close_cell_preserve_3sides (point ev) c'.
-  by apply: d_e; rewrite mem_cat ocd -cat_rcons !mem_cat c'in !orbT.
 (* Proving that closed cells used edges only from the initial set. *)
 have subc' :
   {subset cell_edges (state_closed_seq rstate) <= [:: bottom, top & s]}.
