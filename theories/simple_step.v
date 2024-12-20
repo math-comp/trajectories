@@ -1056,9 +1056,8 @@ Record safe_side_non_gp_invariant (bottom top : edge)
        {in state_open_seq s ++ state_closed_seq s, forall c, low c != high c};
     sub_closed :
       {subset cell_edges (state_closed_seq s) <= bottom :: top :: edge_set};
-    closed_ok :
-        all (@closed_cell_side_limit_ok R) (state_closed_seq s);
-   (* TODO : disjoint_non_gp has the weaker right_limit <= p_x point  *)
+   (* TODO : disjoint_non_gp has the weaker right_limit <= p_x point,
+      Not exactly, because this does not include the last closed cell.  *)
     cl_at_left_ss :
      {in sc_closed s,
         forall c, lexePt (head dummy_pt (right_pts c))
