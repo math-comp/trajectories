@@ -1978,6 +1978,21 @@ Lemma update_closed_cell_add c p :
   p \in right_pts (update_closed_cell c p).
 Proof. by rewrite /update_closed_cell /= !inE eqxx orbT. Qed.
 
+Lemma update_closed_cell_edges c p :
+  low (update_closed_cell c p) = low c /\
+  high (update_closed_cell c p) = high c.
+Proof. by case: c. Qed.
+
+Lemma update_closed_cell_sides c p :
+  closed_cell_side_limit_ok c -> (1 < size (right_pts c))%N ->
+  left_limit (update_closed_cell c p) = left_limit c /\
+  right_limit (update_closed_cell c p) = right_limit c.
+Proof.
+move=> /andP[] sl; do 4 (move=> /andP[] _); move=> _; move: sl.
+rewrite/left_limit/right_limit/update_closed_cell.
+by case: left_pts => [ | a tl] //; case: right_pts => [ | b [ | d tl']] //=.
+Qed.
+
 (* Thanks to the disoc lemma, we only need to prove that the high edges
   of all open cells satisfy the pairwise property for edge_below to
   obtain disjointness of cells. *)

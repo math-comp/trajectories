@@ -774,7 +774,7 @@ rewrite under_onVstrict //.
 by rewrite gb left_on_edge.
 Qed.
 
-Lemma update_open_cell_edge_covered_non_gp_invariant 
+Lemma update_open_cell_edge_covered_non_gp_invariant
   bottom top s fop lsto lop cls lstc past ev
   lsthe lstx evs :
   bottom <| top ->
@@ -858,8 +858,8 @@ have ec_cov' : {in rcons past ev, forall e, {in outgoing e, forall g,
     (fun c cin => bottom_left_opens disng cin evin) n_inner2 stradle' ec1.
   rewrite /step/same_x at_lstx eqxx /=.
   by rewrite (high_lsto_eq comi) underW /= under_lsthe // uoc_eq.
-have processed_covered' : 
- {in rcons past ev, forall e, 
+have processed_covered' :
+ {in rcons past ev, forall e,
    exists2 c, c \in rcons cls (update_closed_cell lstc (point ev)) &
    point e \in right_pts c /\ point e >>> low c}.
   move=> e; rewrite mem_rcons inE => /orP[/eqP -> {e}| ein].
@@ -928,5 +928,201 @@ have inj_high' : {in (fop ++ nos) ++ lno :: lop &, injective high}.
   by rewrite uoc_eq.
 by constructor.
 Qed.
+
+Lemma update_open_cell_safe_side_non_gp_invariant
+  bottom top s fop lsto lop cls lstc past ev
+  lsthe lstx evs :
+  bottom <| top ->
+  {in bottom :: top :: s &, forall e1 e2, inter_at_ext e1 e2} ->
+  {in s, forall g, inside_box bottom top (left_pt g) &&
+                   inside_box bottom top (right_pt g)} ->
+  lstx = p_x (point ev) ->
+  (point ev) <<< lsthe ->
+  safe_side_non_gp_invariant bottom top s past
+     (Bscan fop lsto lop cls lstc lsthe lstx)
+     (ev :: evs) ->
+  safe_side_non_gp_invariant bottom top s (rcons past ev)
+     (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
+    evs.
+Proof.
+move=> boxwf nocs' inbox_s at_lstx under_lsthe s_inv.
+set st := Bscan fop lsto lop cls lstc lsthe lstx.
+have ec_inv := covered_ss s_inv.
+have d_inv := disjoint_ss s_inv.
+
+(* TODO : unpleasant duplication *)
+have comi := (ngcomm (common_non_gp_inv_dis d_inv)).
+move: (inv1 comi).
+move=> [] clae [] sval' [] adj [] cbtom rfo.
+move: sval' => [ //| sval].
+have at_ll : p_x (point ev) = left_limit lsto.
+  by rewrite -(lstx_eq comi) at_lstx.
+have hlo_eq := high_lsto_eq comi.
+have lstoin : lsto \in state_open_seq (Bscan fop lsto lop cls lstc lsthe lstx).
+  by rewrite /state_open_seq/= mem_cat inE eqxx orbT.
+have sok := sides_ok comi.
+have evin : ev \in ev :: evs by rewrite inE eqxx.
+have lstok : open_cell_side_limit_ok lsto by apply: (allP sok _ lstoin).
+have /andP[vlo vho] := allP sval lsto lstoin.
+have evabove : point ev >>> low lsto.
+  have := above_low_lsto comi evin.
+  move: lstok => /andP[] lln0 /andP[] sx /andP[] _ /andP[] _ onlow.
+  rewrite -at_ll in sx.
+  have lstin : last dummy_pt (left_pts lsto) \in left_pts lsto.
+    by case: (left_pts lsto) lln0 => //= ? ?; rewrite mem_last.
+  move: (allP sx _ lstin)=> /= samex'.
+  rewrite /lexPt lt_neqAle samex' /= => ab.
+  have vev : valid_edge (low lsto) (point ev).
+    have <- := same_x_valid (low lsto) (eqP samex').
+    by move: onlow=> /andP[].
+  rewrite under_pvert_y // -ltNge.
+  have := on_pvert onlow.
+  by have := same_pvert_y vev (esym (eqP samex')) => -> ->.
+have puho : point ev <<< high lsto by rewrite hlo_eq /=.
+have sll : (1 < size (left_pts lsto))%N.
+  by apply: (size_left_lsto sval erefl (sides_ok comi) at_ll evabove
+      (underW puho)).
+
+have oute : out_left_event ev.
+  by apply: (out_events (ngcomm (common_non_gp_inv_dis d_inv))).
+
+have d_inv' : disjoint_non_gp_invariant bottom top s
+  (step st ev) evs.
+  by apply: update_open_cell_disjoint_non_gp_invariant.
+have ec_inv' : edge_covered_non_gp_invariant bottom top s (rcons past ev)
+  (step st ev) evs.
+  by apply: update_open_cell_edge_covered_non_gp_invariant.
+
+have nth1eq : nth dummy_pt (left_pts (lst_open (step st ev))) 1 = point ev.
+  rewrite /step /same_x /= at_lstx eqxx (underW under_lsthe) under_lsthe /=.
+  have [] := update_open_cellE2 oute vlo vho lstok at_ll sll evabove puho.
+    case uoc_eq : update_open_cell => [nos lno] /= ->.
+    have := last_opening_cells_left_pts_prefix vlo vho puho oute.
+    case oca_eq : opening_cells_aux => [nos' lno']=> /(_ _ _ erefl) [] /=.
+    by case: (left_pts lno') => [ | a [ | b tl]] //= _ [] _.
+  by case uoc_eq : update_open_cell => [nos lno] /= ->.
+have left_Proc': {in rcons past ev,
+  forall e, lexePt (point e)
+    (nth dummy_pt (left_pts (lst_open (step st ev))) 1)}.
+  rewrite nth1eq.
+  move=> e; rewrite mem_rcons inE orbC=> /orP[eold | /eqP ->]; last first.
+    by apply: lexePt_refl.
+  have := lst_side_lex (common_non_gp_inv_dis d_inv) => /= /andP[] + _.
+  apply: (fun h h1 => lexPtW (lexePt_lexPt_trans h h1)).
+  by apply: (left_proc s_inv).
+have sub_closed' :
+  {subset cell_edges (state_closed_seq (step st ev)) <= [:: bottom, top & s]}.
+  rewrite /step /same_x /= at_lstx eqxx (underW under_lsthe) under_lsthe /=.
+  rewrite /state_closed_seq /=.
+  case uoc_eq : update_open_cell => [lno nos] /=.
+  move=> g; rewrite -cats1 cell_edges_cat mem_cat cell_edges_cons.
+  have [-> ->]:= update_closed_cell_edges lstc (point ev) => gin.
+  apply: (sub_closed s_inv).
+  by rewrite /state_closed_seq /= -cats1 cell_edges_cat mem_cat cell_edges_cons.
+have cl_at_left' : {in sc_closed (step st ev),
+     forall c, lexePt (head dummy_pt (right_pts c))
+      (nth dummy_pt (left_pts (lst_open (step st ev))) 1)}.
+  move: nth1eq.
+  rewrite /step /same_x /= at_lstx eqxx (underW under_lsthe) under_lsthe /=.
+  case uoc_eq : update_open_cell => [lno nos] /= nth1eq.
+  move=> c cin.
+  have := (cl_at_left_ss s_inv cin) => /= /lexePt_trans; apply.
+  rewrite nth1eq.
+  by have := lst_side_lex (common_non_gp_inv_dis d_inv) => /= /andP[] /lexPtW.
+have lstcok : closed_cell_side_limit_ok lstc.
+  by apply: (cl_side d_inv); rewrite mem_rcons inE eqxx.
+have srltsc : (1 < size (right_pts lstc))%N.
+  by apply: (size_right_cls d_inv).
+have closed_safe_viz_past_edges :
+ {in events_to_edges (rcons past ev) & state_closed_seq (step st ev),
+ forall (g : edge) (c : cell) (p : pt),
+   in_safe_side_left p c || in_safe_side_right p c -> ~ p === g}.
+  move=> g c gin cin p pin pong.
+  move: gin; rewrite events_to_edges_rcons mem_cat=> /orP[gin | gnew].
+    move: cin.
+    rewrite /step/same_x /= at_lstx eqxx (underW under_lsthe) under_lsthe /=.
+    case uoc_eq : update_open_cell => [nos lno].
+    rewrite /state_closed_seq /= mem_rcons inE => /orP[/eqP cup | ccls].
+      have lstcin : lstc \in state_closed_seq st.
+        by rewrite /state_closed_seq/st/= mem_rcons inE eqxx.
+      have pin' : in_safe_side_left p lstc || in_safe_side_right p lstc.
+        move: pin=> /orP[pin | pin]; apply/orP;[left | right].
+          by move: pin; rewrite cup; case: (lstc).
+        move: pin; rewrite /in_safe_side_right cup.
+        have [-> ->] := update_closed_cell_edges lstc (point ev).
+        rewrite update_closed_cell_keeps_right_limit //.
+        move=> /andP[] -> /andP[] -> /andP[] ->.
+        rewrite /update_closed_cell /=.
+        case: (right_pts lstc)=> //= a b; rewrite !inE orbCA negb_or.
+        by move=> /andP[] _ ->.
+      by have := safe_side_closed_edges s_inv gin lstcin pin' pong.
+    have cin' : c \in rcons cls lstc by rewrite mem_rcons inE ccls orbT.
+    by have := safe_side_closed_edges s_inv gin cin' pin pong.
+  have valc : (c \in cls) \/ (c = update_closed_cell lstc (point ev)).
+    move: cin.
+    rewrite /step/same_x /st /= at_lstx eqxx.
+    rewrite (underW under_lsthe) under_lsthe /=.
+    case uoc_eq : update_open_cell => [nos lno].
+    rewrite /state_closed_seq /= mem_rcons inE => /orP[/eqP -> | cin].
+      by right.
+    by left.
+  have lift_cls : {subset cls <= rcons cls lstc}.
+    by move=> c' cin'; rewrite mem_rcons inE cin' orbT.
+  have lift_lstc : lstc \in rcons cls lstc by rewrite mem_rcons inE eqxx.
+  have rle : right_limit c <= p_x (point ev).
+    case: valc => [/lift_cls cin' | valc].
+      by have := closed_at_left_non_gp d_inv cin'; rewrite /= at_lstx.
+    have := closed_at_left_non_gp d_inv lift_lstc; rewrite /= at_lstx.
+    by rewrite valc update_closed_cell_keeps_right_limit.
+  move: pin => /orP[] pin.
+    have pgtev : p_x p < p_x (point ev).
+      have plt_right : p_x p < right_limit c.
+        move: pin=> /andP[] /eqP -> _.
+        move: valc=> [/lift_cls c'in | ->].
+          by have := cl_large d_inv c'in.
+        rewrite update_closed_cell_keep_left_limit.
+        rewrite update_closed_cell_keeps_right_limit //.
+        by apply: (cl_large d_inv lift_lstc).
+      by apply: (lt_le_trans plt_right rle).
+    move: pong => /andP[] _ /andP[] + _.
+    by rewrite (eqP (oute _ gnew)) leNgt pgtev.
+  have lg : left_pt g = point ev by apply/eqP/oute.
+  have samex : p_x p = p_x (left_pt g).
+    apply: le_anti.
+    rewrite (eqP (proj1 (andP pin))) lg rle.
+      case: valc rle pin=> [/lift_cls c'in rle | -> _] pin.
+      rewrite -(eqP (proj1 (andP pin))) -lg.
+      by move: pong=> /andP[] _ /andP[].
+    move: pin=> /andP[] + _.
+    rewrite update_closed_cell_keeps_right_limit // -lg => /eqP <- /=.
+    by move: pong => /andP[] _ /andP[].
+  have samey := on_edge_same_point pong (left_on_edge _) samex.
+  have pev : p = point ev by apply/eqP; rewrite pt_eqE samex samey lg !eqxx.
+  move: valc (pin)=> -[valc  | -> ]; last first.
+    rewrite pev /in_safe_side_right/update_closed_cell.
+    by move=> /andP[] _ /andP[] _ /andP[] _; rewrite !inE eqxx !orbT.
+  rewrite pev=> {} pin.
+  have ph :=
+    in_safe_side_right_top_right (cl_side d_inv (lift_cls _ valc)) pin.
+  have hm : lexePt (head dummy_pt (right_pts c))
+              (nth dummy_pt (left_pts lsto) 1).
+    by have := cl_at_left_ss s_inv valc=> /=.
+  have mp : lexPt (nth dummy_pt (left_pts lsto) 1) (point ev).
+    by have := lst_side_lex (common_non_gp_inv_dis d_inv)=> /andP[].
+  by have := lexPt_trans (lexPt_lexePt_trans ph hm) mp; rewrite lexPt_irrefl.
+have open_safe_viz_past_edges :
+  {in events_to_edges (rcons past ev) & state_open_seq (step st ev),
+    forall g c p, in_safe_side_left p c -> ~ p === g}.
+  admit.
+have closed_safe_viz_past_events :
+  {in rcons past ev & state_closed_seq (step st ev), forall e c p,
+  in_safe_side_left p c || in_safe_side_right p c -> p != point e}.
+  admit.
+have open_safe_viz_past_events :
+  {in rcons past ev & state_open_seq (step st ev),
+   forall e c p, in_safe_side_left p c -> p != point e}.
+  admit.
+constructor=> //.
+Admitted.
 
 End working_environment.
