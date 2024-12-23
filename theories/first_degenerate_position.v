@@ -1113,14 +1113,39 @@ have closed_safe_viz_past_edges :
 have open_safe_viz_past_edges :
   {in events_to_edges (rcons past ev) & state_open_seq (step st ev),
     forall g c p, in_safe_side_left p c -> ~ p === g}.
+  rewrite /step/same_x  /= at_lstx eqxx (underW under_lsthe) under_lsthe /=.
+  case uoc_eq : update_open_cell => [nos lno].
+  rewrite /state_open_seq/=.
+  move=> g c; rewrite events_to_edges_rcons mem_cat => /orP[gold | gnew].
+    rewrite -catA -cat_rcons !mem_cat orbCA orbC => /orP[cold | cnew].
+      apply: (safe_side_open_edges s_inv); first by [].
+      by rewrite /state_open_seq /= mem_cat inE orbCA orbC cold.
+    move=> p pin pong.
+    admit.
   admit.
 have closed_safe_viz_past_events :
   {in rcons past ev & state_closed_seq (step st ev), forall e c p,
   in_safe_side_left p c || in_safe_side_right p c -> p != point e}.
+  rewrite /step/same_x /= at_lstx eqxx (underW under_lsthe) under_lsthe /=.
+  case uoc_eq : update_open_cell => [nos lno].
+  rewrite /state_closed_seq /=.
+  move=> e c; rewrite mem_rcons inE orbC=> /orP[eold | enew].
+    rewrite mem_rcons inE orbC=> /orP[cold | /eqP ->].
+      apply: (safe_side_closed_points s_inv)=> //.
+      by rewrite /state_closed_seq /= mem_rcons inE cold orbT.
+    admit.
   admit.
 have open_safe_viz_past_events :
   {in rcons past ev & state_open_seq (step st ev),
    forall e c p, in_safe_side_left p c -> p != point e}.
+  rewrite /step/same_x /= at_lstx eqxx (underW under_lsthe) under_lsthe /=.
+  case uoc_eq : update_open_cell => [nos lno].
+  rewrite /state_open_seq /= -catA -cat_rcons.
+  move=> e c; rewrite mem_rcons inE orbC=> /orP[eold | enew].
+    rewrite !mem_cat orbCA orbC=> /orP[cold | cnew].
+      apply: (safe_side_open_points s_inv) => //.
+      by rewrite /state_open_seq /= mem_cat inE orbCA cold orbT.
+    admit.
   admit.
 constructor=> //.
 Admitted.
