@@ -1531,7 +1531,7 @@ have open_safe_viz_past_events :
   have := update_open_cell_safe_side oute vlo vho puho evabove at_ll sll
       nth1oev lstok uoc_eq cnew pin.
   by move=> /andP[].
-constructor=> //.
+by constructor.
 Qed.
 
 End working_environment.
