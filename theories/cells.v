@@ -2087,6 +2087,21 @@ have vp : valid_edge (high c) p.
 by have := strict_under_edge_lower_y (eq_trans px (esym xhd)) hdon => <-.
 Qed.
 
+Lemma in_safe_side_top_right c p :
+  closed_cell_side_limit_ok c ->
+  left_limit c < right_limit c ->
+  in_safe_side_left p c || in_safe_side_right p c ->
+  lexPt p (head dummy_pt (right_pts c)).
+Proof.
+move=> cok clarge /orP[pleft | pright]; last first.
+  by apply: in_safe_side_right_top_right.
+rewrite /lexPt.
+move: pleft=> /andP[] /eqP -> _.
+move: cok; do 5 (move=> /andP[] _); move=> /andP[] + /andP[] + _.
+case: right_pts => [ | a tl] //= _ /andP[] /eqP -> _.
+by rewrite clarge.
+Qed.
+
 Lemma in_safe_side_left_contains c p :
   in_safe_side_left p c -> contains_point p c.
 Proof.
