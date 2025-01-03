@@ -296,113 +296,316 @@ move=> /allP; apply.
 by rewrite lq /= inE cin orbT.
 Qed.
 
-Lemma last_case_common_invariant
-  bottom top s fop lsto lop cls lstc ev
-  lsthe lstx evs :
-  bottom <| top ->
-  {in bottom :: top :: s &, forall e1 e2, inter_at_ext e1 e2} ->
-  {in s, forall g, inside_box bottom top (left_pt g) &&
-                   inside_box bottom top (right_pt g)} ->
-  lstx = p_x (point ev) ->
-  point ev <<= lsthe ->
-  point ev >>= lsthe ->
-  common_non_gp_invariant bottom top s
-     (Bscan fop lsto lop cls lstc lsthe lstx)
-     (ev :: evs) ->
+Section proof_environment.
+
+Variables (bottom top : edge) (s : seq edge) (fop : seq cell) (lsto : cell)
+  (lop cls : seq cell) (lstc : cell) (ev : event) (lsthe : edge) (lstx : R)
+  (evs : seq event).
+
+Hypotheses
+  (boxwf : bottom <| top)
+  (nocs' : {in bottom :: top :: s &, forall e1 e2, inter_at_ext e1 e2})
+  (inbox_es : {in s, forall g, inside_box bottom top (left_pt g) &&
+                                inside_box bottom top (right_pt g)})
+  (at_lstx : lstx = p_x (point ev))
+  (pu : point ev <<= lsthe)
+  (pa : point ev >>= lsthe)
+  (comng : common_non_gp_invariant bottom top s
+    (Bscan fop lsto lop cls lstc lsthe lstx) (ev :: evs)).
+
+Let comi : common_invariant bottom top s
+  (Bscan fop lsto lop cls lstc lsthe lstx) (ev :: evs).
+Proof. by exact: (ngcomm comng). Qed.
+
+Let tmp_inv : inv1_seq bottom top (ev :: evs) (fop ++ lsto :: lop).
+Proof. by exact: (inv1 comi). Qed.
+
+Let oute : out_left_event ev.
+Proof.
+by apply: (out_events comi); rewrite inE eqxx.
+Qed.
+
+Let pal : (point ev) >>> low lsto.
+Proof.
+by exact: (same_x_point_above_low_lsto at_lstx comng).
+Qed.
+
+Let clae : close_alive_edges bottom top (fop ++ lsto :: lop) (ev :: evs).
+Proof.
+by case: tmp_inv.
+Qed.
+
+Let sval : seq_valid (fop ++ lsto :: lop) (point ev).
+Proof.
+by move: tmp_inv => -[] ? [] [// | ?] [] ? [] ? ?.
+Qed.
+
+Let adj : adjacent_cells (fop ++ lsto :: lop).
+Proof.
+by move: tmp_inv => -[] ? [] [// | ?] [] ? [] ? ?.
+Qed.
+
+Let cbtom : cells_bottom_top bottom top (fop ++ lsto :: lop).
+Proof.
+by move: tmp_inv => -[] ? [] [// | ?] [] ? [] ? ?.
+Qed.
+
+Let rfo : s_right_form (fop ++ lsto :: lop).
+Proof.
+by move: tmp_inv => -[] ? [] [// | ?] [] ? [] ? ?.
+Qed.
+
+Let noc : {in all_edges (fop ++ lsto :: lop) (ev :: evs) &,
+           no_crossing R}.
+Proof.           
+apply: inter_at_ext_no_crossing.
+by apply: (sub_in2 (edges_sub comi) nocs').
+Qed.
+
+Variables (fc' cc :seq cell) (lcc : cell) (lc :seq cell) (le he : edge).
+
+Hypothesis oe :
+  open_cells_decomposition (lsto :: lop) (point ev) =
+    (fc', cc, lcc, lc, le, he).
+
+Let inbox_e : inside_box bottom top (point ev).
+Proof.
+by have := inbox_events comi => /andP[].
+Qed.
+
+Let lstoin : lsto \in fop ++ lsto :: lop.
+Proof.
+by rewrite mem_cat inE eqxx orbT.
+Qed.
+
+Let lstok : open_cell_side_limit_ok lsto.
+Proof.
+by apply/(allP (sides_ok comi))/lstoin.
+Qed.
+Let tmp_vls : valid_edge (low lsto) (point ev) /\
+  valid_edge (high lsto) (point ev).
+Proof.
+by apply/andP/(allP sval); rewrite mem_cat inE eqxx orbT.
+Qed.
+
+Let vlo := proj1 tmp_vls.
+Let vho := proj2 tmp_vls.
+
+Let nth1in : (nth dummy_pt (left_pts lsto) 1) \in left_pts lsto.
+Proof.
+by apply/mem_nth/(has_snd_lst comng).
+Qed.
+
+Let x1 : p_x (nth dummy_pt (left_pts lsto) 1) = p_x (point ev).
+Proof.
+move: lstok=> /andP[] _ /andP[] /allP /(_ _ nth1in) /eqP -> _.
+by rewrite -at_lstx -(lstx_eq comi).
+Qed.
+
+Variables (nos : seq cell) (lno : cell).
+
+Hypothesis uoct_eq : update_open_cell_top lsto he ev = (nos, lno).
+
+Let exi0 : exists2 w, w \in lsto :: lop & contains_point' (point ev) w.
+Proof.
+rewrite /contains_point'.
+exists lsto; first by rewrite inE eqxx.
+rewrite (high_lsto_eq comi) pu andbT; apply: last_case_above_low=> //.
+    by rewrite -at_lstx -(lstx_eq comi).
+  by apply: (has_snd_lst comng).
+by have := (lst_side_lex comng) => /= /andP[] +.
+Qed.
+
+Let oe' : open_cells_decomposition (fop ++ lsto :: lop) (point ev) =
+  (fop ++ fc', cc, lcc, lc, le, he).
+Proof.
+have := open_cells_decomposition_cat adj rfo sval exi0 pal.
+by rewrite oe /=.
+Qed.
+
+Let exi1 : exists2 w, w \in fop ++ lsto :: lop &
+  contains_point' (point ev) w.
+Proof.
+move: exi0=> [w win wP]; exists w; last by exact wP.
+by rewrite mem_cat win orbT.
+Qed.
+
+Let tmp_decomposition_main_properties :=
+  decomposition_main_properties oe' exi1.
+
+Let ocd : fop ++ lsto :: lop = (fop ++ fc') ++ cc ++ lcc :: lc.
+Proof.
+by move: tmp_decomposition_main_properties=>
+  [? [? [? [? [? [? [? [? ?]]]]]]]].
+Qed.
+
+Let ctn : contains_point (point ev) lcc.
+Proof.
+by move: tmp_decomposition_main_properties=>
+  [? [? [? [? [? [? [? [? ?]]]]]]]].
+Qed.
+
+Let all_ctn : {in cc, forall c, contains_point (point ev) c}.
+Proof.
+by move: tmp_decomposition_main_properties=>
+  [? [? [? [? [? [? [? [? ?]]]]]]]].
+Qed.
+
+Let nct : {in fop ++ fc', forall c, ~~ contains_point (point ev) c}.
+Proof.
+by move: tmp_decomposition_main_properties=>
+  [? [? [? [? [? [? [? [? ?]]]]]]]].
+Qed.
+
+Let nct2 : lc != [::] -> ~~ contains_point (point ev) (head lcc lc).
+Proof.
+by move: tmp_decomposition_main_properties=>
+  [? [? [? [? [? [? [? [? ?]]]]]]]].
+Qed.
+
+Let heq : he = high lcc.
+Proof.
+by move: tmp_decomposition_main_properties=>
+  [? [? [? [? [? [? [? [? ?]]]]]]]].
+Qed.
+
+Let leq : le = low (head lcc cc).
+Proof.
+by move: tmp_decomposition_main_properties=>
+  [? [? [? [? [? [? [? [? ?]]]]]]]].
+Qed.
+
+Let lein : le \in cell_edges (fop ++ lsto :: lop).
+Proof.
+by move: tmp_decomposition_main_properties=>
+  [? [? [? [? [? [? [? [? ?]]]]]]]].
+Qed.
+
+Let hein : he \in cell_edges (fop ++ lsto :: lop).
+Proof.
+by move: tmp_decomposition_main_properties=>
+  [? [? [? [? [? [? [? [? ?]]]]]]]].
+Qed.
+
+Let tmp_connect_properties := connect_properties cbtom adj rfo sval
+  (inside_box_between inbox_e) ocd nct all_ctn ctn nct2.
+
+Let puh : point ev <<< he.
+Proof.
+by move: tmp_connect_properties; rewrite /= -heq => -[].
+Qed.
+
+Let vhe : valid_edge he (point ev).
+Proof.
+by move: tmp_connect_properties; rewrite /= -heq => -[].
+Qed.
+
+Let nct3 : forall c, (c \in fop ++ fc') || (c \in lc) -> 
+  ~~ contains_point (point ev) c.
+Proof.
+by move: tmp_connect_properties; rewrite /= -heq => -[].
+Qed.
+
+Let at_ll : p_x (point ev) = left_limit lsto.
+Proof.
+by rewrite -at_lstx -(lstx_eq comi).
+Qed.
+
+Let pu' : point ev <<= high lsto.
+Proof.
+by move: (high_lsto_eq comi) pu => /= <-.
+Qed.
+
+Let pa' : point ev >>= high lsto.
+Proof.
+by move: (high_lsto_eq comi) pa => /= <-.
+Qed.
+
+Let tmp_uoct_properties := update_open_cell_top_properties vlo vho oute vhe 
+  lstok at_ll pu' pa'
+  (has_snd_lst comng) (proj1 (andP (lst_side_lex comng))) puh uoct_eq.
+
+Let oks : {in rcons nos lno, forall c, open_cell_side_limit_ok c /\
+             left_limit c = p_x (point ev)}.
+Proof.
+by move: tmp_uoct_properties => [? [? [? [? ?]]]].
+Qed.
+
+Let has1' : (1 < size (left_pts lno))%N.
+Proof.
+by move: tmp_uoct_properties => [? [? [? [? ?]]]].
+Qed.
+
+Let nth1q : nth dummy_pt (left_pts lno) 1 = point ev.
+Proof.
+by move: tmp_uoct_properties => [? [? [? [? ?]]]].
+Qed.
+
+Let hiq : high lno = he.
+Proof.
+by move: tmp_uoct_properties => [? [? [? [? ?]]]].
+Qed.
+
+Let sub' : {subset cell_edges (rcons nos lno) <=
+     [:: low lsto, he & outgoing ev]}.
+Proof.
+by move: tmp_uoct_properties => [? [? [? [? ?]]]].
+Qed.
+
+Let ctno : contains_point (point ev) lsto.
+Proof.
+by rewrite /contains_point (underWC pal) pu'.
+Qed.
+
+
+Let lstoh : lsto = head lcc cc.
+Proof.
+have : lsto \in rcons cc lcc.
+  have : lsto \in fop ++ lsto :: lop by rewrite mem_cat inE eqxx orbT.
+  rewrite ocd -cat_rcons mem_cat (mem_cat _ (rcons _ _)) => /orP[ | /orP[]] //.
+    by move=> /nct; rewrite ctno.
+  move=> lstol; move:(@nct3 lsto); rewrite lstol=> /(_ (orbT _)).
+  by rewrite ctno.
+move=> /mem_seq_split  [s1 [s2 sq]].
+elim/last_ind: {2} (s1) (erefl s1) => [ | s1' ls1 _] s1q.
+  by move: sq; rewrite s1q /=; case: (cc) => [ | a tl] //= [].
+have hls1 : high ls1 = low lsto.
+  move : adj; rewrite /state_open_seq /= ocd -cat_rcons sq s1q cat_rcons.
+  move=> /adjacent_catW [] _ /adjacent_catW [] + _ => /adjacent_catW [] _.
+  by move=> /= /andP[] /eqP ->.
+have : contains_point (point ev) ls1.
+  have : {in rcons cc lcc, forall c, contains_point (point ev) c}.
+    by move=> c; rewrite mem_rcons inE => /orP[/eqP ->| /all_ctn].
+  suff /[swap] /[apply] : ls1 \in rcons cc lcc by [].
+  by rewrite sq s1q mem_cat mem_rcons inE eqxx.
+by rewrite /contains_point hls1 (negbTE pal) andbF.
+Qed.
+
+Let lsto_side_under : all ((@lexPt _)^~ (point ev)) (behead (left_pts lsto)).
+Proof.
+apply/allP=> p pin.
+have := (lst_side_lex comng) => /= /andP[] + _.
+apply: lexePt_lexPt_trans.
+rewrite /lexePt; move: lstok=>/andP[] _ /andP[] + /andP[] + _.
+case: left_pts (has_snd_lst comng) pin=> [ | a [ | b tl]] //= _.
+rewrite inE => /orP[/eqP -> | ].
+  by rewrite eqxx le_refl orbT.
+move=> pin /andP[] _ /andP[] /eqP -> allx /andP[] _.
+have /eqP -> := allP allx _ pin.
+rewrite (path_sortedE (rev_trans lt_trans)).
+move => /andP[] /allP /(_ _ (map_f _ pin)) /ltW -> _.
+by rewrite eqxx orbT.
+Qed.
+
+Lemma last_case_common_invariant_pre : 
   common_non_gp_invariant bottom top s
      (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
     evs.
 Proof.
-move=> boxwf nocs' inbox_es at_lstx pu pa comng.
-have comi := ngcomm comng.
 rewrite /step /= /same_x at_lstx eqxx pu (negbTE pa) /=.
-case oe : open_cells_decomposition => [[[[[fc' cc] lcc] lc] le] he].
-have oute : out_left_event ev.
-  by apply: (out_events comi); rewrite inE eqxx.
-have := inv1 comi; rewrite /state_open_seq/=.
-move=> -[] clae [] [// | sval] [] adj [] cbtom rfo.
-have pal : (point ev) >>> low lsto.
-  by exact: (same_x_point_above_low_lsto at_lstx comng).
-have noc : {in all_edges (fop ++ lsto :: lop) (ev :: evs) &,
-           no_crossing R}.
-  apply: inter_at_ext_no_crossing.
-  by apply: (sub_in2 (edges_sub comi) nocs').
+rewrite oe.
 set st := last_case fop lsto fc' cc lcc lc cls lstc he ev.
-have inbox_e : inside_box bottom top (point ev).
-  by have := inbox_events comi => /andP[].
-have lstoin : lsto \in fop ++ lsto :: lop.
-  by rewrite mem_cat inE eqxx orbT.
-have lstok : open_cell_side_limit_ok lsto.
-  by apply/(allP (sides_ok comi))/lstoin.
-have [vlo vho] : valid_edge (low lsto) (point ev) /\
-  valid_edge (high lsto) (point ev).
-  by apply/andP/(allP sval); rewrite mem_cat inE eqxx orbT.
-have nth1in : (nth dummy_pt (left_pts lsto) 1) \in left_pts lsto.
-  by apply/mem_nth/(has_snd_lst comng).
-have x1 : p_x (nth dummy_pt (left_pts lsto) 1) = p_x (point ev).
-  move: lstok=> /andP[] _ /andP[] /allP /(_ _ nth1in) /eqP -> _.
-  by rewrite -at_lstx -(lstx_eq comi).
-case uoct_eq : update_open_cell_top => [nos lno].
-have exi0 : exists2 w, w \in lsto :: lop & contains_point' (point ev) w.
-  rewrite /contains_point'.
-  exists lsto; first by rewrite inE eqxx.
-  rewrite (high_lsto_eq comi) pu andbT; apply: last_case_above_low=> //.
-      by rewrite -at_lstx -(lstx_eq comi).
-    by apply: (has_snd_lst comng).
-  by have := (lst_side_lex comng) => /= /andP[] +.
-have := open_cells_decomposition_cat adj rfo sval exi0 pal.
-rewrite oe /= => oe'.
-have exi1 : exists2 w, w \in fop ++ lsto :: lop &
-  contains_point' (point ev) w.
-  move: exi0=> [w win wP]; exists w; last by exact wP.
-  by rewrite mem_cat win orbT.
-
-have := decomposition_main_properties oe' exi1 =>
-  -[ocd [ctn [all_ctn [nct [nct2 [heq [leq [lein hein]]]]]]]].
-have := connect_properties cbtom adj rfo sval (inside_box_between inbox_e)
-  ocd nct all_ctn ctn nct2.
-rewrite /= -heq => -[] _ puh _ vhe nct3.
-have at_ll : p_x (point ev) = left_limit lsto.
-  by rewrite -at_lstx -(lstx_eq comi).
-move: (high_lsto_eq comi) (pu) (pa)=> /= <- pu' pa'.
-have := update_open_cell_top_properties vlo vho oute vhe lstok at_ll pu' pa'
-  (has_snd_lst comng) (proj1 (andP (lst_side_lex comng))) puh uoct_eq.
-move=> -[oks [has1' [nth1q [hiq sub']]]].
-have ctno : contains_point (point ev) lsto.
-  by rewrite /contains_point (underWC pal) pu'.
-have lstoh : lsto = head lcc cc.
-  have : lsto \in rcons cc lcc.
-    have : lsto \in fop ++ lsto :: lop by rewrite mem_cat inE eqxx orbT.
-    rewrite ocd -cat_rcons mem_cat (mem_cat _ (rcons _ _)) => /orP[ | /orP[]] //.
-      by move=> /nct; rewrite ctno.
-    move=> lstol; move:(nct3 lsto); rewrite lstol=> /(_ (orbT _)).
-    by rewrite ctno.
-  move=> /mem_seq_split  [s1 [s2 sq]].
-  elim/last_ind: {2} (s1) (erefl s1) => [ | s1' ls1 _] s1q.
-    by move: sq; rewrite s1q /=; case: (cc) => [ | a tl] //= [].
-  have hls1 : high ls1 = low lsto.
-    move : adj; rewrite /state_open_seq /= ocd -cat_rcons sq s1q cat_rcons.
-    move=> /adjacent_catW [] _ /adjacent_catW [] + _ => /adjacent_catW [] _.
-    by move=> /= /andP[] /eqP ->.
-  have : contains_point (point ev) ls1.
-    have : {in rcons cc lcc, forall c, contains_point (point ev) c}.
-      by move=> c; rewrite mem_rcons inE => /orP[/eqP ->| /all_ctn].
-    suff /[swap] /[apply] : ls1 \in rcons cc lcc by [].
-    by rewrite sq s1q mem_cat mem_rcons inE eqxx.
-  by rewrite /contains_point hls1 (negbTE pal) andbF.
-have lsto_side_under : all ((@lexPt _)^~ (point ev)) (behead (left_pts lsto)).
-  apply/allP=> p pin.
-  have := (lst_side_lex comng) => /= /andP[] + _.
-  apply: lexePt_lexPt_trans.
-  rewrite /lexePt; move: lstok=>/andP[] _ /andP[] + /andP[] + _.
-  case: left_pts (has_snd_lst comng) pin=> [ | a [ | b tl]] //= _.
-  rewrite inE => /orP[/eqP -> | ].
-    by rewrite eqxx le_refl orbT.
-  move=> pin /andP[] _ /andP[] /eqP -> allx /andP[] _.
-  have /eqP -> := allP allx _ pin.
-  rewrite (path_sortedE (rev_trans lt_trans)).
-  move => /andP[] /allP /(_ _ (map_f _ pin)) /ltW -> _.
-  by rewrite eqxx orbT.
+rewrite uoct_eq.
 
 have inv1' : inv1_seq bottom top evs (state_open_seq st).
   have := (step_keeps_invariant1 cls lstc (inbox_events (ngcomm comng))
@@ -461,7 +664,7 @@ have no_dup_edge' : {in [seq high c | c <- state_open_seq st] & evs,
     have abs : point ev = point e.
       have oute1 : out_left_event e.
         by apply: (out_events comi); rewrite inE ein orbT.
-      by rewrite -(eqP (oute g gev)) -(eqP (oute1 _ ge)).
+      by rewrite -(eqP (oute gev)) -(eqP (oute1 _ ge)).
     have := lex_events comi=> /=.
     rewrite (path_sortedE (@lexPtEv_trans _)) => /andP[] /allP /(_ _ ein) + _.
     by rewrite /lexPtEv abs lexPt_irrefl.
@@ -551,3 +754,26 @@ have lst_side_lex' : path (@lexPt _)
 rewrite stq in lst_side_lex'.
 by constructor.
 Qed.
+
+End proof_environment.
+
+Lemma last_case_common_invariant bottom top s fop lsto lop cls lstc ev
+  lsthe lstx evs :
+  {in [:: bottom, top & s] &, forall e1 e2, inter_at_ext e1 e2} ->
+  lstx = p_x (point ev) ->
+  point ev <<= lsthe ->
+  point ev >>= lsthe ->
+  common_non_gp_invariant bottom top s (Bscan fop lsto lop cls lstc lsthe lstx)
+    (ev :: evs) ->
+  common_non_gp_invariant bottom top s 
+    (step (Bscan fop lsto lop cls lstc lsthe lstx) ev) evs.
+Proof.
+move=> nocs at_lstx pu pa comng.
+rewrite /step/same_x at_lstx eqxx pu (negbTE pa) /=.
+case oe : open_cells_decomposition => [[[[[fc' cc] lcc] lc] le] he].
+case uoct_eq : update_open_cell_top => [nos lno].
+have := last_case_common_invariant_pre nocs at_lstx pu pa comng oe uoct_eq.
+by rewrite /step/same_x at_lstx eqxx pu (negbTE pa) /= oe uoct_eq.
+Qed.
+
+End working_environment.
