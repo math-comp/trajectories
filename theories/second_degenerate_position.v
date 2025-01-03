@@ -310,8 +310,10 @@ Hypotheses
   (at_lstx : lstx = p_x (point ev))
   (pu : point ev <<= lsthe)
   (pa : point ev >>= lsthe)
-  (comng : common_non_gp_invariant bottom top s
+  (d_inv : disjoint_non_gp_invariant bottom top s
     (Bscan fop lsto lop cls lstc lsthe lstx) (ev :: evs)).
+
+Let comng := common_non_gp_inv_dis d_inv.
 
 Let comi : common_invariant bottom top s
   (Bscan fop lsto lop cls lstc lsthe lstx) (ev :: evs).
@@ -784,8 +786,7 @@ Lemma last_case_common_invariant_pre :
     evs.
 Proof.
 rewrite /step /= /same_x at_lstx eqxx pu (negbTE pa) /=.
-rewrite oe.
-rewrite uoct_eq.
+rewrite oe uoct_eq.
 move: inv1' lstx_eq' high_lsto_eq' edges_sub' no_dup_edge'
   sides_ok' above_low_lsto' stradle'.
 rewrite strq => ? ? ? ? ? ? ? ?.
@@ -797,6 +798,147 @@ have lst_side_lex' : path (@lexPt _)
   by have := (lex_events comi); rewrite sorted_lexPtEv_lexPt.
 rewrite strq in lst_side_lex'.
 by constructor.
+Qed.
+
+Let common_non_gp_inv_dis' : common_non_gp_invariant bottom top s str evs.
+Proof.
+have := last_case_common_invariant_pre.
+by rewrite /step/same_x at_lstx eqxx pu (negbTE pa) /= oe uoct_eq strq.
+Qed.
+
+Let dis_main : {in rcons (closing_cells (point ev) (behead cc) ++ lstc :: cls)
+  (close_cell (point ev) lcc) &,
+  disjoint_closed_cells R} /\
+  {in (fop ++ fc' ++ nos) ++ lno :: lc &
+    rcons (closing_cells (point ev) (behead cc) ++ lstc :: cls)
+  (close_cell (point ev) lcc), disjoint_open_closed_cells R}.
+Proof.
+have at_left : {in rcons cls lstc, forall c, right_limit c <= p_x (point ev)}.
+  by rewrite -at_lstx; apply: (closed_at_left_non_gp d_inv).
+have uniq_cl : uniq (rcons cls lstc).
+by apply/(@map_uniq _ _ cell_center)/(uniq_cc d_inv).
+have := step_keeps_disjoint (inbox_events comi) oute rfo cbtom adj sval
+ (esym (high_lsto_eq comi)) (lstx_eq comi) (fun _ => pal)
+ (pairwise_open_non_gp d_inv) (sides_ok comi)
+ (op_cl_dis_non_gp d_inv) (cl_dis_non_gp d_inv) at_left uniq_cl
+ (size_right_cls d_inv).
+rewrite /step/same_x at_lstx eqxx pu (negbTE pa) /= oe uoct_eq /=.
+by rewrite /state_closed_seq /state_open_seq.
+Qed.
+
+Let op_cl_dis_non_gp' :
+    {in state_open_seq str & state_closed_seq str,
+       disjoint_open_closed_cells R}.
+Proof.
+rewrite strq /state_open_seq /state_closed_seq /=.
+by move: dis_main=> -[].
+Qed.
+
+Let cl_dis_non_gp' : {in state_closed_seq str &, disjoint_closed_cells R}.
+Proof.
+rewrite strq /state_open_seq /state_closed_seq /=.
+by move: dis_main=> -[].
+Qed.
+
+Let pairwise_open_non_gp' : pairwise edge_below
+     (bottom :: [seq high c | c <- state_open_seq str]).
+Proof.
+Admitted.
+
+Let closed_at_left_non_gp' :
+     {in state_closed_seq str,
+       forall c, right_limit c <= lst_x _ _ str}.
+Proof.
+Admitted.
+
+Let vlcc : valid_edge (low lcc) (point ev) && valid_edge (high lcc) (point ev).
+Proof.
+by apply: (allP sval); rewrite ocd !mem_cat inE eqxx !orbT.
+Qed.
+
+Let vllcc := proj1 (andP vlcc).
+
+Let vhlcc := proj2 (andP vlcc).
+
+Let size_right_cls' : (1 < size (right_pts (lst_closed str)))%N.
+Proof.
+rewrite strq /= /close_cell.
+rewrite (pvertE vllcc) (pvertE vhlcc) /no_dup_seq_aux.
+rewrite -![pt_eqb _ _ _ _]/(_ == _).
+case: ifP=> [/eqP ponhigh | _]; case: ifP=> _ //.
+move: puh; rewrite heq (strict_nonAunder vhlcc).
+by rewrite - ponhigh (pvert_on vhlcc).
+Qed.
+
+Let uniq_cc' : uniq [seq cell_center c | c <- state_closed_seq str].
+Proof.
+Admitted.
+
+Let cl_side' : {in state_closed_seq str, forall c, closed_cell_side_limit_ok c}.
+Proof.
+Admitted.
+
+Let high_lstc' : high (lst_closed str) = lst_high _ _ str.
+Proof.
+rewrite strq /= /close_cell.
+by rewrite (pvertE vllcc) (pvertE vhlcc).
+Qed.
+
+Let nth1lstc' : nth dummy_pt (right_pts (lst_closed str)) 1 = point ev.
+Proof.
+rewrite strq /= /close_cell.
+rewrite (pvertE vllcc) (pvertE vhlcc) /no_dup_seq_aux.
+rewrite -![pt_eqb _ _ _ _]/(_ == _).
+have main: 
+  Bpt (p_x (point ev)) (pvert_y (point ev) (high lcc)) = point ev -> False.
+  move=> ponhigh.
+  move : puh; rewrite heq (strict_nonAunder vhlcc).
+  by rewrite -ponhigh (pvert_on vhlcc).
+case: ifP=> [/eqP ponhigh | ]; case: ifP=> [/eqP ponlow | pdif] //;
+  apply: (main ponhigh).
+Qed.
+
+Let nth1_eq' : nth dummy_pt (right_pts (lst_closed str)) 1 =
+              nth dummy_pt (left_pts (lst_open str)) 1.
+Proof.
+by rewrite nth1lstc' strq /= nth1q.
+Qed.
+
+Let bottom_left_opens' : 
+       {in state_open_seq str & evs,
+         forall c e, lexPt (bottom_left_corner c) (point e)}.
+Proof.
+Admitted.
+
+Let btm_left_lex_snd_lst' :
+      {in state_open_seq str, forall c, lexePt (bottom_left_corner c)
+         (nth dummy_pt (left_pts (lst_open str)) 1)}.
+Proof.
+Admitted.
+
+Let cell_center_in' :
+      {in state_closed_seq str, forall c, inside_closed' (cell_center c) c}.
+Proof.
+Admitted.
+
+Let uniq_high' : uniq (bottom :: [seq high c | c <- state_open_seq str]).
+Proof.
+Admitted.
+
+Lemma last_case_disjoint_invariant_pre :
+  disjoint_non_gp_invariant bottom top s
+    (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
+    evs.
+Proof.
+rewrite /step /= /same_x at_lstx eqxx pu (negbTE pa) /=.
+rewrite oe uoct_eq.
+move: op_cl_dis_non_gp' cl_dis_non_gp' 
+  common_non_gp_inv_dis' pairwise_open_non_gp'
+  closed_at_left_non_gp' size_right_cls'
+  uniq_cc' cl_side' high_lstc' nth1_eq' bottom_left_opens'
+  btm_left_lex_snd_lst' cell_center_in' uniq_high'.
+rewrite strq.
+constructor=> //.
 Qed.
 
 End proof_environment.
