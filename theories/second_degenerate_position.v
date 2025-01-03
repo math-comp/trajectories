@@ -359,7 +359,6 @@ have exi1 : exists2 w, w \in fop ++ lsto :: lop &
 
 have := decomposition_main_properties oe' exi1 =>
   -[ocd [ctn [all_ctn [nct [nct2 [heq [leq [lein hein]]]]]]]].
-
 have := connect_properties cbtom adj rfo sval (inside_box_between inbox_e)
   ocd nct all_ctn ctn nct2.
 rewrite /= -heq => -[] _ puh _ vhe nct3.
@@ -369,8 +368,43 @@ move: (high_lsto_eq comi) (pu) (pa)=> /= <- pu' pa'.
 have := update_open_cell_top_properties vlo vho oute vhe lstok at_ll pu' pa'
   (has_snd_lst comng) (proj1 (andP (lst_side_lex comng))) puh uoct_eq.
 move=> -[oks [has1' [nth1q [hiq sub']]]].
-have inv1' : inv1_seq bottom top evs
-  (state_open_seq (last_case fop lsto fc' cc lcc lc cls lstc he ev)).
+have ctno : contains_point (point ev) lsto.
+  by rewrite /contains_point (underWC pal) pu'.
+have lstoh : lsto = head lcc cc.
+  have : lsto \in rcons cc lcc.
+    have : lsto \in fop ++ lsto :: lop by rewrite mem_cat inE eqxx orbT.
+    rewrite ocd -cat_rcons mem_cat (mem_cat _ (rcons _ _)) => /orP[ | /orP[]] //.
+      by move=> /nct; rewrite ctno.
+    move=> lstol; move:(nct3 lsto); rewrite lstol=> /(_ (orbT _)).
+    by rewrite ctno.
+  move=> /mem_seq_split  [s1 [s2 sq]].
+  elim/last_ind: {2} (s1) (erefl s1) => [ | s1' ls1 _] s1q.
+    by move: sq; rewrite s1q /=; case: (cc) => [ | a tl] //= [].
+  have hls1 : high ls1 = low lsto.
+    move : adj; rewrite /state_open_seq /= ocd -cat_rcons sq s1q cat_rcons.
+    move=> /adjacent_catW [] _ /adjacent_catW [] + _ => /adjacent_catW [] _.
+    by move=> /= /andP[] /eqP ->.
+  have : contains_point (point ev) ls1.
+    have : {in rcons cc lcc, forall c, contains_point (point ev) c}.
+      by move=> c; rewrite mem_rcons inE => /orP[/eqP ->| /all_ctn].
+    suff /[swap] /[apply] : ls1 \in rcons cc lcc by [].
+    by rewrite sq s1q mem_cat mem_rcons inE eqxx.
+  by rewrite /contains_point hls1 (negbTE pal) andbF.
+have lsto_side_under : all ((@lexPt _)^~ (point ev)) (behead (left_pts lsto)).
+  apply/allP=> p pin.
+  have := (lst_side_lex comng) => /= /andP[] + _.
+  apply: lexePt_lexPt_trans.
+  rewrite /lexePt; move: lstok=>/andP[] _ /andP[] + /andP[] + _.
+  case: left_pts (has_snd_lst comng) pin=> [ | a [ | b tl]] //= _.
+  rewrite inE => /orP[/eqP -> | ].
+    by rewrite eqxx le_refl orbT.
+  move=> pin /andP[] _ /andP[] /eqP -> allx /andP[] _.
+  have /eqP -> := allP allx _ pin.
+  rewrite (path_sortedE (rev_trans lt_trans)).
+  move => /andP[] /allP /(_ _ (map_f _ pin)) /ltW -> _.
+  by rewrite eqxx orbT.
+
+have inv1' : inv1_seq bottom top evs (state_open_seq st).
   have := (step_keeps_invariant1 cls lstc (inbox_events (ngcomm comng))
     oute rfo cbtom adj sval (closed_events comi) clae 
     (esym (high_lsto_eq comi)) (fun x : p_x (point ev) = lstx => pal) noc
@@ -399,28 +433,6 @@ have edges_sub' : {subset all_edges (state_open_seq st) evs <=
   move=> /orP[/eqP -> | gnew].
     by rewrite mem_cat hein.
   by rewrite mem_cat orbC events_to_edges_cons mem_cat gnew.
-have ctno : contains_point (point ev) lsto.
-  by rewrite /contains_point (underWC pal) pu'.
-have lstoh : lsto = head lcc cc.
-  have : lsto \in rcons cc lcc.
-    have : lsto \in fop ++ lsto :: lop by rewrite mem_cat inE eqxx orbT.
-    rewrite ocd -cat_rcons mem_cat (mem_cat _ (rcons _ _)) => /orP[ | /orP[]] //.
-      by move=> /nct; rewrite ctno.
-    move=> lstol; move:(nct3 lsto); rewrite lstol=> /(_ (orbT _)).
-    by rewrite ctno.
-  move=> /mem_seq_split  [s1 [s2 sq]].
-  elim/last_ind: {2} (s1) (erefl s1) => [ | s1' ls1 _] s1q.
-    by move: sq; rewrite s1q /=; case: (cc) => [ | a tl] //= [].
-  have hls1 : high ls1 = low lsto.
-    move : adj; rewrite /state_open_seq /= ocd -cat_rcons sq s1q cat_rcons.
-    move=> /adjacent_catW [] _ /adjacent_catW [] + _ => /adjacent_catW [] _.
-    by move=> /= /andP[] /eqP ->.
-  have : contains_point (point ev) ls1.
-    have : {in rcons cc lcc, forall c, contains_point (point ev) c}.
-      by move=> c; rewrite mem_rcons inE => /orP[/eqP ->| /all_ctn].
-    suff /[swap] /[apply] : ls1 \in rcons cc lcc by [].
-    by rewrite sq s1q mem_cat mem_rcons inE eqxx.
-  by rewrite /contains_point hls1 (negbTE pal) andbF.
 have closed_events' : close_edges_from_events evs.
   by have := closed_events comi => /= /andP[].
 have out_events' : {in evs, forall e, out_left_event e}.
@@ -475,16 +487,60 @@ have lex_events' : sorted (@lexPtEv _) evs.
   have := lex_events comi; rewrite /= (path_sortedE (@lexPtEv_trans _)).
   by move=> /andP[]. 
 have sides_ok' : all open_cell_side_limit_ok (state_open_seq st).
-  admit.
+  have := step_keeps_open_side_limit cls lstc (inbox_events comi) oute
+    rfo cbtom adj sval (esym (high_lsto_eq comi))
+    (lstx_eq comi) (fun _ => pal) (sides_ok comi) lsto_side_under.
+  rewrite /state_open_seq/step/same_x at_lstx eqxx pu /= (negbTE pa) /=.
+  by rewrite /st/last_case oe.
 have above_low_lsto' :
      {in evs, forall e,
         lexPt (last dummy_pt (left_pts (lst_open st)))
               (point e)}.
-  admit.
+  move=> e ein.
+  have := (lex_events comi)=> /=; rewrite (path_sortedE (@lexPtEv_trans _)).
+  move=> /andP[] /allP /(_ _ ein) + _.
+  apply: lexePt_lexPt_trans.
+  rewrite /st/last_case uoct_eq /=.
+  have [] : open_cell_side_limit_ok lno /\ 
+    p_x (last dummy_pt (left_pts lno)) = p_x (point ev).
+    by apply: oks; rewrite mem_rcons inE eqxx.
+  rewrite /open_cell_side_limit_ok.
+  case: left_pts has1' nth1q=> [ | a [ | b [ | c tl]]] //= _ ->.
+    by rewrite lexePt_refl.
+  move=> /andP[] _ /andP[] /andP[] _ srt _ xs.
+  have : path >%R (p_y (point ev)) [seq p_y p | p <- c :: tl] by exact srt.
+  rewrite (path_sortedE (rev_trans lt_trans))=> /andP[] /allP + _.
+  move=> /(_ (p_y (last c tl)) (map_f _ (mem_last _ _))) /ltW ys.
+  by rewrite /lexePt xs eqxx ys orbT.
 have stradle' : 
      evs = [::] \/ {in [seq high c | c <- state_open_seq st], forall g,
      lexPt (left_pt g) (point (head dummy_event evs)) &&
      lexePt (point (head dummy_event evs)) (right_pt g)}.
-  admit.
+  case evsq : (evs) => [ | e' evs'] /=; first by left.
+  right.
+  have := stradle comi=> -[ | stradle]; first by [].
+  have := step_keeps_lex_edge (inbox_events comi) oute rfo cbtom adj sval
+   (closed_events comi) clae (esym (high_lsto_eq comi)) (fun _ => pal)
+   stradle.
+  move=> /(_ cls lstc lstx).
+  rewrite /step/same_x at_lstx eqxx pu (negbTE pa) /= oe.
+  have inbox_e' : inside_box bottom top (point e').
+    by apply: (allP inbox_events'); rewrite evsq inE eqxx.
+  have eve' : lexPtEv ev e'.
+    by move: (lex_events comi); rewrite evsq=> /= /andP[].
+  have e'e : forall e2, e2 \in evs -> lexePtEv e' e2.
+    move=> e2; rewrite evsq inE=> /orP[/eqP -> | e2in].
+      by apply: lexePt_refl.
+    apply: lexPtW.
+    move: lex_events'; rewrite evsq=> /=.
+    by rewrite (path_sortedE (@lexPtEv_trans _))=> /andP[] /allP /(_ _ e2in).
+  move=> /(_ _ inbox_e' eve' e'e).
+  by rewrite /st/last_case uoct_eq.
+have stq : st = Bscan (fop ++ fc' ++ nos) lno lc 
+  (closing_cells (point ev) (behead cc) ++ lstc :: cls)
+  (close_cell (point ev) lcc) he (p_x (point ev)).
+  by rewrite /st/last_case uoct_eq.
+rewrite stq in inv1' lstx_eq' high_lsto_eq' edges_sub' no_dup_edge'
+  sides_ok' above_low_lsto' stradle'.
 by constructor.
-Admitted.
+Qed.
