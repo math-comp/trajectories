@@ -212,6 +212,17 @@ Definition inside_box p :=
   ((p_x (left_pt bottom) < p_x p < p_x (right_pt bottom)) &&
   (p_x (left_pt top) < p_x p < p_x (right_pt top))).
 
+Lemma inside_box_not_on p:
+  inside_box p -> ~~ ((p === bottom) || (p === top)).
+Proof.
+move=> /andP[] /andP[] pab plt /andP[] /andP[] /ltW a /ltW b
+  /andP[] /ltW c /ltW d.
+have vb : valid_edge bottom p by rewrite /valid_edge a b.
+have vt : valid_edge top p by rewrite /valid_edge c d.
+move: pab; rewrite (under_onVstrict vb) !negb_or => /andP[] -> _ /=.
+by move: plt; rewrite (strict_nonAunder vt)=> /andP[] ->.
+Qed.
+
 (* this function removes consecutives duplicates, meaning the seq needs
  to be sorted first if we want to remove all duplicates *)
 Fixpoint no_dup_seq (A : eqType) (s : seq A) : (seq A) :=

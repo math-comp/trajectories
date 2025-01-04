@@ -1082,9 +1082,87 @@ have := cell_center_close_cell_inside nocc' ldhc' lbhc' c'ok vlc' vhc' llc'lt.
 by rewrite cc'.
 Qed.
 
+Let high_nos_q : [seq high c | c <- nos] = sort edge_below (outgoing ev).
+Proof.
+have := uoct_eq; rewrite /update_open_cell_top.
+case ogq : outgoing => [|fog ogs]; first by move=> -[] <- _.
+case oca_eq : opening_cells_aux => [ [ | fno nos'] lno'] -[] <- _.
+  have ogn0 : (fog :: ogs) != [::] by [].
+  have := opening_cells_aux_absurd_case vlo vhe ogn0.
+  by rewrite -ogq => /(_ oute); rewrite ogq oca_eq /=.
+have := opening_cells_high vlo vhe oute; rewrite /opening_cells ogq oca_eq.
+rewrite map_rcons=> /rcons_inj [] + _.
+by rewrite /=.
+Qed.
+
 Let uniq_high' : uniq (bottom :: [seq high c | c <- state_open_seq str]).
 Proof.
-Admitted.
+rewrite /=; apply/andP; split.
+  rewrite strq /state_open_seq /= catA 2!map_cat mem_cat.
+  rewrite (mem_cat _ _ (map _ nos)).
+  rewrite -orbA orbCA negb_or.
+  have -> /= : bottom \notin [seq high c | c <- nos].
+    rewrite high_nos_q mem_sort; apply/negP=> abs.
+    have /inside_box_not_on := inbox_e.
+    by rewrite -(eqP (oute abs)) left_on_edge.
+  apply/negP=> bottomin.
+  have := uniq_high d_inv; rewrite /state_open_seq /= ocd=> /andP[] + _.
+  rewrite map_cat mem_cat.
+  move: bottomin=> /orP[-> | bottomin]; first by [].
+  rewrite negb_or => /andP[] _; rewrite map_cat mem_cat /=.
+  rewrite negb_or => /andP[] _; rewrite inE.
+  move: bottomin; rewrite inE => /orP [ | ->]; last by rewrite orbT.
+  by rewrite -heq hiq => ->.
+rewrite strq /state_open_seq /= catA 2!map_cat.
+rewrite 2!cat_uniq.
+have := uniq_high d_inv => /= /andP[] _.
+rewrite /state_open_seq ocd map_cat !cat_uniq.
+move=> /andP[] ->; rewrite -all_predC => /andP[] /allP /= not2part.
+rewrite map_cat cat_uniq=> /andP[] _ /andP[] _ /=.
+rewrite -heq -hiq=> /andP[] hlno_nlc ulc.
+rewrite ulc andbT.
+rewrite (mem_cat (high lno)) !negb_or.
+have lccin : lcc \in cc ++ lcc :: lc by rewrite mem_cat inE eqxx orbT.
+have := not2part (high lcc) (map_f _ lccin).
+rewrite -heq -hiq=> -> /=.
+have -> /= : ~~ has (in_mem^~ (mem [seq high c | c <- fop ++ fc']))
+  [seq high c | c <- nos].
+  rewrite -all_predC; apply/allP=> g gin /=; apply/negP=> gold.
+  have := no_dup_edge comi _ evin; rewrite /state_open_seq /=.
+  move=> /(_ g).
+  rewrite ocd map_cat mem_cat gold=> /(_ isT).
+  by move: gin; rewrite high_nos_q mem_sort=> ->.
+have -> /= : uniq [seq high c | c <- nos].
+  by rewrite high_nos_q sort_uniq; apply: (uniq_ec comi).
+have new_diff_old : {in lno :: (fop ++ fc') ++ lc, 
+  forall c, high c \notin [seq high c | c <- nos]}.
+  move=> c cin.
+  rewrite high_nos_q mem_sort.
+  have lex_left : lexPt (left_pt (high c)) (point ev).
+    have [ | ]:= stradle comi; first by [].
+    rewrite /state_open_seq/= ocd=> /(_ (high c)).
+    have : high c \in [seq high i | i <- (fop ++ fc') ++ cc ++ lcc :: lc].
+      move: cin; rewrite inE => /orP[/eqP->| cin].
+        by rewrite hiq heq map_f // !mem_cat inE eqxx !orbT.
+      rewrite map_f //.
+      by move: cin; rewrite !(mem_cat, inE) => /orP[] ->; rewrite ?orbT.
+    by move=> /[swap] /[apply] /andP[].
+  apply/negP=> inout; move: lex_left; rewrite -(eqP (oute inout)).
+  by rewrite lexPt_irrefl.
+have -> /= : high lno \notin [seq high c | c <- nos].
+  by apply: new_diff_old; rewrite inE eqxx.
+rewrite hlno_nlc andbT.
+rewrite -all_predC; apply/allP=> g gin /=.
+rewrite mem_cat negb_or.
+have -> /= : g \notin [seq high i | i <- fop ++ fc'].
+  apply/negP=> gin_firsts.
+  have /not2part : g \in [seq high i | i <- cc ++ lcc :: lc].
+    by rewrite map_cat mem_cat /= inE gin !orbT.
+  by rewrite gin_firsts.
+move: gin=> /mapP [c cin ->].
+suff /new_diff_old : c \in lno :: (fop ++ fc') ++ lc by move=> ->.
+by rewrite inE mem_cat cin !orbT.
+Qed.
 
 Lemma last_case_disjoint_invariant_pre :
   disjoint_non_gp_invariant bottom top s
