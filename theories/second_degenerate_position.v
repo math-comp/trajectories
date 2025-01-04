@@ -908,92 +908,6 @@ move: puh; rewrite heq (strict_nonAunder vhlcc).
 by rewrite - ponhigh (pvert_on vhlcc).
 Qed.
 
-Let uniq_cc' : uniq [seq cell_center c | c <- state_closed_seq str].
-Proof.
-Admitted.
-
-Let cl_side' : {in state_closed_seq str, forall c, closed_cell_side_limit_ok c}.
-Proof.
-rewrite strq /state_closed_seq /= => c; rewrite mem_rcons.
-rewrite -[_ :: _ ++ _]/((map (close_cell (point ev)) (_ :: _)) ++ _) mem_cat.
-move=> /orP[/mapP [c' c'in cc'] | cold].
-  have c'in2 : c' \in rcons cc lcc.
-    move: c'in; case: (cc) => [ | a tl] //=.
-    by rewrite !(mem_rcons, inE) => /orP[-> | ->] //; rewrite ?orbT.
-  have c'in3 : c' \in fop ++ lsto :: lop.
-    by rewrite ocd -cat_rcons mem_cat (mem_cat _ _ lc) c'in2 !orbT.
-  have ctc' : contains_point (point ev) c'.
-    move: c'in2; rewrite mem_rcons inE=> /orP[/eqP -> | ] //.
-    by apply: all_ctn.
-  have /andP[vlc' vhc'] : valid_edge (low c') (point ev) &&
-     valid_edge (high c') (point ev).
-    by apply: (allP sval _ ).
-  have c'ok : open_cell_side_limit_ok c'.
-    by apply: (allP (sides_ok comi)).
-  have := close_cell_ok ctc' vlc' vhc' c'ok.
-  by rewrite cc'.
-by apply: (cl_side d_inv); rewrite /state_closed_seq /= mem_rcons.
-Qed.
-
-Let high_lstc' : high (lst_closed str) = lst_high _ _ str.
-Proof.
-rewrite strq /= /close_cell.
-by rewrite (pvertE vllcc) (pvertE vhlcc).
-Qed.
-
-Let nth1lstc' : nth dummy_pt (right_pts (lst_closed str)) 1 = point ev.
-Proof.
-rewrite strq /= /close_cell.
-rewrite (pvertE vllcc) (pvertE vhlcc) /no_dup_seq_aux.
-rewrite -![pt_eqb _ _ _ _]/(_ == _).
-have main:
-  Bpt (p_x (point ev)) (pvert_y (point ev) (high lcc)) = point ev -> False.
-  move=> ponhigh.
-  move : puh; rewrite heq (strict_nonAunder vhlcc).
-  by rewrite -ponhigh (pvert_on vhlcc).
-case: ifP=> [/eqP ponhigh | ]; case: ifP=> [/eqP ponlow | pdif] //;
-  apply: (main ponhigh).
-Qed.
-
-Let nth1_eq' : nth dummy_pt (right_pts (lst_closed str)) 1 =
-              nth dummy_pt (left_pts (lst_open str)) 1.
-Proof.
-by rewrite nth1lstc' strq /= nth1q.
-Qed.
-
-Let bottom_left_main :
-  {in state_open_seq str, forall c,
-    lexePt (bottom_left_corner c) (point ev)}.
-Proof.
-rewrite strq /state_open_seq /= -!catA -cat_rcons catA.
-move=> c; rewrite mem_cat (mem_cat _ _ lc) orbCA.
-move=> /orP[cnew | cold]; last first.
-  apply: (lexPtW (bottom_left_opens d_inv _ _)); last by [].
-  rewrite /state_open_seq /= ocd -cat_rcons mem_cat (mem_cat _ _ lc).
-  by rewrite orbCA cold orbT.
-by have [] := oks cnew.
-Qed.
-
-Let bottom_left_opens' :
-       {in state_open_seq str & evs,
-         forall c e, lexPt (bottom_left_corner c) (point e)}.
-Proof.
-move=> c e cin ein.
-move: (lex_events comi)=> /=; rewrite (path_sortedE (@lexPtEv_trans _)).
-move=> /andP[] /allP /(_ _ ein) + _.
-apply: lexePt_lexPt_trans.
-by apply: (bottom_left_main cin).
-Qed.
-
-Let btm_left_lex_snd_lst' :
-      {in state_open_seq str, forall c, lexePt (bottom_left_corner c)
-         (nth dummy_pt (left_pts (lst_open str)) 1)}.
-Proof.
-rewrite [nth _ _ _](_ : _ = (point ev)); last first.
-  by rewrite strq /=.
-exact: bottom_left_main.
-Qed.
-
 Let cell_center_in' :
       {in state_closed_seq str, forall c, inside_closed' (cell_center c) c}.
 Proof.
@@ -1082,6 +996,331 @@ have := cell_center_close_cell_inside nocc' ldhc' lbhc' c'ok vlc' vhc' llc'lt.
 by rewrite cc'.
 Qed.
 
+Let cl_side' : {in state_closed_seq str, forall c, closed_cell_side_limit_ok c}.
+Proof.
+rewrite strq /state_closed_seq /= => c; rewrite mem_rcons.
+rewrite -[_ :: _ ++ _]/((map (close_cell (point ev)) (_ :: _)) ++ _) mem_cat.
+move=> /orP[/mapP [c' c'in cc'] | cold].
+  have c'in2 : c' \in rcons cc lcc.
+    move: c'in; case: (cc) => [ | a tl] //=.
+    by rewrite !(mem_rcons, inE) => /orP[-> | ->] //; rewrite ?orbT.
+  have c'in3 : c' \in fop ++ lsto :: lop.
+    by rewrite ocd -cat_rcons mem_cat (mem_cat _ _ lc) c'in2 !orbT.
+  have ctc' : contains_point (point ev) c'.
+    move: c'in2; rewrite mem_rcons inE=> /orP[/eqP -> | ] //.
+    by apply: all_ctn.
+  have /andP[vlc' vhc'] : valid_edge (low c') (point ev) &&
+     valid_edge (high c') (point ev).
+    by apply: (allP sval _ ).
+  have c'ok : open_cell_side_limit_ok c'.
+    by apply: (allP (sides_ok comi)).
+  have := close_cell_ok ctc' vlc' vhc' c'ok.
+  by rewrite cc'.
+by apply: (cl_side d_inv); rewrite /state_closed_seq /= mem_rcons.
+Qed.
+
+(* TODO: important! the order of closed cells is not repsected here,
+  but it makes the proof easier.*)
+Let uniq_cc' : uniq [seq cell_center c | c <- state_closed_seq str].
+Proof.
+rewrite strq /state_closed_seq /= -cats1.
+have to_right_order :
+  rcons (closing_cells (point ev) (behead cc) ++ lstc :: cls)
+    (close_cell (point ev) lcc) =i
+  rcons cls lstc ++ rcons (closing_cells (point ev) (behead cc))
+    (close_cell (point ev) lcc).
+  rewrite -!cats1 !catA=> g; rewrite !mem_cat !inE.
+  by repeat (set w := (X in (g \in X)); case: (g \in w);
+    rewrite ?orbT ?orbF; clear w);
+    repeat (set w := (X in (g == X)); case: (g == w); rewrite ?orbT ?orbF;
+      clear w).
+suff right_order :
+  uniq [seq cell_center c | c <- cls ++ lstc ::
+  closing_cells (point ev) (behead cc) ++ [:: close_cell (point ev) lcc]].
+  rewrite -[lstc::cls]/([::lstc] ++ cls).
+  rewrite !map_cat -!catA uniq_catC -!catA uniq_catCA catA uniq_catC.
+  rewrite -!catA uniq_catCA catA uniq_catC -!catA.
+  by move: right_order; rewrite -[lstc :: _]/([::lstc] ++ _) !map_cat.
+rewrite -[lstc :: _] /([:: lstc] ++ _) catA map_cat cat_uniq !cats1.
+have -> /= : uniq [seq cell_center c | c <- rcons cls lstc].
+  by have := uniq_cc d_inv.
+set new_cl := rcons _ (close_cell _ _).
+have -> /= : ~~ has (in_mem^~ (mem [seq cell_center c | c <- rcons cls lstc]))
+  [seq cell_center c | c <- new_cl].
+(* TODO: duplication (from subproof ucc' in
+  Lemma simple_step_disjoint_non_gp_invariant)*)
+  rewrite /new_cl /closing_cells -map_rcons; apply/negP=> /hasP[p].
+  move=> /mapP [c2 c2new pc2].
+  move=> /mapP [c1 c1old pc1].
+  move: c2new=> /mapP [c3 c3o_pre c2c3].
+  have c3o : c3 \in rcons cc lcc.
+    by move: c3o_pre; case: (cc) => [ | a tl]; rewrite //= inE orbC => ->.
+  have c3o2 : c3 \in fop ++ lsto :: lop.
+    by rewrite ocd -cat_rcons !mem_cat c3o orbT.
+  have noc3 : inter_at_ext (low c3) (high c3).
+    by apply: nocs'; apply: (edges_sub comi); rewrite 2!mem_cat map_f ?orbT.
+  have dif3 : low c3 != high c3.
+    by apply: (low_diff_high_open d_inv).
+  have wf3 : low c3 <| high c3 by apply (allP rfo).
+  have ok3 : open_cell_side_limit_ok c3 by apply: (allP (sides_ok comi)).
+  have vc3 : valid_cell c3 (point ev).
+    by apply: (andP (allP sval c3 c3o2)).
+  have [vlc3 vhc3] := vc3.
+  have c2in : c2 \in rcons (cls ++ lstc :: closing_cells (point ev) cc)
+                      (close_cell (point ev) lcc).
+    rewrite -cats1 -catA mem_cat /= inE /closing_cells cats1 -map_rcons.
+    by rewrite orbA orbC; apply/orP; left; apply/mapP; exists c3.
+  have lc3ltp : left_limit c3 < p_x (point ev).
+    have := cell_center_in'; rewrite strq /state_closed_seq /=.
+    move=> /(_ (close_cell (point ev) c3)).
+      rewrite to_right_order mem_cat orbC -map_rcons map_f //.
+      move=> /(_ isT).
+      rewrite inside_closed'E=> /andP[] _ /andP[] _ /andP[] lt1.
+      rewrite right_limit_close_cell //.
+      apply: lt_le_trans.
+      by move: lt1; rewrite left_limit_close_cell.
+    (* rewrite c2c3 /left_limit.
+    have [_ _ ->] := close_cell_preserve_3sides (point ev) c3.
+    by rewrite right_limit_close_cell. *)
+  have := cl_side'; rewrite strq /state_closed_seq /=.
+  move=> /(_ c2); rewrite c2c3.
+  rewrite to_right_order mem_cat orbC -map_rcons map_f //.
+  move=> /(_ isT); rewrite -c2c3=> ok2.
+  have :=
+    cell_center_close_cell_inside noc3 dif3 wf3 ok3 vlc3 vhc3 lc3ltp.
+  rewrite -[cells.close_cell _ _]/(close_cell _ _).
+  rewrite -c2c3=> ccin.
+  have := close'_subset_contact vc3; rewrite -c2c3 => /(_ _ ok2 ccin) ccin'.
+  have := op_cl_dis_non_gp d_inv c3o2 c1old (cell_center c2)=> /negP.
+  by rewrite ccin' -pc2 pc1 (cell_center_in d_inv).
+suff : uniq [seq cell_center c | c <- new_cl] by [].
+rewrite /new_cl.
+case ccq : cc => [ | fcc cc'] /=; first by [].
+apply/(uniqP dummy_pt).
+  rewrite  /closing_cells !(size_map, size_rcons).
+  set L := [seq cell_center c | c <- _].
+  have main : forall i j, (i <= j < (size cc').+1)%N ->
+    nth dummy_pt L i = nth dummy_pt L j -> i = j.
+    move=> i j /[dup] ijs /andP[ij js] abs.
+    have i_s : (i < (size cc').+1)%N by apply: leq_ltn_trans js.
+    move: ij; rewrite leq_eqVlt=> /orP[/eqP -> | ij]; first by [].
+    have jpred : j = j.-1.+1 by rewrite (ltn_predK ij).
+    have i_sm : (i < (size cc'))%N.
+      by apply: (leq_trans ij); rewrite -ltnS.
+    have is' : (i < size [seq high c | c <- rcons cc' lcc])%N.
+      by rewrite size_map size_rcons.
+    have js' : (j < size [seq high c | c <- rcons cc' lcc])%N.
+      by rewrite size_map size_rcons.
+    have js2 : (j < size (rcons cc' lcc))%N by rewrite size_rcons.
+    have jps : (j.-1 < (size cc').+1)%N.
+      by apply : (ltn_trans _ js); rewrite -jpred leqnn.
+    have jps2 : (j.-1 < size (rcons cc' lcc))%N by rewrite size_rcons.
+    have jps3 : (j.-1 < size [seq high c | c <- rcons cc' lcc])%N.
+      by rewrite size_map size_rcons.
+    move: (pairwise_open_non_gp d_inv); rewrite /state_open_seq /=.
+    rewrite ocd !map_cat pairwise_cat=> /andP[] _ /andP[] _.
+    move=> /andP[] _.
+    rewrite /= -cat_rcons pairwise_cat=> /andP[] _ /andP[] + _.
+    rewrite -map_rcons.
+    move=> big_pairwise.
+    have : pairwise edge_below [seq high c | c <- rcons cc' lcc].
+      by move: big_pairwise; rewrite ccq /= => /andP[].
+    move=> /(pairwiseP dummy_edge)/(_ _ _ is' jps3) => ibelj.
+    have nth_in k : (k < (size cc').+1)%N ->
+      nth dummy_cell (rcons cc' lcc) k \in fop ++ lsto :: lop.
+      move=> ks.
+      rewrite ocd -cat_rcons !mem_cat; apply/orP; right; apply/orP; left.
+      have -> : nth dummy_cell (rcons cc' lcc) k =
+                nth dummy_cell (rcons cc lcc) k.+1.
+        by rewrite ccq.
+        have ks_cc : (k.+1 < (size cc).+1)%N by rewrite ccq ltnS.
+      by rewrite mem_nth // size_rcons.
+    have vlk k : (k < (size cc').+1)%N ->
+      valid_edge (nth dummy_edge [seq high c | c <- rcons cc' lcc] k) (point ev).
+      move=> ks.
+      have ks' : (k < size (rcons cc' lcc))%N by rewrite size_rcons.
+      set ck := nth dummy_cell (rcons cc lcc) k.
+      rewrite (nth_map dummy_cell dummy_edge high) //.
+      by have := allP sval _ (nth_in k ks)=> /andP[].
+    have vllk k : (k < (size cc').+1)%N ->
+      valid_edge (low (nth dummy_cell (rcons cc' lcc) k)) (point ev).
+      move=> ks.
+      have ks' : (k < size (rcons cc' lcc))%N by rewrite size_rcons.
+      set ck := nth dummy_cell (rcons cc' lcc) k.
+      by have := allP sval _ (nth_in k ks)=> /andP[].
+    have vli := vlk i i_s.
+    have incl k: (k < (size cc').+1)%N -> inside_closed' (nth dummy_pt L k)
+            (nth dummy_cell
+              [seq close_cell (point ev) c | c <- rcons cc' lcc] k).
+      move=> ks.
+      rewrite /L (nth_map dummy_cell); last first.
+        by rewrite size_rcons size_map.
+      rewrite -map_rcons.
+      apply: cell_center_in'.
+      rewrite strq /state_closed_seq /=.
+      rewrite to_right_order.
+      rewrite mem_cat; apply/orP; right.
+      rewrite ccq /=.
+      by rewrite -map_rcons mem_nth // size_map size_rcons.
+    have inclj := incl j js.
+    have incli := incl i i_s.
+    have lowjq : low (nth dummy_cell [seq close_cell (point ev) c |
+                       c <- rcons cc' lcc] j)
+      = high (nth dummy_cell [seq close_cell (point ev) c |
+                                 c <- rcons cc' lcc] j.-1).
+      have := (nth_map dummy_cell dummy_cell (close_cell (point ev))).
+      move=> /(_ j (rcons cc' lcc) js2) => ->.
+      have := (nth_map dummy_cell dummy_cell (close_cell (point ev))).
+      move=> /(_ j.-1 (rcons cc' lcc) jps2) => ->.
+      have [-> _ _] := close_cell_preserve_3sides (point ev)
+            (nth dummy_cell (rcons cc' lcc) j).
+      have [ _ -> _] := close_cell_preserve_3sides (point ev)
+            (nth dummy_cell (rcons cc' lcc) j.-1).
+      have jint : (0 < j < size (rcons cc' lcc))%N.
+        by rewrite (leq_ltn_trans (leq0n _) (ij)).
+      have := adj; rewrite /adjacent_cells ocd -cat_rcons=>/adjacent_catW.
+      move=>[] _ /adjacent_catW [] + _.
+      rewrite ccq -[rcons (fcc :: cc') lcc]/([:: fcc] ++ rcons cc' lcc).
+      move=>/adjacent_catW[] _.
+      by move=> /adjacent_path_nth /(_ jint).
+    move: inclj=> /andP[] /andP[] _ B /andP[] abovelow _.
+    move: incli=> /andP[] /andP[] /andP[] _ belowhigh C _.
+    have vni : valid_edge (high (nth dummy_cell
+                   [seq close_cell (point ev) c | c <- rcons cc' lcc] i))
+      (nth dummy_pt L i).
+      apply/andP; split.
+        apply: (le_trans _ (proj1 (andP C))).
+        rewrite (nth_map dummy_cell); last by rewrite size_rcons.
+        rewrite /left_limit.
+        have [_ -> ->] := close_cell_preserve_3sides (point ev)
+            (nth dummy_cell (rcons cc' lcc) i).
+        have := allP (sides_ok comi) _ (nth_in _ i_s).
+        move=> /andP[] lf_size /andP[] xs
+        /andP[] _ /andP[] hdon _.
+        case: left_pts lf_size xs hdon => [ | a tl] // _ xs hdon.
+        have ain : a \in (a :: tl) by rewrite inE eqxx.
+        have lstin : last a tl \in (a :: tl) by rewrite mem_last.
+        have /eqP ax := allP xs _ ain.
+        have /eqP lx := allP xs _ lstin.
+        rewrite /= lx -ax.
+        by move: hdon; rewrite /= => /andP[] _ /andP[] it _.
+      apply: (le_trans (proj2 (andP C))).
+      rewrite (nth_map dummy_cell); last by rewrite size_rcons.
+      rewrite right_limit_close_cell //; last first.
+          by move: vli; rewrite (nth_map dummy_cell) // size_rcons.
+        by apply: vllk.
+      have [_ -> _] := close_cell_preserve_3sides (point ev)
+            (nth dummy_cell (rcons cc' lcc) i).
+      have /andP[ _ ]:= vli.
+      by rewrite (nth_map dummy_cell); last by rewrite size_rcons.
+    have vnj : valid_edge
+      (low (nth dummy_cell
+        [seq close_cell (point ev) c | c <- rcons cc' lcc] j))
+      (nth dummy_pt L i).
+      rewrite abs {C belowhigh abovelow incl}.
+      apply/andP; split.
+      apply: (le_trans _ (proj1 (andP B))).
+      rewrite (nth_map dummy_cell); last by rewrite size_rcons.
+        rewrite /left_limit.
+        have [-> _ ->] := close_cell_preserve_3sides (point ev)
+            (nth dummy_cell (rcons cc' lcc) j).
+        have := allP (sides_ok comi) _ (nth_in _ js).
+        move=> /andP[] lf_size /andP[] xs
+        /andP[] _ /andP[] hdon lston.
+        by move: lston=> /andP[] _ /andP[].
+      apply: (le_trans (proj2 (andP B))).
+      rewrite (nth_map dummy_cell) {B}; last by rewrite size_rcons.
+      rewrite right_limit_close_cell //; last first.
+          by move: (vlk _ js); rewrite (nth_map dummy_cell) // size_rcons.
+        by apply: vllk.
+      have [-> _ _] := close_cell_preserve_3sides (point ev)
+            (nth dummy_cell (rcons cc' lcc) j).
+      by have /andP[ _ ]:= vllk _ js.
+    move: abovelow=> /negP; case.
+    rewrite -abs.
+    have := ij; rewrite jpred ltnS; rewrite leq_eqVlt=> /orP[/eqP ijq| ijp].
+      by rewrite -jpred lowjq -ijq.
+    have {}ibelj := (ibelj ijp).
+    have ibelj' : high (nth dummy_cell
+      [seq (close_cell (point ev)) c | c <- rcons cc' lcc] i) <|
+        low (nth dummy_cell
+          [seq (close_cell (point ev)) c | c <- rcons cc' lcc] j).
+    move: ibelj; rewrite lowjq.
+    repeat (rewrite (nth_map dummy_cell); last by rewrite size_rcons).
+    have [_ -> _] := close_cell_preserve_3sides (point ev)
+            (nth dummy_cell (rcons cc' lcc) j.-1).
+    by have [_ -> _] := close_cell_preserve_3sides (point ev)
+            (nth dummy_cell (rcons cc' lcc) i).
+    have := order_edges_viz_point' vni vnj ibelj'.
+    rewrite -jpred; apply.
+    by apply: belowhigh.
+  move=> i j; rewrite ?inE /= => i_s js eqcc.
+  case: (ltnP i j) => [ij | ji].
+    have ijint : (i <= j < (size cc').+1)%N by rewrite (ltnW ij) js.
+    by apply: (main _ _ ijint).
+  have jiint : (j <= i < (size cc').+1)%N by rewrite ji i_s.
+  by apply/esym/(main _ _ jiint).
+Qed.
+
+Let high_lstc' : high (lst_closed str) = lst_high _ _ str.
+Proof.
+rewrite strq /= /close_cell.
+by rewrite (pvertE vllcc) (pvertE vhlcc).
+Qed.
+
+Let nth1lstc' : nth dummy_pt (right_pts (lst_closed str)) 1 = point ev.
+Proof.
+rewrite strq /= /close_cell.
+rewrite (pvertE vllcc) (pvertE vhlcc) /no_dup_seq_aux.
+rewrite -![pt_eqb _ _ _ _]/(_ == _).
+have main:
+  Bpt (p_x (point ev)) (pvert_y (point ev) (high lcc)) = point ev -> False.
+  move=> ponhigh.
+  move : puh; rewrite heq (strict_nonAunder vhlcc).
+  by rewrite -ponhigh (pvert_on vhlcc).
+case: ifP=> [/eqP ponhigh | ]; case: ifP=> [/eqP ponlow | pdif] //;
+  apply: (main ponhigh).
+Qed.
+
+Let nth1_eq' : nth dummy_pt (right_pts (lst_closed str)) 1 =
+              nth dummy_pt (left_pts (lst_open str)) 1.
+Proof.
+by rewrite nth1lstc' strq /= nth1q.
+Qed.
+
+Let bottom_left_main :
+  {in state_open_seq str, forall c,
+    lexePt (bottom_left_corner c) (point ev)}.
+Proof.
+rewrite strq /state_open_seq /= -!catA -cat_rcons catA.
+move=> c; rewrite mem_cat (mem_cat _ _ lc) orbCA.
+move=> /orP[cnew | cold]; last first.
+  apply: (lexPtW (bottom_left_opens d_inv _ _)); last by [].
+  rewrite /state_open_seq /= ocd -cat_rcons mem_cat (mem_cat _ _ lc).
+  by rewrite orbCA cold orbT.
+by have [] := oks cnew.
+Qed.
+
+Let bottom_left_opens' :
+       {in state_open_seq str & evs,
+         forall c e, lexPt (bottom_left_corner c) (point e)}.
+Proof.
+move=> c e cin ein.
+move: (lex_events comi)=> /=; rewrite (path_sortedE (@lexPtEv_trans _)).
+move=> /andP[] /allP /(_ _ ein) + _.
+apply: lexePt_lexPt_trans.
+by apply: (bottom_left_main cin).
+Qed.
+
+Let btm_left_lex_snd_lst' :
+      {in state_open_seq str, forall c, lexePt (bottom_left_corner c)
+         (nth dummy_pt (left_pts (lst_open str)) 1)}.
+Proof.
+rewrite [nth _ _ _](_ : _ = (point ev)); last first.
+  by rewrite strq /=.
+exact: bottom_left_main.
+Qed.
+
 Let high_nos_q : [seq high c | c <- nos] = sort edge_below (outgoing ev).
 Proof.
 have := uoct_eq; rewrite /update_open_cell_top.
@@ -1134,7 +1373,7 @@ have -> /= : ~~ has (in_mem^~ (mem [seq high c | c <- fop ++ fc']))
   by move: gin; rewrite high_nos_q mem_sort=> ->.
 have -> /= : uniq [seq high c | c <- nos].
   by rewrite high_nos_q sort_uniq; apply: (uniq_ec comi).
-have new_diff_old : {in lno :: (fop ++ fc') ++ lc, 
+have new_diff_old : {in lno :: (fop ++ fc') ++ lc,
   forall c, high c \notin [seq high c | c <- nos]}.
   move=> c cin.
   rewrite high_nos_q mem_sort.
