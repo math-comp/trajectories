@@ -622,19 +622,7 @@ have ucc' : uniq [seq cell_center c | c <-
     have noc3 : inter_at_ext (low c3) (high c3).
       by apply: nocs'; apply: (sub_edges); rewrite 2!mem_cat map_f ?orbT.
     have dif3 : low c3 != high c3.
-      have [[ | c0 s3][s4 sq]] := mem_seq_split c3o2.
-        have c3b : low c3 = bottom.
-          by move: cbtom=> /andP[] /andP[] _ /eqP + _; rewrite sq.
-        move: uniq_high=> /= /andP[] + _; rewrite sq /= inE negb_or c3b.
-        by move=> /andP[].
-      have -> : low c3 = high (last c0 s3).
-        by have := adj; rewrite sq /= cat_path => /andP[] _ /= /andP[] /eqP -> _.
-      apply/eqP=> abs.
-      have := uniq_high; rewrite sq => /andP[] _.
-      rewrite map_cat cat_uniq => /andP[] _ /andP[] /negP + _; apply.
-      apply/hasP; exists (high (last c0 s3)).
-        by rewrite abs map_f // inE eqxx.
-      by apply: map_f; rewrite mem_last.
+      by apply: (low_diff_high_open d_inv).
     have wf3 : low c3 <| high c3 by apply (allP rfo).
     have ok3 : open_cell_side_limit_ok c3 by apply: (allP oks).
     have vc3 : valid_cell c3 (point ev).
@@ -1431,7 +1419,7 @@ have cl_safe_edge :
     have pxge : p_x (point ev) <= p_x p.
       by move: pong=> /andP[] _ /andP[]; rewrite (eqP (oute _ gnew)).
     have cin' : c \in state_closed_seq st by rewrite stq.
-  have := (closed_at_left_non_gp_compat d_inv cin')=> /(_ ev).
+    have := (closed_at_left_non_gp_compat d_inv cin')=> /(_ ev).
     rewrite inE eqxx=> /(_ isT) rll.
     move: pin=> /orP[] /andP[] /eqP eqlx Extra.
       have ltlr := (cl_large d_inv cin').
