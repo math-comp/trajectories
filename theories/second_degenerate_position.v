@@ -92,7 +92,7 @@ Notation left_pts := (left_pts (RealField.sort R) edge).
 Notation right_pts := (right_pts (RealField.sort R) edge).
 Notation Bcell := (Bcell (RealField.sort R) edge).
 Notation cell_center :=
-  (cell_center (RealField.sort R) +%R (fun x y => x / y) 1%:R edge).
+  (cell_center (RealField.sort R) +%R (fun x y => x / y) 1 edge).
 
 Notation closing_cells :=
   (generic_trajectories.closing_cells (RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
@@ -328,6 +328,9 @@ Variables (bottom top : edge) (s : seq edge) (fop : seq cell) (lsto : cell)
   (lop cls : seq cell) (lstc : cell) (ev : event) (lsthe : edge) (lstx : R)
   (evs : seq event).
 
+Let evin : ev \in ev :: evs.
+Proof. by rewrite inE eqxx. Qed.
+
 Hypotheses
   (boxwf : bottom <| top)
   (nocs' : {in bottom :: top :: s &, forall e1 e2, inter_at_ext e1 e2})
@@ -336,6 +339,8 @@ Hypotheses
   (at_lstx : lstx = p_x (point ev))
   (pu : point ev <<= lsthe)
   (pa : point ev >>= lsthe)
+  (n_in : {in [:: bottom, top & s] & ev :: evs,
+     forall g e, non_inner g (point e)})
   (d_inv : disjoint_non_gp_invariant bottom top s
     (Bscan fop lsto lop cls lstc lsthe lstx) (ev :: evs)).
 
@@ -350,7 +355,7 @@ Proof. by exact: (inv1 comi). Qed.
 
 Let oute : out_left_event ev.
 Proof.
-by apply: (out_events comi); rewrite inE eqxx.
+by apply: (out_events comi).
 Qed.
 
 Let pal : (point ev) >>> low lsto.
@@ -385,7 +390,7 @@ Qed.
 
 Let noc : {in all_edges (fop ++ lsto :: lop) (ev :: evs) &,
            no_crossing R}.
-Proof.           
+Proof.
 apply: inter_at_ext_no_crossing.
 by apply: (sub_in2 (edges_sub comi) nocs').
 Qed.
@@ -528,7 +533,7 @@ Proof.
 by move: tmp_connect_properties; rewrite /= -heq => -[].
 Qed.
 
-Let nct3 : forall c, (c \in fop ++ fc') || (c \in lc) -> 
+Let nct3 : forall c, (c \in fop ++ fc') || (c \in lc) ->
   ~~ contains_point (point ev) c.
 Proof.
 by move: tmp_connect_properties; rewrite /= -heq => -[].
@@ -549,7 +554,7 @@ Proof.
 by move: (high_lsto_eq comi) pa => /= <-.
 Qed.
 
-Let tmp_uoct_properties := update_open_cell_top_properties vlo vho oute vhe 
+Let tmp_uoct_properties := update_open_cell_top_properties vlo vho oute vhe
   lstok at_ll pu' pa'
   (has_snd_lst comng) (proj1 (andP (lst_side_lex comng))) puh uoct_eq.
 
@@ -627,7 +632,7 @@ by rewrite eqxx orbT.
 Qed.
 
 #[local]
-Definition str := last_case fop lsto fc' cc lcc lc cls lstc he ev. 
+Definition str := last_case fop lsto fc' cc lcc lc cls lstc he ev.
 
 Let inv1' : inv1_seq bottom top evs (state_open_seq str).
 Proof.
@@ -687,7 +692,7 @@ Qed.
 
 Let inbox_events' : all (inside_box bottom top)
            [seq point x | x <- evs].
-Proof.           
+Proof.
 by have := inbox_events comi=> /= /andP[].
 Qed.
 
@@ -754,7 +759,7 @@ Let above_low_lsto' :
      {in evs, forall e,
         lexPt (last dummy_pt (left_pts (lst_open str)))
               (point e)}.
-Proof.              
+Proof.
 move=> e ein.
 have := (lex_events comi)=> /=; rewrite (path_sortedE (@lexPtEv_trans _)).
 move=> /andP[] /allP /(_ _ ein) + _.
@@ -797,7 +802,7 @@ Proof.
 by rewrite /str/last_case uoct_eq.
 Qed.
 
-Lemma last_case_common_invariant_pre : 
+Lemma last_case_common_invariant_pre :
   common_non_gp_invariant bottom top s
      (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
     evs.
@@ -860,13 +865,29 @@ Qed.
 Let pairwise_open_non_gp' : pairwise edge_below
      (bottom :: [seq high c | c <- state_open_seq str]).
 Proof.
-Admitted.
+have := step_keeps_pw cls lstc (inbox_events (ngcomm comng))
+  oute rfo cbtom adj sval (esym (high_lsto_eq comi))
+  (fun x : p_x (point ev) = lstx => pal) noc (pairwise_open_non_gp d_inv).
+rewrite /step/same_x at_lstx eqxx pu (negbTE pa) /= oe uoct_eq.
+by rewrite strq.
+Qed.
 
 Let closed_at_left_non_gp' :
      {in state_closed_seq str,
        forall c, right_limit c <= lst_x _ _ str}.
 Proof.
-Admitted.
+have cl_side' : all (@closed_cell_side_limit_ok _) (rcons cls lstc).
+  apply/allP; exact: (cl_side d_inv).
+have cl_at_left' :
+  {in rcons cls lstc, forall c, right_limit c <= p_x (point ev)}.
+  rewrite -at_lstx; exact: (closed_at_left_non_gp d_inv).
+have := step_keeps_closed_to_the_left
+ (inbox_events (ngcomm comng)) rfo
+  cbtom adj sval (esym (high_lsto_eq comi))
+  (fun x : p_x (point ev) = lstx => pal)
+  cl_side' cl_at_left' (size_right_cls d_inv).
+by rewrite strq /step/same_x at_lstx eqxx pu (negbTE pa) /= oe uoct_eq.
+Qed.
 
 Let vlcc : valid_edge (low lcc) (point ev) && valid_edge (high lcc) (point ev).
 Proof.
@@ -893,7 +914,26 @@ Admitted.
 
 Let cl_side' : {in state_closed_seq str, forall c, closed_cell_side_limit_ok c}.
 Proof.
-Admitted.
+rewrite strq /state_closed_seq /= => c; rewrite mem_rcons.
+rewrite -[_ :: _ ++ _]/((map (close_cell (point ev)) (_ :: _)) ++ _) mem_cat.
+move=> /orP[/mapP [c' c'in cc'] | cold].
+  have c'in2 : c' \in rcons cc lcc.
+    move: c'in; case: (cc) => [ | a tl] //=.
+    by rewrite !(mem_rcons, inE) => /orP[-> | ->] //; rewrite ?orbT.
+  have c'in3 : c' \in fop ++ lsto :: lop.
+    by rewrite ocd -cat_rcons mem_cat (mem_cat _ _ lc) c'in2 !orbT.
+  have ctc' : contains_point (point ev) c'.
+    move: c'in2; rewrite mem_rcons inE=> /orP[/eqP -> | ] //.
+    by apply: all_ctn.
+  have /andP[vlc' vhc'] : valid_edge (low c') (point ev) &&
+     valid_edge (high c') (point ev).
+    by apply: (allP sval _ ).
+  have c'ok : open_cell_side_limit_ok c'.
+    by apply: (allP (sides_ok comi)).
+  have := close_cell_ok ctc' vlc' vhc' c'ok.
+  by rewrite cc'.
+by apply: (cl_side d_inv); rewrite /state_closed_seq /= mem_rcons.
+Qed.
 
 Let high_lstc' : high (lst_closed str) = lst_high _ _ str.
 Proof.
@@ -906,7 +946,7 @@ Proof.
 rewrite strq /= /close_cell.
 rewrite (pvertE vllcc) (pvertE vhlcc) /no_dup_seq_aux.
 rewrite -![pt_eqb _ _ _ _]/(_ == _).
-have main: 
+have main:
   Bpt (p_x (point ev)) (pvert_y (point ev) (high lcc)) = point ev -> False.
   move=> ponhigh.
   move : puh; rewrite heq (strict_nonAunder vhlcc).
@@ -928,14 +968,13 @@ Proof.
 rewrite strq /state_open_seq /= -!catA -cat_rcons catA.
 move=> c; rewrite mem_cat (mem_cat _ _ lc) orbCA.
 move=> /orP[cnew | cold]; last first.
-    apply: (lexPtW (bottom_left_opens d_inv _ _)).
-    rewrite /state_open_seq /= ocd -cat_rcons mem_cat (mem_cat _ _ lc).
-    by rewrite orbCA cold orbT.
-  by rewrite inE eqxx.
+  apply: (lexPtW (bottom_left_opens d_inv _ _)); last by [].
+  rewrite /state_open_seq /= ocd -cat_rcons mem_cat (mem_cat _ _ lc).
+  by rewrite orbCA cold orbT.
 by have [] := oks cnew.
 Qed.
 
-Let bottom_left_opens' : 
+Let bottom_left_opens' :
        {in state_open_seq str & evs,
          forall c e, lexPt (bottom_left_corner c) (point e)}.
 Proof.
@@ -958,7 +997,90 @@ Qed.
 Let cell_center_in' :
       {in state_closed_seq str, forall c, inside_closed' (cell_center c) c}.
 Proof.
-Admitted.
+rewrite strq /state_closed_seq /=.
+move=> c; rewrite mem_rcons -[_ :: _ ++ _]/((map _ (_ :: _)) ++ _).
+rewrite mem_cat=> /orP[/mapP[c' c'in cc']| cold]; last first.
+  apply: (cell_center_in d_inv).
+  by rewrite /state_closed_seq /= mem_rcons.
+have c'in2 : c' \in rcons cc lcc.
+  move: c'in; case: (cc) => [ | a tl] //=.
+  by rewrite !(mem_rcons, inE) => /orP[-> | ->] //; rewrite ?orbT.
+have c'in3 : c' \in fop ++ lsto :: lop.
+  by rewrite ocd -cat_rcons mem_cat (mem_cat _ _ lc) c'in2 !orbT.
+have /andP[vlc' vhc'] : valid_edge (low c') (point ev) &&
+     valid_edge (high c') (point ev).
+  by apply: (allP sval _ ).
+have ldhc' : low c' != high c'.
+  apply: (low_diff_high_open d_inv).
+  rewrite /state_open_seq /= ocd -cat_rcons mem_cat (mem_cat _ _ lc).
+  by rewrite c'in2 !orbT.
+have c'ok : open_cell_side_limit_ok c'.
+  by apply: (allP (sides_ok comi)).
+have nocc' : inter_at_ext (low c') (high c').
+  apply: nocs'; apply: (edges_sub comi); rewrite /state_open_seq /=.
+    by rewrite mem_cat mem_cat map_f // c'in3.
+  by rewrite mem_cat mem_cat map_f ?orbT // c'in3.
+have lbhc' : low c' <| high c'.
+  by apply: (allP rfo).
+
+have llc'lt : left_limit c' < p_x (point ev).
+  have [cc0 | ccn0] := eqVneq cc [::].
+    have lstoq : lsto = lcc by move: lstoh; rewrite cc0.
+    by move: puh; rewrite heq -lstoq (high_lsto_eq comi) (negbTE pa).
+
+  have adjcc : adjacent_cells (rcons cc lcc).
+    have := adj; rewrite /state_open_seq /= ocd -cat_rcons.
+    by move=> /adjacent_catW[] _ /adjacent_catW[].
+
+  have [c2 c2in c'c2] : exists2 c2, c2 \in cc & low c' = high c2.
+    move: (c'in); rewrite inE => /orP[/eqP -> | c'inb].
+      exists (last dummy_cell cc).
+        by move: ccn0; case: (cc)=> [ | ? ?]; rewrite //= mem_last.
+      move: adjcc; rewrite -cats1; case: (cc) ccn0=> [ | a tl] //= _.
+      by rewrite cat_path /= andbT => /andP[] _ /eqP/esym.
+    have [[ | a s1] [s2 sq]] := mem_seq_split c'inb.
+      exists (head dummy_cell cc).
+        by move: ccn0; case: (cc) => [ | ? ?]; rewrite //= inE eqxx.
+      by case: (cc) ccn0 sq adjcc => [ | ? ?] //= _ -> /= /andP[]/eqP/esym.
+    exists (last a s1).
+      case: (cc) ccn0 sq=> [ | b tl'] //= _ -> /=.
+      by rewrite inE -[_ :: _ ++ _]/((_ :: _) ++ _) mem_cat mem_last !orbT.
+    case: (cc) ccn0 sq adjcc=> [ | b tl'] //= _ -> /= /andP[] _.
+    rewrite rcons_cat /=.
+    by rewrite cat_path=> /andP[] /= _ /andP[] /eqP/esym.
+
+  have : right_pt (high c2) = point ev.
+    (* TODO: duplication,
+      what follows is duplicated from the proof of right_pt_e inside
+      step_keeps_edge_covering *)
+    have := open_cells_decomposition_point_on cbtom adj
+      (inside_box_between inbox_e) sval oe' c2in.
+    rewrite -c'c2.
+    have lc's : low c' \in [:: bottom, top & s].
+      by apply: (edges_sub comi); rewrite mem_cat mem_cat map_f.
+    have := n_in lc's evin; rewrite /non_inner=> /[apply].
+    move=> [abs | ->]; last by [].
+    have c2in2: c2 \in fop ++ lsto :: lop.
+      by rewrite ocd !(mem_cat, inE) c2in !orbT.
+    have := stradle comi; rewrite /state_open_seq /= => -[// | ].
+    move=> /(_ _ (map_f _ c2in2)) /andP[] + _.
+    by rewrite abs c'c2 lexPt_irrefl.
+  rewrite -c'c2 => rlc'_ev.
+  rewrite lt_neqAle.
+  have := left_opens d_inv c'in3; rewrite /= at_lstx => ->; rewrite andbT.
+  apply/eqP=> lc'x.
+  have : bottom_left_corner c' = point ev.
+    have evonc' : point ev === low c' by rewrite -rlc'_ev right_on_edge.
+    have bonc' : bottom_left_corner c' === low c'.
+    have := allP (sides_ok comi) _ c'in3.
+    by move=> /andP[] _ /andP[] _ /andP[] _ /andP[] _.
+    have same_y := on_edge_same_point bonc' evonc' lc'x.
+    by apply/eqP; rewrite pt_eqE -lc'x -same_y !eqxx.
+  have := bottom_left_opens d_inv c'in3 evin=> /[swap] ->.
+  by rewrite lexPt_irrefl.
+have := cell_center_close_cell_inside nocc' ldhc' lbhc' c'ok vlc' vhc' llc'lt.
+by rewrite cc'.
+Qed.
 
 Let uniq_high' : uniq (bottom :: [seq high c | c <- state_open_seq str]).
 Proof.
@@ -971,7 +1093,7 @@ Lemma last_case_disjoint_invariant_pre :
 Proof.
 rewrite /step /= /same_x at_lstx eqxx pu (negbTE pa) /=.
 rewrite oe uoct_eq.
-move: op_cl_dis_non_gp' cl_dis_non_gp' 
+move: op_cl_dis_non_gp' cl_dis_non_gp'
   common_non_gp_inv_dis' pairwise_open_non_gp'
   closed_at_left_non_gp' size_right_cls'
   uniq_cc' cl_side' high_lstc' nth1_eq' bottom_left_opens'
@@ -990,7 +1112,7 @@ Lemma last_case_common_invariant bottom top s fop lsto lop cls lstc ev
   point ev >>= lsthe ->
   common_non_gp_invariant bottom top s (Bscan fop lsto lop cls lstc lsthe lstx)
     (ev :: evs) ->
-  common_non_gp_invariant bottom top s 
+  common_non_gp_invariant bottom top s
     (step (Bscan fop lsto lop cls lstc lsthe lstx) ev) evs.
 Proof.
 move=> nocs at_lstx pu pa comng.
