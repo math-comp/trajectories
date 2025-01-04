@@ -1548,7 +1548,7 @@ have cl_safe_edge :
       have phd : p = head dummy_pt (right_pts (last_cell (pcc0 :: pcc))).
         apply/eqP; rewrite pt_eqE.
         rewrite pxhd' eqxx /=.
-        by rewrite (on_edge_same_point pong hdon pxhd').    
+        by rewrite (on_edge_same_point pong hdon pxhd').
       have lincls' : last_cell (pcc0 :: pcc) \in sc_closed st by rewrite stq.
       have := cl_at_left_ss ssng lincls'; rewrite stq /=.
       by rewrite phd.
