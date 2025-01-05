@@ -9,10 +9,20 @@ Follow the instructions on https://github.com/coq-community/templates to regener
 [docker-action-shield]: https://github.com/math-comp/trajectories/actions/workflows/docker-action.yml/badge.svg?branch=master
 [docker-action-link]: https://github.com/math-comp/trajectories/actions/workflows/docker-action.yml
 
+This directory contain a variety of developments that were  thought to be
+useful for the computation of trajectories between obstacles.
 
+The leading example relies on a decomposition of a plane area in vertical
+cells, which gives a graph whose nodes are the cells.  The next step is to
+compute a path in this graph, from which a piecewise straight line
+trajectory is computed, which is guaranted to stay inside the safe cells, or
+to go from one cell to a neighbor only through a safe crossing.  The final
+step is to smoothen the trajectory, by using Bezier curves for which checks
+are performed to verify that they stay within the safe part of the area.
 
+A demonstration version is available at 
+[this page](https://stamp.gitlabpages.inria.fr/trajectories.html).
 
-TODO
 
 ## Meta
 
