@@ -206,7 +206,7 @@ Lemma update_open_cell_top_properties lsto he ev nos lno:
     [/\ open_cell_side_limit_ok c,
     left_limit c = p_x (point ev) &
     lexePt (bottom_left_corner c) (point ev)]} /\
-  point ev === high lsto /\
+  point ev = head dummy_pt (left_pts lsto) /\
   (1 < size (left_pts lno))%N /\
   (nth dummy_pt (left_pts lno) 1 = point ev) /\
   high lno = he /\
@@ -605,9 +605,14 @@ Proof.
 by move: tmp_uoct_properties => [? [? [? [? [? ?]]]]].
 Qed.
 
-Let ponho : point ev === high lsto.
+Let p_topleft_lsto : point ev = head dummy_pt (left_pts lsto).
 Proof.
 by move: tmp_uoct_properties => [? [? [? [? [? ?]]]]].
+Qed.
+
+Let ponho : point ev === high lsto.
+Proof.
+by rewrite p_topleft_lsto; move: lstok=> /andP[] _ /andP[] _ /andP[] _ /andP[].
 Qed.
 
 Let sub' : {subset cell_edges (rcons nos lno) <=
@@ -1567,14 +1572,63 @@ Qed.
 Let sub_closed' :
       {subset cell_edges (state_closed_seq str) <= bottom :: top :: s}.
 Proof.
-Admitted.
+rewrite strq /state_closed_seq /=.
+move=> g; rewrite (cell_edges_eqi to_right_order) cell_edges_cat mem_cat.
+move=> /orP[gold | ]; first by apply: (sub_closed ss_inv).
+rewrite -cats1 cell_edges_cat mem_cat.
+rewrite cell_edges_closing_cells cell_edges_close_cell -mem_cat.
+rewrite -cell_edges_cat cats1=> gnew.
+apply: (edges_sub comi); rewrite mem_cat /state_open_seq /=.
+rewrite ocd -cat_rcons cell_edges_cat mem_cat.
+apply/orP; left; apply/orP; right.
+rewrite cell_edges_cat mem_cat; apply/orP; left.
+move: gnew; apply: mono_cell_edges.
+by case: (cc) => [ | a tl] //=; move=> c cin; rewrite inE cin orbT.
+Qed.
 
 Let cl_at_left_ss' :
      {in sc_closed str,
         forall c, lexePt (head dummy_pt (right_pts c))
           (nth dummy_pt (left_pts (lst_open str)) 1)}.
 Proof.
-Admitted.
+move=> c.
+rewrite strq /state_closed_seq /= nth1q.
+rewrite mem_cat=> /orP[ cnew |]; last first.
+  rewrite inE=> /orP[/eqP -> | ccls]; last first.
+    apply/lexPtW.
+    apply: (lexePt_lexPt_trans (cl_at_left_ss ss_inv _)); first by [].
+    by have := (lst_side_lex comng) => /andP[] + _.
+  have -> : point ev = head dummy_pt (right_pts lstc).
+    have /(cl_side d_inv): lstc \in rcons cls lstc.
+      by rewrite mem_rcons inE eqxx.
+    do 5 (move=> /andP[] _); move=> /andP[] + /andP[] + /andP[] _ /andP[] + _.
+    have := cl_at_lstx d_inv => -> /=.
+    rewrite at_lstx (high_lstc d_inv) -(high_lsto_eq comi) /=.
+    case : right_pts => [ | a tl] //= _ /andP[] /eqP ax _ aon.
+    have := on_edge_same_point aon ponho ax => ay.
+    by apply/eqP; rewrite pt_eqE ax ay !eqxx.
+  by rewrite lexePt_refl.
+have := cl_side'; rewrite strq /state_closed_seq /= => /(_ c).
+  rewrite to_right_order mem_cat orbC mem_rcons inE cnew orbT => /(_ isT) cok.
+suff -> : point ev = head dummy_pt (right_pts c) by apply: lexePt_refl.
+move: (cnew)=> /mapP[c' c'in cc'].
+have c'in2 : c' \in cc by case: (cc) c'in=> [ | ? ?]; rewrite // inE orbC=> ->.
+have [vlc' vhc'] : valid_edge (low c') (point ev) /\
+  valid_edge (high c') (point ev).
+  by apply/andP/(allP sval); rewrite ocd !mem_cat c'in2 !orbT.
+have := open_cells_decomposition_point_on cbtom adj
+  (inside_box_between inbox_e) sval oe'.
+move=> /(_ c' c'in2).
+have [_ <- _]:= close_cell_preserve_3sides (point ev) c'.
+rewrite -[X in high X]cc' => ponhc.
+move: cok; do 5 (move=> /andP[] _).
+move=> /andP[] sz /andP[] allx /andP[] _ /andP[] hon _.
+have rlx : right_limit c = p_x (point ev) by rewrite cc' right_limit_close_cell.
+have px : p_x (point ev) = p_x (head dummy_pt (right_pts c)).
+  by case: right_pts sz allx => [ | ? ?] //= _ /andP[] /eqP -> _.
+have := on_edge_same_point ponhc hon px => py.
+by apply/eqP; rewrite pt_eqE px py !eqxx.
+Qed.
 
 Let safe_side_closed_edges' :
      {in events_to_edges (rcons past ev) & state_closed_seq str, forall g c p,

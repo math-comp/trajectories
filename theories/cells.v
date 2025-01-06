@@ -741,6 +741,17 @@ by move=> Sub g; rewrite mem_cat => /orP[] /mapP[c cin geq];
   rewrite /cell_edges geq mem_cat map_f ?orbT // Sub.
 Qed.
 
+Lemma cell_edges_eqi s1 s2 : s1 =i s2 ->
+ cell_edges s1 =i cell_edges s2.
+Proof.
+move=> eqi.
+have sub1 : {subset s1 <= s2} by move=> g; rewrite eqi.
+have sub2 : {subset s2 <= s1} by move=> g; rewrite eqi.
+move=> g; apply/idP/idP.
+  by move/(mono_cell_edges sub1).
+by move/(mono_cell_edges sub2).
+Qed.
+
 Lemma cell_edges_catC s1 s2 :
   cell_edges (s1 ++ s2) =i cell_edges (s2 ++ s1).
 Proof.
@@ -765,6 +776,24 @@ Proof.
 move=> g; rewrite 2!catA [in LHS]cell_edges_cat [in RHS]cell_edges_cat.
 rewrite [in LHS]mem_cat [in RHS]mem_cat; congr (_ || _).
 by rewrite cell_edges_catC.
+Qed.
+
+Lemma cell_edges_close_cell p c :
+  cell_edges [:: close_cell p c] = cell_edges [:: c].
+Proof.
+rewrite /cell_edges /=.
+by have [-> -> _] := close_cell_preserve_3sides p c.
+Qed.
+
+Lemma cell_edges_closing_cells p cs :
+  cell_edges (closing_cells p cs) =i cell_edges cs.
+Proof.
+move=> g.
+elim: cs => [ | c1 cs Ih]; first by [].
+rewrite /= -[_ :: _]/([:: _] ++ _) cell_edges_cat mem_cat Ih.
+rewrite cell_edges_close_cell.
+rewrite -[c1 :: cs]/([:: c1] ++ cs) cell_edges_cat.
+by rewrite (mem_cat _ _ (cell_edges _)).
 Qed.
 
 Definition cover_left_of p s1 s2 :=
