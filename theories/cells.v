@@ -796,6 +796,9 @@ rewrite -[c1 :: cs]/([:: c1] ++ cs) cell_edges_cat.
 by rewrite (mem_cat _ _ (cell_edges _)).
 Qed.
 
+Lemma close_cell_safe_not_p p c :
+  in_safe_side_left p c || in_safe_side_right p c ->
+  
 Definition cover_left_of p s1 s2 :=
   forall q, inside_box q -> lexePt q p ->
   has (inside_open' q) s1 || has (inside_closed' q) s2.
