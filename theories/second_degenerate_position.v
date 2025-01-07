@@ -943,17 +943,41 @@ move: puh; rewrite heq (strict_nonAunder vhlcc).
 by rewrite - ponhigh (pvert_on vhlcc).
 Qed.
 
+
+Let to_right_order :
+  rcons (closing_cells (point ev) (behead cc) ++ lstc :: cls)
+    (close_cell (point ev) lcc) =i
+  rcons cls lstc ++ rcons (closing_cells (point ev) (behead cc))
+    (close_cell (point ev) lcc).
+Proof.
+rewrite -!cats1 !catA=> g; rewrite !mem_cat !inE.
+by repeat (set w := (X in (g \in X)); case: (g \in w);
+  rewrite ?orbT ?orbF; clear w);
+  repeat (set w := (X in (g == X)); case: (g == w); rewrite ?orbT ?orbF;
+    clear w).
+Qed.
+
+Let rcbehead_sub : {subset rcons (behead cc) lcc <= rcons cc lcc}.
+Proof.
+by move=> c; case: (cc) => [ | ? ?] //=; rewrite inE orbC => ->.
+Qed.
+
+Let ccn0 : cc != [::].
+Proof.
+apply/negP=> /eqP abs; have := lstoh.
+rewrite abs /= => lstoq.
+by move: puh; rewrite heq -lstoq (high_lsto_eq comi) (negbTE pa).
+Qed.
+
 Let cell_center_in' :
       {in state_closed_seq str, forall c, inside_closed' (cell_center c) c}.
 Proof.
 rewrite strq /state_closed_seq /=.
-move=> c; rewrite mem_rcons -[_ :: _ ++ _]/((map _ (_ :: _)) ++ _).
-rewrite mem_cat=> /orP[/mapP[c' c'in cc']| cold]; last first.
+move=> c; rewrite to_right_order.
+rewrite mem_cat -map_rcons => /orP[cold |/mapP[c' c'in cc']].
   apply: (cell_center_in d_inv).
-  by rewrite /state_closed_seq /= mem_rcons.
-have c'in2 : c' \in rcons cc lcc.
-  move: c'in; case: (cc) => [ | a tl] //=.
-  by rewrite !(mem_rcons, inE) => /orP[-> | ->] //; rewrite ?orbT.
+  by rewrite /state_closed_seq /=.
+have c'in2 : c' \in rcons cc lcc by apply: rcbehead_sub.
 have c'in3 : c' \in fop ++ lsto :: lop.
   by rewrite ocd -cat_rcons mem_cat (mem_cat _ _ lc) c'in2 !orbT.
 have /andP[vlc' vhc'] : valid_edge (low c') (point ev) &&
@@ -973,16 +997,13 @@ have lbhc' : low c' <| high c'.
   by apply: (allP rfo).
 
 have llc'lt : left_limit c' < p_x (point ev).
-  have [cc0 | ccn0] := eqVneq cc [::].
-    have lstoq : lsto = lcc by move: lstoh; rewrite cc0.
-    by move: puh; rewrite heq -lstoq (high_lsto_eq comi) (negbTE pa).
 
   have adjcc : adjacent_cells (rcons cc lcc).
     have := adj; rewrite /state_open_seq /= ocd -cat_rcons.
     by move=> /adjacent_catW[] _ /adjacent_catW[].
 
   have [c2 c2in c'c2] : exists2 c2, c2 \in cc & low c' = high c2.
-    move: (c'in); rewrite inE => /orP[/eqP -> | c'inb].
+    move: (c'in); rewrite mem_rcons inE => /orP[/eqP -> | c'inb].
       exists (last dummy_cell cc).
         by move: ccn0; case: (cc)=> [ | ? ?]; rewrite //= mem_last.
       move: adjcc; rewrite -cats1; case: (cc) ccn0=> [ | a tl] //= _.
@@ -1033,12 +1054,9 @@ Qed.
 
 Let cl_side' : {in state_closed_seq str, forall c, closed_cell_side_limit_ok c}.
 Proof.
-rewrite strq /state_closed_seq /= => c; rewrite mem_rcons.
-rewrite -[_ :: _ ++ _]/((map (close_cell (point ev)) (_ :: _)) ++ _) mem_cat.
-move=> /orP[/mapP [c' c'in cc'] | cold].
-  have c'in2 : c' \in rcons cc lcc.
-    move: c'in; case: (cc) => [ | a tl] //=.
-    by rewrite !(mem_rcons, inE) => /orP[-> | ->] //; rewrite ?orbT.
+rewrite strq /state_closed_seq /= => c; rewrite to_right_order.
+rewrite -map_rcons mem_cat => /orP[cold | /mapP [c' c'in cc']]; last first.
+  have c'in2 : c' \in rcons cc lcc by apply: rcbehead_sub.
   have c'in3 : c' \in fop ++ lsto :: lop.
     by rewrite ocd -cat_rcons mem_cat (mem_cat _ _ lc) c'in2 !orbT.
   have ctc' : contains_point (point ev) c'.
@@ -1051,20 +1069,7 @@ move=> /orP[/mapP [c' c'in cc'] | cold].
     by apply: (allP (sides_ok comi)).
   have := close_cell_ok ctc' vlc' vhc' c'ok.
   by rewrite cc'.
-by apply: (cl_side d_inv); rewrite /state_closed_seq /= mem_rcons.
-Qed.
-
-Let to_right_order :
-  rcons (closing_cells (point ev) (behead cc) ++ lstc :: cls)
-    (close_cell (point ev) lcc) =i
-  rcons cls lstc ++ rcons (closing_cells (point ev) (behead cc))
-    (close_cell (point ev) lcc).
-Proof.
-rewrite -!cats1 !catA=> g; rewrite !mem_cat !inE.
-by repeat (set w := (X in (g \in X)); case: (g \in w);
-  rewrite ?orbT ?orbF; clear w);
-  repeat (set w := (X in (g == X)); case: (g == w); rewrite ?orbT ?orbF;
-    clear w).
+by apply: (cl_side d_inv); rewrite /state_closed_seq /=.
 Qed.
 
 (* TODO: important! the order of closed cells is not repsected here,
@@ -1091,8 +1096,7 @@ have -> /= : ~~ has (in_mem^~ (mem [seq cell_center c | c <- rcons cls lstc]))
   move=> /mapP [c2 c2new pc2].
   move=> /mapP [c1 c1old pc1].
   move: c2new=> /mapP [c3 c3o_pre c2c3].
-  have c3o : c3 \in rcons cc lcc.
-    by move: c3o_pre; case: (cc) => [ | a tl]; rewrite //= inE orbC => ->.
+  have c3o : c3 \in rcons cc lcc by apply: rcbehead_sub.
   have c3o2 : c3 \in fop ++ lsto :: lop.
     by rewrite ocd -cat_rcons !mem_cat c3o orbT.
   have noc3 : inter_at_ext (low c3) (high c3).
