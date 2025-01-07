@@ -1504,18 +1504,33 @@ Definition pt_at_end (p : pt) (e : edge) :=
 Definition connect_limits (s : seq cell) :=
   sorted [rel c1 c2 | right_limit c1 == left_limit c2] s.
 
-Definition edge_covered (e : edge) (os : seq cell) (cs : seq cell) :=
-  (exists (opc : cell) (pcc : seq cell), {subset pcc <= cs} /\
-    {in rcons pcc opc, forall c, high c = e} /\
-    connect_limits (rcons pcc opc) /\
-    opc \in os /\
-    left_limit (head_cell (rcons pcc opc)) = p_x (left_pt e)) \/
+Definition edge_covered_closed  (e : edge) (cs : seq cell) :=
   (exists pcc, pcc != [::] /\
     {subset pcc <= cs} /\
     {in pcc, forall c, high c = e} /\
     connect_limits pcc /\
     left_limit (head_cell pcc) = p_x (left_pt e) /\
     right_limit (last_cell pcc) = p_x (right_pt e)).
+
+Definition edge_covered_open (e : edge) (os : seq cell) (cs : seq cell) :=
+  (exists (opc : cell) (pcc : seq cell), {subset pcc <= cs} /\
+    {in rcons pcc opc, forall c, high c = e} /\
+    connect_limits (rcons pcc opc) /\
+    opc \in os /\
+    left_limit (head_cell (rcons pcc opc)) = p_x (left_pt e)) .
+
+Definition edge_covered (e : edge) (os : seq cell) (cs : seq cell) :=
+    edge_covered_open e os cs \/ edge_covered_closed e cs.
+
+Lemma on_edge_covered_closed_right_limit p g cs :
+  edge_covered_closed g cs ->
+  p === g ->
+  exists2 c, c \in cs & p_x p <= right_limit c.
+Proof.
+move=> [][| pcc0 pcc] [] // _ [] sub [] _ [] _ [] _ rl /andP[] _ /andP[] _ pl.
+exists (last pcc0 pcc); first by apply/sub/mem_last.
+by rewrite rl.
+Qed.
 
 Lemma connect_limits_rcons (s : seq cell) (lc : cell) :
   s != nil -> connect_limits (rcons s lc) =
@@ -2140,6 +2155,35 @@ move: pleft=> /andP[] /eqP -> _.
 move: cok; do 5 (move=> /andP[] _); move=> /andP[] + /andP[] + _.
 case: right_pts => [ | a tl] //= _ /andP[] /eqP -> _.
 by rewrite clarge.
+Qed.
+
+Lemma in_safe_side_close_cell_diff q c p :
+  valid_edge (low c) q ->
+  valid_edge (high c) q ->
+  left_limit c < p_x q ->
+  in_safe_side_left p
+    (close_cell q c) ||
+  in_safe_side_right p (close_cell q c) ->
+  p != q.
+Proof.
+move=> vl vh ltx.
+move=> /orP[/andP[] /eqP pxq _ | ].
+  rewrite pt_eqE pxq negb_and /left_limit.
+  have [_ _ ->] := close_cell_preserve_3sides q c.
+  by move: ltx; rewrite /left_limit lt_neqAle=> /andP[] -> _.
+move=> /andP[] _ /andP[] _ /andP[] _.
+rewrite /close_cell /=.
+rewrite (pvertE vl) (pvertE vh).
+by case: ifP=> [ /eqP A| _]; case: ifP => [/eqP/esym B| _]; rewrite ?A; rewrite ?B;
+  rewrite !inE ?negb_or // => /andP[] // _ /andP[].
+Qed.
+
+Lemma  in_safe_side_left_close_cell p q c:
+  in_safe_side_left p (close_cell q c) =
+        in_safe_side_left p c.
+  rewrite /in_safe_side_left.
+  have [-> -> ->] := close_cell_preserve_3sides q c.
+  by rewrite left_limit_close_cell.
 Qed.
 
 Lemma in_safe_side_left_contains c p :
