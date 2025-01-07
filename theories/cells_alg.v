@@ -4049,11 +4049,11 @@ move=> ocin.
 have ocin' : oc \in cc by rewrite ccq inE ocin orbT.
 have right_pt_e : right_pt (high oc) = point e.
   have := open_cells_decomposition_point_on cbtom adj bet_e sval oe ocin'.
-      have ocop : oc \in open by rewrite /open ocd !mem_cat ocin' ?orbT.
-      have := open_non_inner ocop; rewrite /non_inner => /[apply].
-      move=> [ abs |->]; last by [].
-      have : high oc \in [seq high c | c <- open] by apply: map_f.
-      by move=> /lex_open_edges; rewrite abs lexPt_irrefl.
+  have ocop : oc \in open by rewrite /open ocd !mem_cat ocin' ?orbT.
+  have := open_non_inner ocop; rewrite /non_inner => /[apply].
+  move=> [ abs |->]; last by [].
+  have : high oc \in [seq high c | c <- open] by apply: map_f.
+  by move=> /lex_open_edges; rewrite abs lexPt_irrefl.
 right; exists (rcons pcc (close_cell (point e) oc)).
 split.
   by apply/eqP/rcons_neq0.
