@@ -1634,10 +1634,63 @@ have := on_edge_same_point ponhc hon px => py.
 by apply/eqP; rewrite pt_eqE px py !eqxx.
 Qed.
 
+Let old_edge_cases e g p :
+  e \in past -> g \in outgoing e -> p === g ->
+  (exists2 c, c \in rcons cls lstc & g = high c /\ 
+  lexePt p (head dummy_pt (right_pts c))) \/
+  exists2 c, c \in fop ++ lop :: lop & g = high c /\
+    left_limit p <= p_x p.
+
 Let safe_side_closed_edges' :
      {in events_to_edges (rcons past ev) & state_closed_seq str, forall g c p,
          in_safe_side_left p c || in_safe_side_right p c -> ~ p === g}.
 Proof.
+move=> g c gin cin p pin pong.
+have pev' : g \in outgoing ev -> p = point ev.
+  admit.
+move: gin=> /flatten_mapP[e].
+rewrite mem_rcons inE=> /orP [/eqP -> gnew | epast gin]; last first.
+  move: (cin); rewrite /state_closed_seq /= strq to_right_order mem_cat.
+  move=> /orP[cold | ].
+    have gin' : g \in events_to_edges past.
+      by apply/flatten_mapP; exists e.
+    by apply:(safe_side_closed_edges ss_inv gin' cold pin pong).
+  rewrite -map_rcons=> /mapP[c' c'in cc'].
+  have cok := cl_side' cin.
+  have c'ino : c' \in fop ++ lsto :: lop.
+    by rewrite ocd -cat_rcons !mem_cat (rcbehead_sub c'in) !orbT.
+  move: pin=> /orP[ | pin].
+    rewrite cc' in_safe_side_left_close_cell => oldpin.
+    have := safe_side_open_edges ss_inv _ c'ino oldpin pong; apply.
+    by apply/flatten_mapP; exists e.
+  move: c'in; rewrite mem_rcons inE => /orP[/eqP c'lcc | c'in].
+    have /esym := last_closing_side_char (inbox_events comi) rfo cbtom adj
+      sval p oe' ccn0.
+    rewrite -c'lcc -cc' pin=> /andP[] px /andP[] py _.
+    have ev_p : lexPt (point ev) p by rewrite /lexPt eq_sym px py orbT.
+    have p_top : lexPt p (head dummy_pt (right_pts c)).
+      by have := in_safe_side_right_top_right cok pin.
+    have top_ev : lexePt (head dummy_pt (right_pts c)) (point ev).
+      have := @cl_at_left_ss' c; rewrite strq /= mem_cat.
+      rewrite cc' map_f ; last first.
+
+
+  case : (cc) ccn0=> [ | fcc cctl] // .
+    have := middle_closing_side_char (inbox_events comi) rfo cbtom adj sval p.
+    rewrite oe' ccq=> /(_ _ _ _ _ _ _ _ erefl) /negP; apply; apply/hasP.
+    exists (close_cell (point ev) c'); last by rewrite -cc' pin.
+    rewrite map_f //.
+    oe'.
+    oe'.
+    Search in_safe_side_right.
+  have := edge_covered_ec ec_inv epast gin => -[]; last first.
+    move=> cl_cov.
+    have [c2 c2in tor]:= on_edge_covered_closed_right_limit cl_cov pong.
+    
+  rewrite /edge_covered.
+  admit.
+have pev : p = point ev := pev' gnew.
+have plh : lexPt p (head dummy_pt c)
 Admitted.
 
 Let safe_side_open_edges' :
