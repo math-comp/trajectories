@@ -1335,27 +1335,20 @@ have safe_side_bound : {in rcons cls lstc, forall c p,
 have not_safe_event : {in rcons (closing_cells (point ev) cc)
                                  (close_cell (point ev) lcc), forall c,
    ~~ (in_safe_side_left  (point ev) c || in_safe_side_right (point ev) c)}.
-  move=> c cin; apply/negP.
-  move: (cin); rewrite -map_rcons=> /mapP[c' c'in cq].
-  have c'in' : c' \in state_open_seq st.
-    by rewrite ocd -cat_rcons !mem_cat c'in orbT.
-  move=> /orP[ /andP[] + _ | /andP[] _ /andP[] _ /andP[] _ ].
-    apply/negP.
-    have /andP [vlc' vhc'] : valid_edge (low c') (point ev) &&
+  rewrite -map_rcons=> c /[dup] cin /mapP[c' c'in /[dup] cc' ->].
+  apply/negP=> safe.
+  have /andP [vlc' vhc'] : valid_edge (low c') (point ev) &&
             valid_edge (high c') (point ev).
-      by apply: (allP sval).
-    rewrite -(right_limit_close_cell vlc' vhc') eq_sym.
-    have /(cl_large d_inv'): c \in state_closed_seq rstate.
-      by rewrite /rstate/state_closed_seq/= rcons_cat /= mem_cat inE cin !orbT.
-    rewrite -[cells.close_cell _ _]/(close_cell _ _) -cq.
-    by rewrite lt_neqAle=> /andP[].
-  by rewrite cq close_cell_in //; apply/andP/(allP sval).
-have in_safe_side_left_close_cell :
-  {in rcons cc lcc, forall c p, in_safe_side_left p (close_cell (point ev) c) =
-        in_safe_side_left p c}.
-  move=> c cin p; rewrite /in_safe_side_left.
-  have [-> -> ->] := close_cell_preserve_3sides (point ev) c.
-  by rewrite left_limit_close_cell.
+      by apply: (allP sval); rewrite ocd -cat_rcons !mem_cat c'in !orbT.
+  have : left_limit (close_cell (point ev) c') < p_x (point ev).
+    have c'ino : c \in state_closed_seq rstate.
+        rewrite /rstate/state_closed_seq rcons_cat mem_cat /= inE -map_rcons.
+        by rewrite cin !orbT.
+    have := cl_large d_inv' c'ino.
+    by rewrite cc' (right_limit_close_cell vlc' vhc').
+  rewrite left_limit_close_cell => lltev.
+  have := in_safe_side_close_cell_diff vlc' vhc' lltev safe.
+  by rewrite eqxx.
 have lex_top_right_main : (* TODO: this should be the invariant, where
   (point ev) is the second point on left_pts lsto, or the second point on
   right_pts lstc. *)
@@ -1511,8 +1504,7 @@ have cl_safe_edge :
                   right_limit (last_cell (pcc0 :: pcc)) /\
           head dummy_pt (right_pts (last_cell (pcc0 :: pcc))) === g.
       rewrite -(pcchigh _ (mem_last _  _)).
-      have := cl_side d_inv lsin.
-      move=> /andP[] _ /andP[] _ /andP[] _ /andP[] _ /andP[] _.
+      have := cl_side d_inv lsin; do 5 (move=> /andP[] _).
       move=> /andP[] sr /andP[] /allP xs /andP[] _ /andP[] hdon _.
       split; last by [].
       apply: xs; move: sr.
