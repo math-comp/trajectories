@@ -1408,6 +1408,7 @@ have cl_safe_edge :
     move: gin; rewrite mem_cat=> /orP[gold | gnew].
       (* the edge and the cell are old *)
       by apply: (A g c); rewrite // stq /state_closed_seq/=.
+    (* the cell is old, and the edge is new. *)
     move=> pong.
     have pxge : p_x (point ev) <= p_x p.
       by move: pong=> /andP[] _ /andP[]; rewrite (eqP (oute _ gnew)).
@@ -1455,6 +1456,7 @@ have cl_safe_edge :
     have := strict_under_edge_lower_y (esym xh) headon.
     move: (Extra) => /andP[] -> _ => /esym.
     by rewrite pev ltNge (ltW ylow).
+  (* Now the cell is new*)
   move: cnew pin; rewrite cats1 /closing_cells -map_rcons.
   move=> /mapP[c' c'in ->].
   have c'in' : c' \in state_open_seq st.
@@ -1470,6 +1472,7 @@ have cl_safe_edge :
       by move: pin; rewrite in_safe_side_left_close_cell.
     move: pin=> /andP[]; rewrite left_limit_close_cell => pl _.
     move: gin; rewrite mem_cat=> /orP[gin | ].
+      (* We use that left sides of old open cells are safe here. *)
       by apply: B pin'.
     move=> /oute /eqP lgq /andP[] _ /andP[]; rewrite lgq leNgt=> /negP[].
     have := clc'large; rewrite /left_limit.
@@ -1550,21 +1553,9 @@ have cl_safe_edge :
   move=> [] opc [] pcc [] _ [] opch [] _ [] opco _.
   have [vlc'p vhc'p] : valid_edge (low c') p /\ valid_edge (high c') p.
     by move: vc'; rewrite /valid_cell !(same_x_valid _ samex).
-  have pinc' : contains_point' p c'.
-    rewrite /contains_point'.
-    have [<- <- _] := close_cell_preserve_3sides (point ev) c'.
-    by have /andP[_ /andP[] /underW -> /andP[] ->] := pin.
   have {}opch : high opc = g by apply: opch; rewrite mem_rcons inE eqxx.
   have [vplc vphc] : valid_edge (low opc) p /\ valid_edge (high opc) p.
     by rewrite !(same_x_valid _ samex); apply/andP/(allP sval).
-  have rfc : low opc <| high opc by apply: (allP rfo).
-  have cnt : contains_point p opc.
-    rewrite contains_pointE; apply/andP; rewrite under_onVstrict; last first.
-      by have := (allP sval _ opco) => /andP[].
-    rewrite opch pong; split; last by [].
-    apply/negP=> pun.
-    have := order_edges_strict_viz_point' vplc vphc rfc pun.
-    by apply/negP/onAbove; rewrite opch.
   have pw : pairwise edge_below [seq high c | c <- state_open_seq st].
     by move: (pairwise_open_non_gp d_inv)=> /= /andP[].
   have [puhc' palc'] : p <<< high c' /\ p >>> low c'.
