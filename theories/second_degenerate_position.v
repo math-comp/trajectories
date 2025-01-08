@@ -1875,6 +1875,9 @@ move=> /orP [cold | cnew].
     rewrite /state_open_seq/= ocd -cat_rcons mem_cat (mem_cat _ _ lc) orbCA.
     by rewrite cold orbT.
   admit.
+move: gin=> /flatten_mapP[e].
+rewrite mem_rcons inE=>/orP[/eqP -> | epast] gin p pin pong.
+  admit.
 admit.
 Admitted.
 
