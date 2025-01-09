@@ -2439,22 +2439,24 @@ Qed.
 
 End proof_environment.
 
-Lemma last_case_common_invariant bottom top s fop lsto lop cls lstc ev
+Lemma last_case_safe_side_invariant bottom top s fop lsto lop cls lstc past ev
   lsthe lstx evs :
   {in [:: bottom, top & s] &, forall e1 e2, inter_at_ext e1 e2} ->
   lstx = p_x (point ev) ->
   point ev <<= lsthe ->
   point ev >>= lsthe ->
-  common_non_gp_invariant bottom top s (Bscan fop lsto lop cls lstc lsthe lstx)
+  safe_side_non_gp_invariant bottom top s past
+    (Bscan fop lsto lop cls lstc lsthe lstx)
     (ev :: evs) ->
-  common_non_gp_invariant bottom top s
+  safe_side_non_gp_invariant bottom top s (rcons past ev)
     (step (Bscan fop lsto lop cls lstc lsthe lstx) ev) evs.
 Proof.
-move=> nocs at_lstx pu pa comng.
+move=> nocs at_lstx pu pa s_inv.
 rewrite /step/same_x at_lstx eqxx pu (negbTE pa) /=.
 case oe : open_cells_decomposition => [[[[[fc' cc] lcc] lc] le] he].
 case uoct_eq : update_open_cell_top => [nos lno].
-have := last_case_common_invariant_pre nocs at_lstx pu pa comng oe uoct_eq.
+have := last_case_safe_side_invariant_pre nocs at_lstx pu pa s_inv
+oe uoct_eq.
 by rewrite /step/same_x at_lstx eqxx pu (negbTE pa) /= oe uoct_eq.
 Qed.
 
