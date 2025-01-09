@@ -967,8 +967,7 @@ have := (opening_cells_aux_right_form (underWC pal) puh vle vhe
 by move=> /allP /(_ x xin).
 Qed.
 
-#[clearbody]
-Let exi' : point e >>> lsthe ->
+Lemma exi' : point e >>> lsthe ->
   exists2 c, c \in lop & contains_point' (point e) c.
 Proof.
 rewrite lstheq; move=> pa.
@@ -998,7 +997,7 @@ have hq : head dummy_cell (rcons fop lsto) = head lsto fop.
   by case: (fop) => [ | ? ?].
 rewrite hq => -[-> others]; split=> // x xin.
 by apply: others; rewrite mem_rcons inE xin orbT.
-Defined.
+Qed.
 
 Lemma inv1_seq_set_pts s1 s2 c1 lpts1 lpts2 :
   inv1_seq (s1 ++ set_pts c1 lpts1 lpts2 :: s2) <->
