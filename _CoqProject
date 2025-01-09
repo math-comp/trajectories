@@ -38,6 +38,7 @@ theories/simple_step.v
 theories/initial_cell.v
 theories/first_degenerate_position.v
 theories/second_degenerate_position.v
+theories/step_correct.v
 
 -R theories trajectories
 
