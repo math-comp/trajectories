@@ -1001,8 +1001,7 @@ have nocs : {in bottom :: top :: s &, no_crossing R}.
 rewrite /main_process/scan/=.
 case evsq : evs => [ | ev future_events]; first by  move=> [] <- <-.
 have evsn0 : evs != [::] by rewrite evsq.
-rewrite -/(opening_cells_aux _ _ _ _).
-case oca_eq : (opening_cells_aux _ _ _ _) => [nos lno].
+case oca_eq : opening_cells_aux => [nos lno].
 set istate := Bscan _ _ _ _ _ _ _.
 have : safe_side_general_position_invariant bottom top s [:: ev]
   istate future_events.
