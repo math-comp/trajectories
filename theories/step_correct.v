@@ -170,39 +170,6 @@ move/hasP=> [e2 e2in /eqP ->].
 by apply: (@allP pt _ _ inbox_es); rewrite map_f.
 Qed.
 
-Lemma initial_safe_side bottom top events:
-  bottom <| top ->
-  open_cell_side_limit_ok (start_open_cell bottom top) ->
-  {in bottom :: top :: events_to_edges events &, forall e1 e2, inter_at_ext e1 e2} ->
-  all (inside_box bottom top) [seq point e | e <- events] ->
-  sorted (@lexPtEv _) events ->
-  {in events, forall ev, out_left_event ev} ->
-  {in events, forall ev, uniq (outgoing ev)} ->
-  close_edges_from_events events ->
-  {in events_to_edges events & events, forall g e, non_inner g (point e)} ->
-  events != [::] ->
-  safe_side_non_gp_invariant bottom top (events_to_edges events)
-    [:: head dummy_event events]
-    (initial_state bottom top events) (behead events).
-Proof.
-move=> boxwf start_open_cell_ok nocs' evin lexev out_evs uniqout 
-  cle n_inner evsn0.
-have := initial_safe_side_non_gp_invariant boxwf start_open_cell_ok
-  nocs' evin lexev out_evs uniqout cle evsn0 n_inner.
-by case: (events) evsn0=> [ | ? [ | ? ?]] //=.
-Qed.
-
-
-(* This lemma only provides a partial correctness statement in the case
-  where the events are never aligned vertically.  This condition is
-  expressed by the very first hypothesis.  TODO: it relies on the assumption
-  that the first open cell is well formed.  This basically means that the
-  two edges have a vertical overlap.  This statement should be probably
-  be made clearer in a different way.
-
-  TODO: one should probably also prove that the final sequence of open
-  cells, here named "open", should be reduced to only one element. *)
-
 Lemma step_safe_side_invariant bottom top past st s ev events :
   bottom <| top ->
   {in bottom :: top :: s &, forall e1 e2, inter_at_ext e1 e2} ->
@@ -219,7 +186,7 @@ Lemma step_safe_side_invariant bottom top past st s ev events :
   safe_side_non_gp_invariant bottom top s (rcons past ev)
    (step st ev) events.
 Proof.
-move=> boxwf nocs' inbox_es inbox_edges lexev out_events uniqout cle n_in 
+move=> boxwf nocs' inbox_es inbox_edges lexev out_events uniqout cle n_in
   sub_evs.
 case: st => [fop lsto lop cls lstc lsthe lstx] ss_inv.
 have ec_inv := covered_ss ss_inv.
@@ -237,7 +204,7 @@ case: ifP=> [difx | ]; last (move=> /negbT; rewrite negbK=> /eqP at_lstx).
   have simple_cond : lstx <> p_x (point ev) \/
     lstx = p_x (point ev) /\ point ev >>> lsthe.
       by left; apply/eqP; rewrite eq_sym.
-    
+
   by have := simple_step_safe_side_non_gp_invariant boxwf nocs' inbox_edges
     inbox_es lexev sub_evs out_events cle n_in uniqout oe simple_cond
     ss_inv.
@@ -270,7 +237,7 @@ case: ifP=> [pah | puh'].
     ss_inv.
   by rewrite cat_rcons.
 case: ifP=> [pah | ponh'].
-  have := update_open_cell_safe_side_non_gp_invariant boxwf nocs' 
+  have := update_open_cell_safe_side_non_gp_invariant boxwf nocs'
     inbox_edges (esym at_lstx) pah ss_inv.
   by rewrite /step/same_x at_lstx puh' pah eqxx /=.
 have puh : point ev <<= lsthe.
@@ -281,6 +248,33 @@ have pah : point ev >>= lsthe.
 have := last_case_safe_side_invariant nocs' (esym at_lstx) puh pah ss_inv.
 by rewrite /step/same_x at_lstx eqxx puh' ponh' /=.
 Qed.
+
+Lemma left_bottom_not_in bottom top :
+  ~~ inside_box bottom top (left_pt bottom).
+Proof.
+apply/negP=> /andP[].
+have := left_on_edge bottom.
+move=> /[dup] bon /andP[] _ vlb.
+by rewrite (under_onVstrict vlb) bon.
+Qed.
+
+Lemma left_top_not_in bottom top :
+  ~~ inside_box bottom top (left_pt top).
+Proof.
+apply/negP=> /andP[].
+have := left_on_edge top.
+move=> /[dup] ton /andP[] _ vlt.
+by rewrite (strict_nonAunder vlt) ton !andbF.
+Qed.
+
+(* This lemma is the main result of safety for the whole processing.
+  TODO: it relies on the assumption
+  that the first open cell is well formed.  This basically means that the
+  two edges have a vertical overlap.  This statement should be probably
+  be made clearer in a different way.
+
+  TODO: one should probably also prove that the final sequence of open
+  cells, here named "open", should be reduced to only one element. *)
 
 Lemma start_safe_sides bottom top s closed open evs :
   bottom <| top ->
@@ -307,7 +301,6 @@ Lemma start_safe_sides bottom top s closed open evs :
      {in events_to_edges evs, forall g, ~ p === g} /\
      {in evs, forall ev, p != point ev}} /\
   {subset (cell_edges closed) <= [:: bottom, top & s]} /\
-  all (@closed_cell_side_limit_ok R) closed /\
   size open = 1%N /\ low (head_cell open) = bottom /\
     high (head_cell open) = top /\
     {in open & closed, disjoint_open_closed_cells R} /\
@@ -318,6 +311,163 @@ Proof.
 move=> boxwf startok nocs' inbox_s evin lexev evsub out_evs cle
   n_inner uniq_edges.
 (* Look in file safe_cells for a plan of the proof. *)
-Admitted.
+have nocs : {in bottom :: top :: s &, no_crossing R}.
+  by apply: inter_at_ext_no_crossing.
+rewrite /main_process/scan/=.
+case evsq : evs => [ | ev future_events]; first by  move=> [] <- <-.
+have evsn0 : evs != [::] by rewrite evsq.
+case oca_eq : opening_cells_aux => [nos lno].
+set istate := Bscan _ _ _ _ _ _ _.
+have : safe_side_non_gp_invariant bottom top s [:: ev]
+  istate future_events.
+  have := initial_safe_side_non_gp_invariant boxwf startok nocs' evsub
+    evin lexev out_evs uniq_edges cle evsn0 n_inner.
+  have -> : take 1 evs = [:: ev] by rewrite evsq; case: (future_events).
+  by rewrite /initial_state /istate evsq oca_eq.
+move=> invss req.
+suff main: forall events op cl st processed_set,
+  safe_side_non_gp_invariant bottom top s processed_set st events ->
+  scan events st = (op, cl) ->
+  {in cl, forall c,
+    low c <| high c /\
+    low c != high c /\
+    left_limit c < right_limit c /\
+    closed_cell_side_limit_ok c /\
+    forall p : pt, in_safe_side_left p c || in_safe_side_right p c ->
+    {in events_to_edges (processed_set ++ events), forall g, ~ p === g} /\
+         {in processed_set ++ events, forall e', p != point e'}} /\
+  {in op, forall (c : cell) (p : pt), in_safe_side_left p c ->
+         {in events_to_edges (processed_set ++ events), forall g, ~ p === g} /\
+         {in processed_set ++ events, forall e', p != point e'}} /\
+  {subset (cell_edges cl) <= [:: bottom, top & s]} /\
+  size op = 1%N /\
+  low (head_cell op) = bottom /\
+  high (head_cell op) = top /\
+  {in op & cl, disjoint_open_closed_cells R} /\
+  (left_limit (head_cell op) < min (p_x (right_pt bottom))
+      (p_x (right_pt top))).
+  have [A [B [C [E [F [G [H I]]]]]]] := main _ _ _ _ _ invss req.
+  split; last by [].
+  move=> c cin; move: (A c cin) => [] crf [] difc [] lltr [] clok A'.
+  do 4 (split; first by []).
+  by move=> p pside; have := A' _ pside.
+elim=> [ | {evsq oca_eq istate invss}ev {req}future_events Ih] op cl st p_set.
+  case stq : st => [fop lsto lop cls lstc lsthe lstx].
+  move=> ss_inv.
+  have d_inv := disjoint_ss ss_inv.
+  have e_inv := covered_ss ss_inv.
+  have ol_lt_fut := left_proc ss_inv.
+  have subc := sub_closed ss_inv.
+  have b'_e := cl_low_high d_inv subc nocs'.
+  have b_e : {in rcons cls lstc, forall c, low c <| high c}.
+    by move=> c /b'_e /andP[].
+  have d_e : {in (fop ++ lsto :: lop) ++ rcons cls lstc,
+    forall c, low c!= high c}.
+    move=> c; rewrite mem_cat=> /orP[]; last first.
+      by move=> /b'_e/andP[].
+    by move=> /(low_diff_high_open d_inv).
+    rewrite /= => -[] <- <-; rewrite !cats0.
+  split.
+    move=> c cin.
+    split; first by apply: b_e; rewrite mem_rcons.
+    split; first by apply: d_e; rewrite mem_cat mem_rcons cin orbT.
+    split; first by apply: (cl_large d_inv); rewrite mem_rcons.
+    split; first by apply: (cl_side d_inv); rewrite mem_rcons.
+    move=> p pin; split.
+      move=> g gin; apply: (safe_side_closed_edges ss_inv gin _ pin).
+      by rewrite // mem_rcons.
+    move=> e ein.
+     apply: (safe_side_closed_points ss_inv ein _ pin).
+     by rewrite // mem_rcons.
+  split; last first.
+    split; last first.
+      have comi := ngcomm (common_non_gp_inv_dis d_inv).
+      have := inv1 comi.
+      rewrite /state_open_seq/= /close_alive_edges.
+      move=> [] clae [] _ [] adj [] cbtom rfo.
+      have htop : {in fop ++ lsto :: lop, forall c, high c = top}.
+        move=> c cin.
+        have := allP clae _ cin; rewrite /end_edge_ext ?orbF => /andP[] lP.
+        rewrite !inE => /orP[] /eqP hcq; rewrite hcq //.
+        have := d_e c; rewrite mem_cat cin hcq=> /(_ isT).
+        move: lP; rewrite !inE => /orP[] /eqP lcq; rewrite lcq ?eqxx //.
+        move: evin; rewrite evsq /= => /andP[] + _.
+        move=> /[dup]/inside_box_valid_bottom_top vbt.
+        have vb : valid_edge bottom (point ev) by apply: vbt; rewrite inE eqxx.
+        have vt : valid_edge top (point ev).
+          by apply: vbt; rewrite !inE eqxx orbT.
+        move=> /andP[] /andP[] pab put _ tnb.
+        have abs : top <| bottom by rewrite -lcq -hcq; apply: (allP rfo).
+        have := order_edges_strict_viz_point' vt vb abs put.
+        by move: pab; rewrite under_onVstrict // orbC => /[swap] ->.
+      have := inj_high e_inv; rewrite /state_open_seq/= => ijh.
+      have f0 : fop = [::].
+        elim/last_ind: (fop) adj ijh htop => [ // | fs f1 _] + ijh htop.
+        rewrite -cats1 -catA /= => /adjacent_catW[] _ /= /andP[] /eqP f1l _.
+        move: (d_e lsto); rewrite !mem_cat inE eqxx ?orbT => /(_ isT).
+        rewrite -f1l (htop f1); last by rewrite !(mem_rcons, mem_cat, inE) eqxx.
+        by rewrite (htop lsto) ?eqxx // mem_cat inE eqxx ?orbT.
+      have l0 : lop = [::].
+        case lopq: (lop) adj ijh htop => [ // | l1 ls] + ijh htop.
+        move=> /adjacent_catW[] _ /= /andP[] /eqP hl _.
+        move: (d_e l1); rewrite lopq !(mem_cat, inE) eqxx ?orbT => /(_ isT).
+        rewrite -hl (htop l1); last by rewrite !(mem_cat, inE) eqxx !orbT.
+        by rewrite (htop lsto) ?eqxx // mem_cat inE eqxx ?orbT.
+      rewrite f0 l0 /=.
+      move: cbtom; rewrite f0 l0 /= /cells_bottom_top /cells_low_e_top /=.
+      move=> /andP[] /eqP lq /eqP hq.
+      do 3 (split; first by []).
+      split.
+        move=> c1 c2 c1in c2in; apply: (op_cl_dis_non_gp d_inv);
+        by rewrite /state_open_seq/state_closed_seq  f0 l0 ?mem_rcons.
+      by have := lst_side_lt d_inv.
+(* End of lemma *)
+    move=> g; rewrite -[lstc :: cls]/([:: lstc] ++ cls) cell_edges_catC cats1.
+    by apply: subc.
+  move=> c cin p pin.
+  split.
+    by move=> g gin; have := (safe_side_open_edges ss_inv gin cin pin).
+  by move=> e ein; have := (safe_side_open_points ss_inv ein cin pin).
+move=> ss_inv {cle lexev evsn0 evsub out_evs evin uniq_edges n_inner}.
+have d_inv := disjoint_ss ss_inv.
+have e_inv := covered_ss ss_inv.
+have ol_lt_fut := left_proc ss_inv.
+have subc := sub_closed ss_inv.
+have b'_e := cl_low_high d_inv subc nocs'.
+have rf_cl : {in state_closed_seq st, forall c, low c <| high c}.
+  by move=> c /b'_e /andP[].
+have d_e : {in state_open_seq st ++ state_closed_seq st,
+  forall c, low c!= high c}.
+  move=> c; rewrite mem_cat=> /orP[]; last first.
+    by move=> /b'_e/andP[].
+  by move=> /(low_diff_high_open d_inv).
+have c_inv := common_non_gp_inv_dis d_inv.
+have comi := ngcomm (common_non_gp_inv_dis d_inv).
+have inbox_es := inbox_events comi.
+have lexev := lex_events comi.
+have out_evs := out_events comi.
+have uniq_evs := uniq_ec comi.
+have cle := closed_events comi.
+have n_in := non_in_ec e_inv.
+have sub_edges := edges_sub comi.
+have sub_edges_evs : {subset events_to_edges (ev :: future_events) <= s}.
+  move=> g gin.
+  have /sub_edges : g \in all_edges (state_open_seq st) (ev :: future_events).
+    by rewrite mem_cat gin orbT.
+  rewrite !inE orbA=> /orP[gbot | ]; last by [].
+  move: gin => /flatten_mapP [e ein gin].
+  move: (left_bottom_not_in bottom top) (left_top_not_in bottom top).
+  have := allP (inbox_events comi) (point e) (map_f _ ein).
+  have : left_pt g = point e.
+    by apply/eqP/(out_evs); rewrite ?inE ?eqxx.
+  by move: gbot=> /orP[] /eqP -> <- ->.
+have ss_inv' : safe_side_non_gp_invariant bottom top s (rcons p_set ev)
+  (step st ev) future_events.
+  by apply: step_safe_side_invariant.
+rewrite -[scan _ _]/(scan future_events (step st ev)) => execq.
+rewrite -cat_rcons.
+have := (Ih _ _ _ _ ss_inv' execq) => -[A B].
+by [].
+Qed.
 
 End working_environment.

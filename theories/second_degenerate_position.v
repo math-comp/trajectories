@@ -369,7 +369,7 @@ Proof.
 by apply: (out_events comi).
 Qed.
 
-Let oute' : 
+Let oute' :
   {in sort edge_below (outgoing ev), forall g, left_pt g == point ev}.
 Proof.
 move=> g; rewrite mem_sort; apply: oute.
@@ -1459,6 +1459,23 @@ suff /new_diff_old : c \in lno :: (fop ++ fc') ++ lc by move=> ->.
 by rewrite inE mem_cat cin !orbT.
 Qed.
 
+Let lst_side_lt' : left_limit lno <
+  min (p_x (right_pt bottom)) (p_x (right_pt top)).
+Proof.
+have := nth1lstc'.
+have := nth1_eq'.
+have := (allP (sides_ok (ngcomm common_non_gp_inv_dis'))).
+have lnoin : lno \in state_open_seq str.
+  by rewrite strq /state_open_seq /= mem_cat inE /= eqxx !orbT.
+move=> /(_ lno lnoin); rewrite /open_cell_side_limit_ok.
+have := has_snd_lst common_non_gp_inv_dis'.
+rewrite strq /state_open_seq /=.
+case: (left_pts lno) => [ | a [ | b ?]] //= _.
+move=> /andP[] /andP[] _ /andP[] /eqP + _ _.
+move=> <- -> ->.
+by apply: inside_box_lt_min_right.
+Qed.
+
 Lemma last_case_disjoint_invariant_pre :
   disjoint_non_gp_invariant bottom top s
     (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
@@ -1470,7 +1487,7 @@ move: op_cl_dis_non_gp' cl_dis_non_gp'
   common_non_gp_inv_dis' pairwise_open_non_gp'
   closed_at_left_non_gp' size_right_cls'
   uniq_cc' cl_side' high_lstc' nth1_eq' bottom_left_opens'
-  btm_left_lex_snd_lst' cell_center_in' uniq_high'.
+  btm_left_lex_snd_lst' cell_center_in' uniq_high' lst_side_lt'.
 rewrite strq.
 constructor=> //.
 Qed.
@@ -1564,7 +1581,7 @@ have := step_keeps_injective_high (inbox_events comi) oute rfo cbtom adj sval
 move=> /(_ cls lstc lstx).
 by rewrite /step/same_x at_lstx eqxx pu (negbTE pa) oe uoct_eq /=.
 Qed.
-   
+
 Lemma last_case_edge_covered_invariant_pre :
   edge_covered_non_gp_invariant bottom top s
   (rcons past ev)
@@ -1653,13 +1670,13 @@ Qed.
 
 Let old_edge_cases e g p :
   e \in past -> g \in outgoing e -> p === g ->
-  (exists2 c, c \in rcons cls lstc & g = high c /\ 
+  (exists2 c, c \in rcons cls lstc & g = high c /\
   lexePt p (head dummy_pt (right_pts c))) \/
   exists2 c, c \in fop ++ lsto :: lop & g = high c /\
     left_limit c <= p_x p.
 Proof.
 move=> epast gin pong.
-have common_fact c: 
+have common_fact c:
   closed_cell_side_limit_ok c ->
   p_x p < right_limit c ->
   lexPt p (head dummy_pt (right_pts c)).
@@ -1715,7 +1732,7 @@ Let lex_nth1_ev := proj1 (andP (lst_side_lex comng)).
 Let pre_evong g : g \in outgoing ev -> point ev === g.
 Proof. by move=> /oute /eqP <-; rewrite left_on_edge. Qed.
 
-Let pre_pev p g : p_x p <= p_x (point ev) -> 
+Let pre_pev p g : p_x p <= p_x (point ev) ->
   g \in outgoing ev -> p === g -> p = point ev.
 Proof.
 move=> pxle gin pong.
@@ -1797,7 +1814,7 @@ Let pnot_old p g (c : cell):
   g \in outgoing ev ->
   p === g ->
   c \in state_open_seq str ->
-  in_safe_side_left p c -> 
+  in_safe_side_left p c ->
   (c \in rcons nos lno) &&
   ~~ ((c \in (fop ++ fc')) || (c \in lc)).
 Proof.
@@ -1853,7 +1870,7 @@ have no_lstc : c = lstc -> p != point ev.
       (cl_large d_inv lstcin) pin.
   rewrite -top_lstc=> p_ev.
   by apply/eqP=> it; rewrite it lexPt_irrefl in p_ev.
-have no_cls_pre w : w \in cls -> 
+have no_cls_pre w : w \in cls ->
     lexePt (point ev) p -> ~ lexePt p (head dummy_pt (right_pts w)).
     move=> /(cl_at_left_ss ss_inv) P1 ev_p P2.
     have := lexePt_trans P2 P1 => /= P3.
@@ -1962,7 +1979,7 @@ rewrite mem_rcons inE=> /orP [/eqP -> | epast]; last first.
   case/negP: palc'.
   apply: (order_edges_viz_point' vphc vlc'p opcbl).
   by rewrite under_onVstrict // -opch pong.
-  
+
 (* have pev : p === g -> g \in outgoing ev -> p = point ev.
   by move=> pong gnew; apply : (pev' pong gnew). *)
 move: cin; rewrite /state_closed_seq/= strq to_right_order=> /[dup] oldcin.

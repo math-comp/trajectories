@@ -762,7 +762,7 @@ move=> g; rewrite inE=> /orP[/eqP gb | gin]; last first.
   apply: (no_dup_edge comi) => //.
   by rewrite /state_open_seq /= !map_cat.
 (* TODO : make this a lemma in events.v *)
-apply/negP=> gout.
+- apply/negP=> gout.
 have lfg : left_pt g = point ev by apply/eqP/oute.
 have : inside_box bottom top (left_pt g).
   rewrite lfg; apply: (allP (inbox_events comi)).
@@ -772,6 +772,22 @@ have vb : valid_edge bottom (left_pt g).
   by rewrite gb; have := left_on_edge bottom=> /andP[].
 rewrite under_onVstrict //.
 by rewrite gb left_on_edge.
+- suff lst_side_lt' :
+  left_limit lno < min (p_x (right_pt bottom)) (p_x (right_pt top)) by [].
+  have comng' :=
+   update_open_cell_common_non_gp_invariant bxwf nocs' inbox_s at_lstx
+   under_lsthe comng.
+  have comi' := ngcomm comng'.
+  have := sides_ok comi'.
+  have := has_snd_lst comng'.
+  rewrite /step/same_x at_lstx eqxx /= underW under_lsthe //= uocq /=.
+  rewrite /state_open_seq/= all_cat /= => + /andP[] _ /andP[] + _.
+  move: ev_nth1; rewrite /open_cell_side_limit_ok.
+  case: left_pts => [ | a [ | b ?]] //= + _ /andP[] /andP[] _ /andP[] + _ _.
+  move=> <- /eqP <-.
+  apply: inside_box_lt_min_right.
+  apply: (allP (inbox_events comi)).
+  by rewrite map_f // inE eqxx.
 Qed.
 
 Lemma update_open_cell_edge_covered_non_gp_invariant
@@ -942,7 +958,7 @@ Lemma update_open_cell_left_Limit fop lsto lop ev nos lno:
   {in rcons nos lno, forall c, left_limit c = p_x (point ev)}.
 Proof.
 move=> oute sval oks sl uoc_eq at_ll puh ev_above lex1.
-have oute' : {in sort edge_below (outgoing ev), 
+have oute' : {in sort edge_below (outgoing ev),
    forall g, left_pt g == (point ev)}.
   by move=> g; rewrite mem_sort; apply: oute.
 have lstoin : lsto \in fop ++ lsto :: lop by rewrite mem_cat inE eqxx orbT.
@@ -1012,7 +1028,7 @@ Lemma update_open_cell_safe_side lsto nos lno p ev c:
   lexPt (nth dummy_pt (left_pts lsto) 1) (point ev) ->
   open_cell_side_limit_ok lsto ->
   update_open_cell lsto ev = (nos, lno) ->
-  c \in rcons nos lno -> 
+  c \in rcons nos lno ->
   in_safe_side_left p c ->
   in_safe_side_left p lsto && (p != point ev).
 Proof.
@@ -1335,7 +1351,7 @@ have nth1oev : lexPt (nth dummy_pt (left_pts lsto) 1) (point ev).
   by have := lst_side_lex (common_non_gp_inv_dis d_inv) => /= /andP[].
 
 have lstcin : lstc \in rcons cls lstc by rewrite mem_rcons inE eqxx.
-  
+
 have open_safe_viz_past_edges :
   {in events_to_edges (rcons past ev) & state_open_seq (step st ev),
     forall g c p, in_safe_side_left p c -> ~ p === g}.

@@ -4965,7 +4965,7 @@ Record common_invariant bottom top edge_set s
      {in events, forall e,
         lexPt (last dummy_pt (left_pts (lst_open s)))
               (point e)};
-   stradle : 
+   stradle :
      events = [::] \/ {in [seq high c | c <- state_open_seq s], forall g,
      lexPt (left_pt g) (point (head dummy_event events)) &&
      lexePt (point (head dummy_event events)) (right_pt g)}
@@ -5007,7 +5007,9 @@ Record disjoint_non_gp_invariant (bottom top : edge)
          (nth dummy_pt (left_pts (lst_open s)) 1)};
     cell_center_in :
       {in state_closed_seq s, forall c, inside_closed' (cell_center c) c};
-    uniq_high : uniq (bottom :: [seq high c | c <- state_open_seq s])}.
+    uniq_high : uniq (bottom :: [seq high c | c <- state_open_seq s]);
+    lst_side_lt : left_limit (lst_open s) <
+      min (p_x (right_pt bottom)) (p_x (right_pt top))}.
 
 Lemma cl_low_high bottom top edge_set s events :
   disjoint_non_gp_invariant bottom top edge_set s events ->
@@ -5200,7 +5202,7 @@ apply/hasP; exists (high (last a s1')).
   by rewrite abs map_f // inE eqxx.
 apply/map_f/mem_last.
 Qed.
-  
+
 Definition dummy_state :=
   Bscan [::] dummy_cell [::] [::] dummy_cell dummy_edge 0.
 

@@ -357,7 +357,7 @@ have := comi=> -[]; rewrite /state_open_seq/state_closed_seq/=.
 move=> inv1 lstxq lstheq sub_edges cle out_es uniqout inbox_es
   no_dup lexev oks.
 move=> bottom_left_cond strd cl_ok hlstcq midptlstc btm_leftops.
-move=> btm_left_lex_snd center_in uniq_high.
+move=> btm_left_lex_snd center_in uniq_high lst_side_lt.
 move: (inv1) => [] clae [] sval' [] adj [] cbtom rfo.
 move: sval' => [ //| sval].
 have inbox_e : inside_box bottom top (point ev).
@@ -861,7 +861,13 @@ have := opening_cells_aux_high vle vhe oute'.
     by apply: (proj1 (andP (allP sval c0 _))); rewrite sq inE eqxx.
   move: inbox_e=> /andP[] + _; rewrite under_onVstrict // -abs.
   by rewrite left_on_edge.
-constructor=>//=.
+- have lst_side_lt' :
+    left_limit lno < min (p_x (right_pt bottom)) (p_x (right_pt top)).
+  have := opening_cells_left oute vle vhe.
+  rewrite -leq -heq.
+  rewrite /opening_cells oca_eq => ->; last by rewrite mem_rcons inE eqxx.
+  by apply: inside_box_lt_min_right.
+by constructor.
 Qed.
 
 Record edge_covered_non_gp_invariant (bottom top : edge)
