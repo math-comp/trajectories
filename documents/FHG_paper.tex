@@ -3,6 +3,8 @@
 \title{Safe smooth paths between straight line obstacles}
 \author{Yves Bertot}
 \institute{Inria Université Côte d'Azur}
+\titlerunning{Safe smooth paths}
+\authorrunning{Y. Bertot}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -16,8 +18,8 @@ algorithms.  These correctness arguments are intended for use in a
 formal proof.  While we have running implementations of the full
 program, the formal proofs of correctness are still incomplete.
 \end{abstract}
-One benefit of formal verification is the removal of design errors at early
-stages of complex artifacts.  This is being used extensively for software
+One benefit of formal verification is the removal of errors at early
+stages in the design of complex artifacts.  This is being used extensively for software
 with great success.  We wish to
 extend this to domains where the distance between formal models and the
 real application is bigger.  We choose to work on robotics.  For this
@@ -103,13 +105,13 @@ different algorithm.  For the first two phases, the basic blocks are
 concerned with converting the geometry of the problem into a discrete
 problem, using sorting and a recursive treatment of the obtained
 sorted list.  The result of the first two phases consists in a
-collection of cells, where each cell has a single higher edge a single
+collection of cells, where each cell has a single higher edge and a single
 lower edge, connected by two vertical sides.  The higher and lower
 edges are portions of obstacles, and one of the vertical sides may be
 reduced to a point.  So in the general case the cells have three
 sides, but in some cases they may have only three.  When not reduced
 to a point, the vertical sides are safe boundaries that can be crossed
-from one cell to its neighbors without collision collision with the
+from one cell to its neighbors without collision with the
 obstacles.  a convex polygon connected to neighbors by safe boundaries
 that can be crossed without collision with the obstacles.
 
@@ -159,7 +161,7 @@ joined by some trajectory.
 \end{enumerate}
 Given such an input, it may be that there exists no trajectory between
 the mandated extremities, for instance when an extremity is inside
-an enclosed polygon and the other extremity is outside.
+a closed polygon and the other extremity is outside.
 
 When a trajectory exists, the output is a sequence of trajectory
 fragments, where each trajectory
@@ -179,8 +181,8 @@ to relinquish on one of the constraints.  In cases where making the
 trajectory smooth requires recursive computations whose termination is
 too hard to prove, a fallback solution constructed with
 adjacent segments that are not aligned is chosen.  The Coq
-program can also be extracted and processed for running in other
-context as will be illustrated later in the paper.
+program can be extracted and processed for running in other
+contexts as will be illustrated later in the paper.
 
 This project is currently in progress in the sense that the program
 computing the trajectories is fully implemented in Coq, but most of the
@@ -269,7 +271,7 @@ event at location \(a\).
 
 We assume we are working in some abstract ordered field to represent the
 coordinates of points.  For the algorithm itself, we shall only use the field
-operations.  For the proofs we need to use some properties of the order.
+operations and comparison functions.  For the proofs we need to use some properties of the order.
 The data types that we need to create to describe our algorithm are as
 follows:
 \begin{itemize}
@@ -320,15 +322,15 @@ The left and right sides of cells are vertical.  Cells also have a top
 side and a bottom, which fragments of edges (obstacles).
 
 The data structure for a cell thus has four components: a list of
-points for the left side, a list of point for the right side, a low
-edge and a high edge.  For the algorithms to work correctly, we assume
+points for the left side, a list of points for the right side, a low
+edge and a high edge.  For the algorithms to work correctly, we guarantee
 the invariants that the high edge is above the low edge, points on
 each side are vertically aligned and ordered with respect to their
 vertical coordinate and the top (resp. low) point on each side belongs
 to the high (resp. low) edge of the cell.  The preservation of this
 invariant has already been proved in our development.
 
-The points that belong to each of the side list correspond to unsafe
+The points that belong to each of the side lists correspond to unsafe
 points on the side of the cell.  The doors into the cell are the
 vertical segments between two successive points in one of the sides.
 It often happens that the high and low edge meet on one side of the
@@ -341,7 +343,7 @@ the sense that the high edge of a cell is the low edge of the next
 cell.  This sequence of cells is also complete, in the sense that it
 covers the all vertical space between the bottom edge and the top
 edge.  All the open cells also have their left side well defined and
-lies to the left of the sweeping line, and sometimes the left side of
+lying to the left of the sweeping line, and sometimes the left side of
 a cell coincides with the position of the sweeping line.
 
 The processing of a new event works as follows:
@@ -380,7 +382,7 @@ need to be updated.  However, this adds complexity in the proofs about the
 algorithm.
 
 Thanks to Coq computation capability, this algorithm can be run on
-examples of small size.  However, a formal proof of this program has
+examples of small size.  However, a full formal proof of this program has
 not been achieved yet.  In the currently ongoing formal development, we
 proceed by showing that a collection of properties are invariant
 through the processing of events.  The properties that we have proved
@@ -397,16 +399,25 @@ are disjoint,
   closed or open and the outgoing edges of events that have not been
   processed yet.
 \end{itemize}
-The last two properties put together should be enough to guarantee
-that the interior of all closed cells is guaranteed to contain no
-element of an obstacle.
+We have also been able to show the following main results formally, but only
+in the case where the first coordinate of two successive events are different.
+\begin{itemize}
+\item There is no intersection between the inside of closed cells and the
+obstacles,
+\item The only intersection between obstacles and left or right sides of cells
+are the points listed in these cells' sides.
+\item At the end of processing, there remains only one open cell whose higher
+edge is the top edge and the lower edge is the bottom edge.
+\end{itemize}
+Future work will include providing formal proofs of these invariants and
+main results also for the case when the vertical alignment between
+successive events is allowed.
 
 In what follows, we will describe algorithms that
 construct trajectory fragments that always
 intersect only two cells and a door between these cells.
-Checking that these trajectory fragments do not collide with any
-obstacle can be reduced to proving that these fragments are indeed
-included inside the interior of these cells and this door.
+The absence of collision with obstacles is a direct consequence of these
+main results.
 \section{Making a broken line trajectory between two points}
 With the graph of cells and doors between these cells, we can already
 construct safe trajectories between two given extremities, which we shall
@@ -521,7 +532,7 @@ is tangent to the segment \((A,B)\) in \(A\) and tangent to
 the segment \((B,C)\) in \(C\).
 
 \begin{center}
-\includegraphics[,trim={0 5cm 0 16cm}, clip, width=0.3\textwidth]{bezier_example3.pdf}
+\includegraphics[,trim={0 5cm 0 16cm}, clip, width=0.6\textwidth]{bezier_example3.pdf}
 \end{center}
 
 This construction has two advantages.  First it makes it clear that
@@ -624,7 +635,7 @@ represents an obstacle.
 
 In our program, we first produce a candidate Bézier curve for each
 corner, and we then check whether this curve is safe.  If not, we
-produce Bézier curves, that are closer to the broken line and
+produce new Bézier curves that are closer to the broken line and
 repeatedly check their safety.  To obtain a program that is executable
 in Coq, the number of iterations is limited.  When the limit is exceeded,
 the program falls back to the initial broken line corner.
@@ -663,7 +674,7 @@ this Javascript code, visible at the following link:
 \end{center}
 
 The minimal user interface provided on that page gives access to a 
-window with a board of 40 by 40 square tiles and two mode of operations, in
+window with a board of 40 by 40 square tiles and two modes of operations, in
 the first mode of operation the user can add and remove obstacles, in the
 second mode of operation the user can add the source and target points.  Two
 modes of display are also also provided, one where the square tiles are
@@ -682,11 +693,11 @@ We are planning several stages of future work concerning this program.  In
 the short term, we wish to have more proofs concerning the formal model.
 At the time of writing these lines, the formal proof of the vertical cell
 decomposition algorithm is not complete.  For instance, we have already
-proved that the operation repeated for each event preserves the property that
-all cells are disjoint, but we have not yet proved that all points in
-the doors are safe or that the obstacles are included in the edges of the
-cells or the outgoing edges of the events that have not been processed
-yet.
+proved that the vertical cell decomposition algorithm produces cells whose
+interior is safe, free of obstacles, but only for the case where events
+have different horizontal coordinates.  Some of the invariants for the
+case where events are vertically aligned have already been proved, but some
+invariants are still work in progress.
 
 For the other parts of the program, this article sketches the formal
 proof that we intend to develop, relying on already formalized
@@ -744,7 +755,7 @@ clothoids, curves where the radius of curvature is inversely
 proportional to the distance traveled along the curve.  On such
 curves, the acceleration felt by the payload only evolves in a
 continuous manner.  Replacing Bézier curves with clothoids is
-practically relevant objective for applications in industrial
+a practically relevant objective for applications in industrial
 contexts, but the mathematics behind this are more complex, because
 computing collisions between a clothoid and an obstacle is less elementary.
 
@@ -809,7 +820,16 @@ nonempty cells adds a lot of complexity in the program, as we need to
 pay attention to the case where two successive events are vertically
 aligned.
 
-The full program can be seen on the public repository \url{https://github.com/math-comp/trajectories}.  The incomplete proofs of the first two phases can be seen on the public repository \url{https://github.com/ybertot/VerticalCells}.
+The full program can be seen on the public repository
+\begin{center}
+\url{https://github.com/math-comp/trajectories}.
+\end{center}
+
+The incomplete proofs of the first two phases can be seen on the public
+repository
+\begin{center}
+\url{https://github.com/ybertot/VerticalCells}.
+\end{center}
 
 In our section about future work, we showed a few directions that
 could be addressed as a continuation of this work.  This is a project
