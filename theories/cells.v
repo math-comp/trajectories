@@ -1907,10 +1907,10 @@ Lemma cell_center_close_cell_inside c p :
   open_cell_side_limit_ok c ->
   valid_edge (low c) p -> valid_edge (high c) p ->
   left_limit c < p_x p ->
-  inside_closed' (cell_center (close_cell p c)) (close_cell p c).
+  strict_inside_closed (cell_center (close_cell p c)) (close_cell p c).
 Proof.
 move=> noc dif cwf cok vlc vhc xdif.
-rewrite /inside_closed'.
+rewrite /strict_inside_closed.
 have twogt0: (0 : R) < 1 + 1 by apply: Num.Theory.addr_gt0.
 have [xrh xrl] : p_x (head dummy_pt (right_pts (close_cell p c))) = p_x p /\
           p_x (last dummy_pt (right_pts (close_cell p c))) = p_x p.
@@ -1941,7 +1941,7 @@ have xcond :
   rewrite one1 mulr1.
   rewrite /right_limit xrl.
   by apply: half_between_lt.
-rewrite (proj1 (andP xcond)) andbT.
+rewrite xcond andbT.
 have [ab bel] : cell_center (close_cell p c) >>> low (close_cell p c) /\
           cell_center (close_cell p c) <<< high (close_cell p c).
   have [-> _ _] := close_cell_preserve_3sides p c.
@@ -2004,10 +2004,14 @@ have [ab bel] : cell_center (close_cell p c) >>> low (close_cell p c) /\
   have := same_pvert_y vh (esym same_x); rewrite -/mh => <-.
   have := on_pvert midh; rewrite -/mh => ->.
   by have [_ -> _] := close_cell_preserve_3sides p c.
-rewrite ab andbT /inside_closed_cell.
-rewrite (ltW (proj1 (andP xcond))) (ltW (proj2 (andP xcond))) !andbT.
-rewrite /contains_point.
-by rewrite (underW bel) (underWC ab).
+by rewrite ab bel.
+Qed.
+
+Lemma strict_inside_closedW c p : 
+ strict_inside_closed p c -> inside_closed' p c.
+Proof.
+move=> /andP[] /andP[] cu ca /andP[] lb rb.
+by rewrite inside_closed'E (underW cu) ca lb (ltW rb).
 Qed.
 
 Lemma update_closed_cell_center c p :

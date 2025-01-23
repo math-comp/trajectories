@@ -329,7 +329,7 @@ Section proof_environment.
 
 Variables (bottom top : edge) (s : seq edge) (fop : seq cell) (lsto : cell)
   (lop cls : seq cell) (lstc : cell) (ev : event) (lsthe : edge) (lstx : R)
-  (evs past : seq event).
+  (all_e evs past : seq event).
 
 Let evin : ev \in ev :: evs.
 Proof. by rewrite inE eqxx. Qed.
@@ -342,23 +342,23 @@ Hypotheses
   (at_lstx : lstx = p_x (point ev))
   (pu : point ev <<= lsthe)
   (pa : point ev >>= lsthe)
-  (ss_inv : safe_side_non_gp_invariant bottom top s past
+  (ss_inv : safe_side_non_gp_invariant bottom top s all_e past
     (Bscan fop lsto lop cls lstc lsthe lstx) (ev :: evs)).
 
 Let d_inv : disjoint_non_gp_invariant bottom top s
-    (Bscan fop lsto lop cls lstc lsthe lstx) (ev :: evs).
+    (Bscan fop lsto lop cls lstc lsthe lstx) all_e past (ev :: evs).
 Proof.
 apply: (disjoint_ss ss_inv).
 Qed.
 
 Let ec_inv : edge_covered_non_gp_invariant bottom top s
-    past (Bscan fop lsto lop cls lstc lsthe lstx) (ev :: evs).
+    all_e past (Bscan fop lsto lop cls lstc lsthe lstx) (ev :: evs).
 Proof. apply: (covered_ss ss_inv). Qed.
 
 Let comng := common_non_gp_inv_dis d_inv.
 
 Let comi : common_invariant bottom top s
-  (Bscan fop lsto lop cls lstc lsthe lstx) (ev :: evs).
+  (Bscan fop lsto lop cls lstc lsthe lstx) all_e past (ev :: evs).
 Proof. by exact: (ngcomm comng). Qed.
 
 Let tmp_inv : inv1_seq bottom top (ev :: evs) (fop ++ lsto :: lop).
@@ -843,17 +843,22 @@ Proof.
 by rewrite /str/last_case uoct_eq.
 Qed.
 
+Let all_events_break' : all_e = rcons past ev ++ evs.
+Proof.
+by rewrite cat_rcons (all_events_break comi).
+Qed.
+
 Lemma last_case_common_invariant_pre :
   common_non_gp_invariant bottom top s
      (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
-    evs.
+    all_e (rcons past ev) evs.
 Proof.
 rewrite /step /= /same_x at_lstx eqxx pu (negbTE pa) /=.
 rewrite oe uoct_eq.
 move: inv1' lstx_eq' high_lsto_eq' edges_sub' no_dup_edge'
   sides_ok' above_low_lsto' stradle'.
 rewrite strq => ? ? ? ? ? ? ? ?.
-have ngcomm' : common_invariant bottom top s str evs.
+have ngcomm' : common_invariant bottom top s str all_e (rcons past ev) evs.
   by rewrite /str/last_case uoct_eq; constructor.
 have lst_side_lex' : path (@lexPt _)
   (nth dummy_pt (left_pts (lst_open str)) 1) [seq point e | e <- evs].
@@ -863,7 +868,8 @@ rewrite strq in lst_side_lex'.
 by constructor.
 Qed.
 
-Let common_non_gp_inv_dis' : common_non_gp_invariant bottom top s str evs.
+Let common_non_gp_inv_dis' : common_non_gp_invariant bottom top s str 
+  all_e (rcons past ev) evs.
 Proof.
 have := last_case_common_invariant_pre.
 by rewrite /step/same_x at_lstx eqxx pu (negbTE pa) /= oe uoct_eq strq.
@@ -984,7 +990,8 @@ by rewrite leq; have := (allP sval) _ hin => /andP[].
 Qed.
 
 Let cell_center_in' :
-      {in state_closed_seq str, forall c, inside_closed' (cell_center c) c}.
+      {in state_closed_seq str,
+      forall c, strict_inside_closed (cell_center c) c}.
 Proof.
 rewrite strq /state_closed_seq /=.
 move=> c; rewrite to_right_order.
@@ -1131,9 +1138,9 @@ have -> /= : ~~ has (in_mem^~ (mem [seq cell_center c | c <- rcons cls lstc]))
     move=> /(_ (close_cell (point ev) c3)).
       rewrite to_right_order mem_cat orbC -map_rcons map_f //.
       move=> /(_ isT).
-      rewrite inside_closed'E=> /andP[] _ /andP[] _ /andP[] lt1.
+      move=> /andP[] _ /andP[] lt1.
       rewrite right_limit_close_cell //.
-      apply: lt_le_trans.
+      apply: lt_trans.
       by move: lt1; rewrite left_limit_close_cell.
     (* rewrite c2c3 /left_limit.
     have [_ _ ->] := close_cell_preserve_3sides (point ev) c3.
@@ -1145,10 +1152,10 @@ have -> /= : ~~ has (in_mem^~ (mem [seq cell_center c | c <- rcons cls lstc]))
   have :=
     cell_center_close_cell_inside noc3 dif3 wf3 ok3 vlc3 vhc3 lc3ltp.
   rewrite -[cells.close_cell _ _]/(close_cell _ _).
-  rewrite -c2c3=> ccin.
+  rewrite -c2c3=> /strict_inside_closedW ccin.
   have := close'_subset_contact vc3; rewrite -c2c3 => /(_ _ ok2 ccin) ccin'.
   have := op_cl_dis_non_gp d_inv c3o2 c1old (cell_center c2)=> /negP.
-  by rewrite ccin' -pc2 pc1 (cell_center_in d_inv).
+  by rewrite ccin' -pc2 pc1 (strict_inside_closedW (cell_center_in d_inv _)).
 suff : uniq [seq cell_center c | c <- new_cl] by [].
 rewrite /new_cl.
 case ccq : cc => [ | fcc cc'] /=; first by [].
@@ -1212,7 +1219,7 @@ apply/(uniqP dummy_pt).
       rewrite /L (nth_map dummy_cell); last first.
         by rewrite size_rcons size_map.
       rewrite -map_rcons.
-      apply: cell_center_in'.
+      apply: (strict_inside_closedW (cell_center_in' _)).
       rewrite strq /state_closed_seq /=.
       rewrite to_right_order.
       rewrite mem_cat; apply/orP; right.
@@ -1479,7 +1486,7 @@ Qed.
 Lemma last_case_disjoint_invariant_pre :
   disjoint_non_gp_invariant bottom top s
     (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
-    evs.
+    all_e (rcons past ev) evs.
 Proof.
 rewrite /step /= /same_x at_lstx eqxx pu (negbTE pa) /=.
 rewrite oe uoct_eq.
@@ -1584,7 +1591,7 @@ Qed.
 
 Lemma last_case_edge_covered_invariant_pre :
   edge_covered_non_gp_invariant bottom top s
-  (rcons past ev)
+  all_e (rcons past ev)
   (step (Bscan fop lsto lop cls lstc lsthe lstx) ev) evs.
 Proof.
 move: last_case_disjoint_invariant_pre.
@@ -2440,7 +2447,7 @@ by rewrite (ltW puhc) in palc.
 Qed.
 
 Lemma last_case_safe_side_invariant_pre :
-  safe_side_non_gp_invariant bottom top s (rcons past ev)
+  safe_side_non_gp_invariant bottom top s all_e (rcons past ev)
     (step (Bscan fop lsto lop cls lstc lsthe lstx) ev) evs.
 Proof.
 move: last_case_disjoint_invariant_pre last_case_edge_covered_invariant_pre.
@@ -2457,15 +2464,15 @@ Qed.
 End proof_environment.
 
 Lemma last_case_safe_side_invariant bottom top s fop lsto lop cls lstc past ev
-  lsthe lstx evs :
+  lsthe lstx all_e evs :
   {in [:: bottom, top & s] &, forall e1 e2, inter_at_ext e1 e2} ->
   lstx = p_x (point ev) ->
   point ev <<= lsthe ->
   point ev >>= lsthe ->
-  safe_side_non_gp_invariant bottom top s past
+  safe_side_non_gp_invariant bottom top s all_e past
     (Bscan fop lsto lop cls lstc lsthe lstx)
     (ev :: evs) ->
-  safe_side_non_gp_invariant bottom top s (rcons past ev)
+  safe_side_non_gp_invariant bottom top s all_e (rcons past ev)
     (step (Bscan fop lsto lop cls lstc lsthe lstx) ev) evs.
 Proof.
 move=> nocs at_lstx pu pa s_inv.

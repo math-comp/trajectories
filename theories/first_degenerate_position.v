@@ -148,7 +148,7 @@ Notation open_cell_side_limit_ok :=
 
 Lemma update_open_cell_common_invariant
   bottom top s fop lsto lop cls lstc ev
-  lsthe lstx evs :
+  lsthe lstx all_e p_e evs :
   bottom <| top ->
   {in bottom :: top :: s &, forall e1 e2, inter_at_ext e1 e2} ->
   {in s, forall g, inside_box bottom top (left_pt g) &&
@@ -157,10 +157,10 @@ Lemma update_open_cell_common_invariant
   (point ev) <<< lsthe ->
   common_non_gp_invariant bottom top s
      (Bscan fop lsto lop cls lstc lsthe lstx)
-     (ev :: evs) ->
+     all_e p_e (ev :: evs) ->
   common_invariant bottom top s
      (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
-    evs.
+    all_e (rcons p_e ev) evs.
 Proof.
 move=> bxwf nocs' inbox_s at_lstx under_lsthe comng.
 have comi := ngcomm comng.
@@ -401,12 +401,14 @@ have stradle' : evs = [::] \/
     have := sevs'; rewrite evsq2 /= (path_sortedE (@lexPtEv_trans _)).
     by move=> /andP[] /allP /(_ _ e2in) /lexPtW.
   by [].
+have all_events_break' : all_e = rcons p_e ev ++ evs.
+  by rewrite cat_rcons (all_events_break comi).
 by constructor.
 Qed.
 
 Lemma update_open_cell_common_non_gp_invariant
   bottom top s fop lsto lop cls lstc ev
-  lsthe lstx evs :
+  lsthe lstx all_e p_e evs :
   bottom <| top ->
   {in bottom :: top :: s &, forall e1 e2, inter_at_ext e1 e2} ->
   {in s, forall g, inside_box bottom top (left_pt g) &&
@@ -415,17 +417,17 @@ Lemma update_open_cell_common_non_gp_invariant
   (point ev) <<< lsthe ->
   common_non_gp_invariant bottom top s
      (Bscan fop lsto lop cls lstc lsthe lstx)
-     (ev :: evs) ->
+     all_e p_e (ev :: evs) ->
   common_non_gp_invariant bottom top s
      (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
-    evs.
+    all_e (rcons p_e ev) evs.
 Proof.
 move=> bxwf nocs' inbox_s at_lstx under_lsthe comng.
 have comi := ngcomm comng.
 set st := Bscan _ _ _ _ _ _ _.
 have oute : out_left_event ev.
   by apply: (out_events comi); rewrite inE eqxx.
-have ci : common_invariant bottom top s (step st ev) evs.
+have ci : common_invariant bottom top s (step st ev) all_e (rcons p_e ev) evs.
     by apply: update_open_cell_common_invariant.
 have [clae [sval' [adj [cbtom rfo]]]] := inv1 comi.
 have sval : seq_valid (state_open_seq (Bscan fop lsto lop cls lstc lsthe lstx))
@@ -499,7 +501,7 @@ Qed.
 
 Lemma update_open_cell_disjoint_non_gp_invariant
   bottom top s fop lsto lop cls lstc ev
-  lsthe lstx evs :
+  lsthe lstx all_e p_e evs :
   bottom <| top ->
   {in bottom :: top :: s &, forall e1 e2, inter_at_ext e1 e2} ->
   {in s, forall g, inside_box bottom top (left_pt g) &&
@@ -508,10 +510,10 @@ Lemma update_open_cell_disjoint_non_gp_invariant
   (point ev) <<< lsthe ->
   disjoint_non_gp_invariant bottom top s
      (Bscan fop lsto lop cls lstc lsthe lstx)
-     (ev :: evs) ->
+     all_e p_e (ev :: evs) ->
   disjoint_non_gp_invariant bottom top s
      (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
-    evs.
+    all_e (rcons p_e ev) evs.
 Proof.
 move=> bxwf nocs' inbox_s at_lstx under_lsthe disng.
 have comng := common_non_gp_inv_dis disng.
@@ -746,7 +748,7 @@ constructor.
   move=> c; rewrite mem_rcons inE => /orP[/eqP -> | cold].
     have szc : (1 < size (right_pts lstc))%N.
       by apply: (size_right_cls disng).
-    rewrite -inside_closed'_update // update_closed_cell_center //.
+    rewrite -strict_inside_closed_update // update_closed_cell_center //.
     apply: (cell_center_in disng).
     by rewrite /state_closed_seq/= mem_rcons inE eqxx.
   apply: (cell_center_in disng).
@@ -792,17 +794,17 @@ Qed.
 
 Lemma update_open_cell_edge_covered_non_gp_invariant
   bottom top s fop lsto lop cls lstc past ev
-  lsthe lstx evs :
+  lsthe lstx all_e evs :
   bottom <| top ->
   {in bottom :: top :: s &, forall e1 e2, inter_at_ext e1 e2} ->
   {in s, forall g, inside_box bottom top (left_pt g) &&
                    inside_box bottom top (right_pt g)} ->
   lstx = p_x (point ev) ->
   (point ev) <<< lsthe ->
-  edge_covered_non_gp_invariant bottom top s past
+  edge_covered_non_gp_invariant bottom top s all_e past
      (Bscan fop lsto lop cls lstc lsthe lstx)
      (ev :: evs) ->
-  edge_covered_non_gp_invariant bottom top s (rcons past ev)
+  edge_covered_non_gp_invariant bottom top s all_e (rcons past ev)
      (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
     evs.
 Proof.
@@ -927,7 +929,8 @@ have processed_covered' :
 have d_inv' :
   disjoint_non_gp_invariant bottom top s
     (Bscan (fop ++ nos) lno lop cls
-      (update_closed_cell lstc (point ev)) lsthe (p_x (point ev))) evs.
+      (update_closed_cell lstc (point ev)) lsthe (p_x (point ev))) 
+    all_e (rcons past ev) evs.
   have := update_open_cell_disjoint_non_gp_invariant bxwf nocs' inbox_s
     at_lstx under_lsthe disng.
     rewrite /step /same_x at_lstx eqxx /=.
@@ -1164,7 +1167,7 @@ by have := Ih s oute2 nos2 lno2 oca_eq c cin spc.
 Qed.
 
 Lemma update_open_cell_safe_side_non_gp_invariant
-  bottom top s fop lsto lop cls lstc past ev
+  bottom top s fop lsto lop cls lstc all_e past ev
   lsthe lstx evs :
   bottom <| top ->
   {in bottom :: top :: s &, forall e1 e2, inter_at_ext e1 e2} ->
@@ -1172,10 +1175,10 @@ Lemma update_open_cell_safe_side_non_gp_invariant
                    inside_box bottom top (right_pt g)} ->
   lstx = p_x (point ev) ->
   (point ev) <<< lsthe ->
-  safe_side_non_gp_invariant bottom top s past
+  safe_side_non_gp_invariant bottom top s all_e past
      (Bscan fop lsto lop cls lstc lsthe lstx)
      (ev :: evs) ->
-  safe_side_non_gp_invariant bottom top s (rcons past ev)
+  safe_side_non_gp_invariant bottom top s all_e (rcons past ev)
      (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
     evs.
 Proof.
@@ -1221,9 +1224,10 @@ have oute : out_left_event ev.
   by apply: (out_events (ngcomm (common_non_gp_inv_dis d_inv))).
 
 have d_inv' : disjoint_non_gp_invariant bottom top s
-  (step st ev) evs.
+  (step st ev) all_e (rcons past ev) evs.
   by apply: update_open_cell_disjoint_non_gp_invariant.
-have ec_inv' : edge_covered_non_gp_invariant bottom top s (rcons past ev)
+have ec_inv' : edge_covered_non_gp_invariant bottom top s 
+  all_e (rcons past ev)
   (step st ev) evs.
   by apply: update_open_cell_edge_covered_non_gp_invariant.
 
