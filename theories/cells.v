@@ -1902,36 +1902,37 @@ have twon0 : 2 != 0 :> R by rewrite pnatr_eq0.
 by apply: (mulIf twon0); rewrite mulfVK // mulrDr mulr1.
 Qed.
 
-Lemma cell_center_close_cell_inside c p :
+Lemma cell_center_inside_main c rl :
   inter_at_ext (low c) (high c) -> low c != high c -> low c <| high c ->
   open_cell_side_limit_ok c ->
-  valid_edge (low c) p -> valid_edge (high c) p ->
-  left_limit c < p_x p ->
-  strict_inside_closed (cell_center (close_cell p c)) (close_cell p c).
-Proof.
-move=> noc dif cwf cok vlc vhc xdif.
+  left_limit c < rl ->
+  rl <= p_x (right_pt (low c)) ->
+  rl <= p_x (right_pt (high c)) ->
+  right_pts c != [::] ->
+  all (fun y => y == rl) [seq p_x p | p <- right_pts c] ->
+  head dummy_pt (right_pts c) === high c ->
+  last dummy_pt (right_pts c) === low c ->
+  strict_inside_closed (cell_center c) c.
+move=> noc dif cwf cok llrl rll rlh rsn0 rsok hon lon.
 rewrite /strict_inside_closed.
 have twogt0: (0 : R) < 1 + 1 by apply: Num.Theory.addr_gt0.
-have [xrh xrl] : p_x (head dummy_pt (right_pts (close_cell p c))) = p_x p /\
-          p_x (last dummy_pt (right_pts (close_cell p c))) = p_x p.
-  rewrite /close_cell (pvertE vlc)(pvertE vhc) /=.
-  by case: ifP; case: ifP.
+have [xrh xrl] : p_x (head dummy_pt (right_pts c)) = rl /\
+          p_x (last dummy_pt (right_pts c)) = rl.
+  case: right_pts rsn0 rsok => [ | a tl] // _ /[dup] allx /andP[] /eqP -> _.
+  by move: (allP allx _ (map_f _ (mem_last _ _))) => /eqP ->.
 have [xlh xll] :
-    p_x (head dummy_pt (left_pts (close_cell p c))) = left_limit c/\
-          p_x (last dummy_pt (left_pts (close_cell p c))) = left_limit c.
+    p_x (head dummy_pt (left_pts c)) = left_limit c/\
+          p_x (last dummy_pt (left_pts c)) = left_limit c.
   move: cok=> /andP[] + /andP[] + _.
-  have [_ _ ->] := close_cell_preserve_3sides p c.
   case: (left_pts c) => [ | a [ | b tl]] //= _ /andP[] /eqP /[dup] eqa -> //.
   rewrite -[_ && _]/(all (fun p => p_x p == left_limit c) (b :: tl)).
   move=> /allP /(_ (last b tl) _) /eqP -> //.
   by rewrite mem_last.
 have xcond :
-  left_limit (close_cell p c) < p_x (cell_center (close_cell p c))
-     < right_limit (close_cell p c).
+  left_limit c < p_x (cell_center c) < right_limit c.
   rewrite /cell_center/midpoint.
   rewrite xrl xrh xll xlh /=.
-  rewrite [left_limit (close_cell p c)]/left_limit.
-  have [_ _ ->] := close_cell_preserve_3sides p c.
+  rewrite [left_limit c]/left_limit.
   rewrite -[p_x (last _ _)]/(left_limit _).
   rewrite -mulrDr.
   set one := (X in _ < _ * X / _ < _).
@@ -1942,32 +1943,17 @@ have xcond :
   rewrite /right_limit xrl.
   by apply: half_between_lt.
 rewrite xcond andbT.
-have [ab bel] : cell_center (close_cell p c) >>> low (close_cell p c) /\
-          cell_center (close_cell p c) <<< high (close_cell p c).
-  have [-> _ _] := close_cell_preserve_3sides p c.
+have [ab bel] : cell_center c >>> low c /\
+          cell_center c <<< high c.
   rewrite /cell_center midpoint_swap.
-  have midl : midpoint (last dummy_pt (left_pts (close_cell p c)))
-               (last dummy_pt (right_pts (close_cell p c))) === low c.
-    have [_ _ ->] := close_cell_preserve_3sides p c.
-    apply: midpoint_on_edge.
-      by move: cok=> /andP[] _ /andP[] _ /andP[] _ /andP[] _ ->.
-    rewrite /close_cell (pvertE vlc) (pvertE vhc).
-    set w := last _ _.
-    have ->: w = Bpt (p_x p) (pvert_y p (low c)).
-      by rewrite /w /=; case: ifP=> A ; case: ifP=> B.
-    by apply: pvert_on.
-  have midh : midpoint (head dummy_pt (left_pts (close_cell p c)))
-               (head dummy_pt (right_pts (close_cell p c))) === high c.
-    have [_ _ ->] := close_cell_preserve_3sides p c.
-    apply: midpoint_on_edge.
-      by move: cok=> /andP[] _ /andP[] _ /andP[] _ /andP[] ->.
-    rewrite /close_cell (pvertE vlc) (pvertE vhc).
-    set w := head _ _.
-    have ->: w = Bpt (p_x p) (pvert_y p (high c)).
-      rewrite /w /=; case: ifP=> A ; case: ifP=> B //=.
-        by rewrite -(eqP B) (eqP A).
-      by rewrite (eqP A).
-    by apply: pvert_on.
+  have midl : midpoint (last dummy_pt (left_pts c))
+               (last dummy_pt (right_pts c)) === low c.
+    apply: midpoint_on_edge; last by [].
+    by move: cok=> /andP[] _ /andP[] _ /andP[] _ /andP[] _ ->.
+  have midh : midpoint (head dummy_pt (left_pts c))
+               (head dummy_pt (right_pts c)) === high c.
+    apply: midpoint_on_edge; last by [].
+    by move: cok=> /andP[] _ /andP[] _ /andP[] _ /andP[] ->.
   set ml := (X in midpoint X _).
   set mh := (X in midpoint _ X).
   have [_ vh] := andP midh.
@@ -1979,16 +1965,15 @@ have [ab bel] : cell_center (close_cell p c) >>> low (close_cell p c) /\
   have mlab : ml >>= low c by rewrite strict_nonAunder // negb_and negbK midl.
   have mll : ml <<= low c.
     by rewrite under_onVstrict // midl.
-  have mldifl :  left_limit c < p_x ml < p_x p.
+  have mldifl :  left_limit c < p_x ml < rl.
     rewrite /ml/midpoint/= xrl xll.
-    by apply: (half_between_lt xdif).
+    by apply: (half_between_lt llrl).
   have nl : p_x (left_pt (low c)) < p_x ml.
     apply: (le_lt_trans  _ (proj1 (andP mldifl))).
     apply: (le_trans _ (left_limit_max cok)).
     by rewrite le_max le_refl orbT.
   have nr : p_x ml < p_x (right_pt (low c)).
-    apply: (lt_le_trans (proj2 (andP mldifl))).
-    by move: vlc=> /andP[].
+    by apply: (lt_le_trans (proj2 (andP mldifl))).
   have mlu : ml <<< high c.
     rewrite strict_nonAunder //; last first.
     have := order_edges_viz_point' vl vlh cwf mll => ->; rewrite andbT.
@@ -2002,9 +1987,85 @@ have [ab bel] : cell_center (close_cell p c) >>> low (close_cell p c) /\
   rewrite /midpoint same_x two_halves.
   have := on_pvert midl; rewrite -/ml => ->.
   have := same_pvert_y vh (esym same_x); rewrite -/mh => <-.
-  have := on_pvert midh; rewrite -/mh => ->.
-  by have [_ -> _] := close_cell_preserve_3sides p c.
+  by have := on_pvert midh; rewrite -/mh => ->.
 by rewrite ab bel.
+Qed.
+
+Lemma close_cell_ok c p :
+  contains_point p c ->
+  valid_edge (low c) p -> valid_edge (high c) p ->
+  open_cell_side_limit_ok c ->
+  closed_cell_side_limit_ok (close_cell p c).
+Proof.
+move=> ctp vl vh.
+rewrite /open_cell_side_limit_ok/closed_cell_side_limit_ok.
+rewrite /close_cell /=; have /exists_point_valid [p1 /[dup] vip1 ->] := vl.
+have /exists_point_valid [p2 /[dup] vip2 -> /=] := vh.
+move=> /andP[] -> /andP[]-> /andP[]-> /andP[] -> -> /=.
+have [o1 /esym/eqP x1]:=intersection_on_edge vip1.
+have [o2 /eqP x2]:=intersection_on_edge vip2.
+rewrite -?(eq_sym p).
+(* TODO : this line performs a lot of complicated things, but they mostly
+   failed at porting time. *)
+case:ifP (o1) (o2) =>[/eqP q1 |enp1];case:ifP=>[/eqP q2 |enp2];
+  rewrite ?q1 ?q2;
+  rewrite -?q1 -?q2 /= ?eqxx ?x2 ?x1 /= => -> -> //=; rewrite ?andbT.
+- move: x1 x2 ctp=> /eqP/esym x1 /eqP x2 /andP[] el _.
+  have := (above_edge_strict_higher_y x1 (negbT enp2) el).
+  by rewrite /right_limit /= x1 eqxx /=; apply.
+- move: x1 x2 ctp=> /eqP/esym x1 /eqP x2 /andP[] _ eh.
+  have := (under_edge_strict_lower_y x2 (negbT enp1) eh o2).
+  rewrite /right_limit /= x2 eqxx /=; apply.
+move: x1 x2 ctp=> /eqP/esym x1 /eqP x2 /andP[] el eh.
+rewrite (above_edge_strict_higher_y x1 _ el) //; last first.
+  exact: negbT.
+rewrite  (under_edge_strict_lower_y x2 (negbT enp1) eh) //.
+by rewrite !andbT /right_limit /= -x1 -x2 eqxx.
+Qed.
+
+Lemma cell_center_close_cell_inside c p :
+  inter_at_ext (low c) (high c) -> low c != high c -> low c <| high c ->
+  open_cell_side_limit_ok c ->
+  valid_edge (low c) p -> valid_edge (high c) p ->
+  left_limit c < p_x p ->
+  strict_inside_closed (cell_center (close_cell p c)) (close_cell p c).
+Proof.
+move=> noc dif cwf cok vlc vhc xdif.
+have lccq : low (close_cell p c) = low c.
+  by have [] := close_cell_preserve_3sides p c.
+have hccq : high (close_cell p c) = high c.
+  by have [] := close_cell_preserve_3sides p c.
+have llccq : left_pts (close_cell p c) = left_pts c.
+  by have [] := close_cell_preserve_3sides p c.
+have ccok : open_cell_side_limit_ok (close_cell p c).
+  move: cok; rewrite /open_cell_side_limit_ok /left_limit !(lccq, hccq, llccq).
+  by [].
+have llltrl : left_limit (close_cell p c) < p_x (right_pt (low c)).
+  move: xdif; rewrite /left_limit llccq=> xdif'.
+  by apply: (lt_le_trans xdif' (proj2 (andP vlc))).
+have llltx : left_limit (close_cell p c) < p_x p.
+  by move: xdif; rewrite /left_limit llccq.
+have plerl : p_x p <= p_x (right_pt (low c)).
+  by apply: (proj2 (andP vlc)).
+have plerh : p_x p <= p_x (right_pt (high c)).
+  by apply: (proj2 (andP vhc)).
+have rpn0 : right_pts (close_cell p c) != [::].
+  rewrite /close_cell (pvertE vlc) (pvertE vhc) /=.
+  by do 2 (case: ifP => _).
+have allx : all (fun y => y == (p_x p))
+    [seq p_x w | w <- right_pts (close_cell p c)].
+  rewrite /close_cell (pvertE vlc) (pvertE vhc) /=.
+  by case: ifP => cmp1; case: ifP=> cmp2 /=; rewrite ?eqxx.
+have hon : head dummy_pt (right_pts (close_cell p c)) === high c.
+  rewrite /close_cell (pvertE vlc) (pvertE vhc) /=.
+  have := pvert_on vhc.
+  by case: ifP => [/eqP <- | pnh]; case: ifP=> [/eqP <- | pnl].
+have lon : last dummy_pt (right_pts (close_cell p c)) === low c.
+  rewrite /close_cell (pvertE vlc) (pvertE vhc) /=.
+  have := pvert_on vlc.
+  by case: ifP => [/eqP pish | pnh]; case: ifP => [/eqP pisl | pnl].
+apply: (cell_center_inside_main _ _ _ _ llltx); 
+  (rewrite ?(lccq, hccq, llccq)); move=> //.
 Qed.
 
 Lemma strict_inside_closedW c p : 

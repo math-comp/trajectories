@@ -385,12 +385,12 @@ Definition leftmost_points (bottom top : edge) :=
 Definition rightmost_points (bottom top : edge) :=
   if R_ltb (p_x (right_pt bottom)) (p_x (right_pt top)) then
     if vertical_intersection_point (right_pt bottom) top is Some pt then
-       [:: right_pt bottom; pt]
+       [:: pt; right_pt bottom]
     else
         [::]
   else
      if vertical_intersection_point (right_pt top) bottom is Some pt then
-        no_dup_seq [:: pt; right_pt top]
+        no_dup_seq [:: right_pt top; pt]
      else
         [::].
 

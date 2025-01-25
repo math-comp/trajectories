@@ -699,39 +699,6 @@ Proof. by apply inside_box_between. Defined.
 Let exi : exists2 c, c \in open & contains_point' (point e) c.
 Proof. by apply: (exists_cell cbtom adj bet_e). Defined.
 
-Lemma close_cell_ok c :
-  contains_point (point e) c ->
-  valid_edge (low c) (point e) -> valid_edge (high c) (point e) ->
-  open_cell_side_limit_ok c ->
-  closed_cell_side_limit_ok (close_cell (point e) c).
-Proof.
-move=> ctp vl vh.
-rewrite /open_cell_side_limit_ok/closed_cell_side_limit_ok.
-rewrite -[close_cell (point e) c]/(cells.close_cell (point e) c).
-rewrite /cells.close_cell /=; have /exists_point_valid [p1 /[dup] vip1 ->] := vl.
-have /exists_point_valid [p2 /[dup] vip2 -> /=] := vh.
-move=> /andP[] -> /andP[]-> /andP[]-> /andP[] -> -> /=.
-have [o1 /esym/eqP x1]:=intersection_on_edge vip1.
-have [o2 /eqP x2]:=intersection_on_edge vip2.
-rewrite -?(eq_sym (point e)).
-(* TODO : this line performs a lot of complicated things, but they mostly
-   failed at porting time. *)
-case:ifP (o1) (o2) =>[/eqP q1 |enp1];case:ifP=>[/eqP q2 |enp2];
-  rewrite ?q1 ?q2;
-  rewrite -?q1 -?q2 /= ?eqxx ?x2 ?x1 /= => -> -> //=; rewrite ?andbT.
-- move: x1 x2 ctp=> /eqP/esym x1 /eqP x2 /andP[] el _.
-  have := (above_edge_strict_higher_y x1 (negbT enp2) el).
-  by rewrite /right_limit /= x1 eqxx /=; apply.
-- move: x1 x2 ctp=> /eqP/esym x1 /eqP x2 /andP[] _ eh.
-  have := (under_edge_strict_lower_y x2 (negbT enp1) eh o2).
-  rewrite /right_limit /= x2 eqxx /=; apply.
-move: x1 x2 ctp=> /eqP/esym x1 /eqP x2 /andP[] el eh.
-rewrite (above_edge_strict_higher_y x1 _ el) //; last first.
-  exact: negbT.
-rewrite  (under_edge_strict_lower_y x2 (negbT enp1) eh) //.
-by rewrite !andbT /right_limit /= -x1 -x2 eqxx.
-Qed.
-
 Lemma closing_cells_side_limit' cc :
   s_right_form cc ->
   seq_valid cc (point e) ->
