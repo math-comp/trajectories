@@ -54,4 +54,65 @@ property, and the organisation of the formal proof.
 
 \section{Introduction}
 
+\section{The data components}
+\subsection{The cells}
+Each cell has a high edge, a low edge, a left side, and the right side.  For
+the lateral sides, we do not only keep the the x-coordinate, but we record
+the ordered sequence of points that correspond events in contact with this
+edge.
+
+For open cells, the sequence of points representing the right-hand side is
+left empty.
+
+\subsection{invariants for sequences of cells}
+\begin{itemize}
+\item adjacent cells
+\item 
+\end{itemize}
+\subsection{Data invariants for cells}
+Predicates for
+
+\section{The scan state}
+
+Isolating the last created cells (both open and closed), caching the last
+high edge and the last x-coordinate.
+
+\section{The phases of the algorithm}
+\begin{enumerate}
+\item sort obstacle edges by their left-side extremity, construct events with
+outgoing edges
+\item process the events in turn, maintaining a record with the order list
+of currently open cells, broken down into three parts, the current set
+of closed cells, the high edge of the last created open cell, and the
+x-coordinate of the last processed event.
+\end{enumerate}
+
+When processing each event four cases are treated differently:
+\begin{itemize}
+\item If the considered event is further right than the last processed event
+\item If the considered event is on the same vertical line, but above the
+high edge of the last created open cell
+\item If the considered event is on the same vertical line, but below the
+high edge of the last created open cell
+\item If the considered event is on the high edge of the last created open cell
+\end{itemize}
+\subection{Work performed in the first case}
+\begin{itemize}
+\item Decompose the sequence of open cells into three parts
+\item Create closed cells by adding a right-hand side to all cells in contact
+with the event.
+\item Note what the last closed and last open cell are.
+\end{itemize}
+\subsection{Work performed for the second case}
+Same as the previous case, but the search for the cell sequence
+decomposition only processes cells above the last created open cell.
+\subsection{Work performed for the third case}
+Two cases must be considered:
+\begin{itemize}
+\item if the considered event has no outgoing edges, it can only be an
+extra point to be added on the left hand side of the current last created
+edge and this point must also be added in the right hand side of the
+
+\end{itemize}
+
 \end{document}
