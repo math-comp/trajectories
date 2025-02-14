@@ -8,9 +8,14 @@
        {yves.bertot@inria.fr}
        {https://orcid.org/0000-0001-5052-3019}{}
 
-\authorrunning{Y. Bertot}
+\author{Thomas Portet}{Inria Center at Université Côte d'Azur, France}
+       {thomas.portet@inria.fr}
+       {}{}
 
-\Copyright{Yves Bertot}
+
+\authorrunning{Y. Bertot and T. Portet}
+
+\Copyright{Yves Berto and Thomas Portett}
 
 
 \ccsdesc[300]{Theory of computation~Computational geometry}
@@ -55,11 +60,25 @@ property, and the organisation of the formal proof.
 \section{Introduction}
 
 \section{The data components}
+\subsection{points and edges}
+Explain the choice to have two distinct approaches to describe edges,
+the signed area formula, the above, below edge predicates, the point
+on edge predicate.
+
+Note that no decision is taken based on the results of a division, but
+only on comparison to 0 for polynomial expressions.
+
+Talk about the projection of a point on an edge, and the choice to
+have this function be of option type.   Give the valid edge predicate.
+Note that this predicate is not used in the code.
 \subsection{The cells}
 Each cell has a high edge, a low edge, a left side, and the right side.  For
 the lateral sides, we do not only keep the the x-coordinate, but we record
-the ordered sequence of points that correspond events in contact with this
+the ordered sequence of points that correspond to events in contact with this
 edge.
+
+The list of points for cells where the low edge and the right edge
+meet on the left side is reduced to a single point.
 
 For open cells, the sequence of points representing the right-hand side is
 left empty.
@@ -67,10 +86,18 @@ left empty.
 \subsection{invariants for sequences of cells}
 \begin{itemize}
 \item adjacent cells
-\item 
+\item high edges are above low edges
+\item extremities of the sequence reach to the bottom and top edges
 \end{itemize}
 \subsection{Data invariants for cells}
-Predicates for
+Predicates for well-formedness in cells ensure that the sides are
+vertical and within the vertical cylinders anchored in both the high
+and low edge.  Moreover, the points are sorted vertically (in
+descending order), and the extremities of the points are on the edges.
+
+A note on extremities: these play a role in the proofs, but in
+practice, they could be replaced by arbitrary approximation
+points as long as they preserve the order.
 
 \section{The scan state}
 
@@ -96,23 +123,116 @@ high edge of the last created open cell
 high edge of the last created open cell
 \item If the considered event is on the high edge of the last created open cell
 \end{itemize}
-\subection{Work performed in the first case}
+
+\subsection{Sorting the sequence of events}
+Using an insertion sort pattern, but when several edges have the same
+left-hand side, no new event is created, instead edges are added in
+the sequence of outgoing edges from an existing event.  The same holds
+for right-hand extremities of events: when an event already exists for
+that point, nothing is inserted.
+
+Choice to not sort the list of outgoing edges.
+
+\subsection{creating the first scan state}
+
+The scan state has fields that require a first event to be processed
+even before starting the main loop.  When processing this first event,
+it obviously is not the right-hand side of any edge.  This obvious
+fact is expressed logically by exploiting the fact that the sequence
+of events is sorted.
+
+\subsection{Work performed in the first case}
 \begin{itemize}
 \item Decompose the sequence of open cells into three parts
 \item Create closed cells by adding a right-hand side to all cells in contact
 with the event.
-\item Note what the last closed and last open cell are.
+\item Note what the last closed and last open cells are in contact
+  through their right-hand and left-hand side, they share the same
+  high edge and the first two points on these sides.
 \end{itemize}
 \subsection{Work performed for the second case}
 Same as the previous case, but the search for the cell sequence
 decomposition only processes cells above the last created open cell.
 \subsection{Work performed for the third case}
-Two cases must be considered:
-\begin{itemize}
-\item if the considered event has no outgoing edges, it can only be an
-extra point to be added on the left hand side of the current last created
-edge and this point must also be added in the right hand side of the
+In the third case, the considered event cannot be the right extremity of
+an active edge, so that this point has to be added to the right hand side
+of the last closed cell.  No analysis of the open cells.
 
+With respect to the open cells, two cases can happen.
+\begin{itemize}
+\item if the considered event has no outgoing edges, no new cells
+are created, only the last open cell is modified to ensure that the considered
+event is added among the points of its left-hand side.
+\item if the considered event has outgoing edges, cells are created as
+  in the first two cases, except that the first created cell receives
+  a left side constructed by using parts of the last open cell's left
+  hand side and the current point.  The new last open cell is obtained
+directly as in the first two cases.
 \end{itemize}
+\subsection{Work performed for the fourth case}
+The considered event is on the high edge of the last closed cell.  We
+need to compute whether there are more cells to be closed, and the
+last closed cell will be a cell that was open until know and whose
+low edge finishes at the considered event.  On the side of open cells,
+again two cases may occur depending on the presence of outgoing
+edges.  If there are outgoing edges, new open cells are created from
+these edges, using the low edge of the last open cell for the low edge
+of the first newly created open cell.  Also, the sequence of 
+left side points of
+the first newly created open cell is exactly the sequence of left side
+points of the last open cell.  The new last open cell is the last of
+the newly created cells, as expected.
+
+If there are no outgoing edges, the last open cell is updated in two
+ways: the left side receives as first element the projection of the
+considered event on the high edge of the last contact cell, and the
+high edge is the high edge of the last contact cell.
+
+\subsection{Specifying the behavior}
+This paper describes a proof of safety, there are desirable properties
+that will not be subject to a formal proof.  The safety property will
+be expressed in the following manner: any point in the safe part of a
+closed cell is distinct from the obstacles and the events given as input.
+
+The safe part of a closed cell is defined in this manner:
+\begin{itemize}
+\item either the point x-coordinate is between the x-coordinates of
+  the left-side points or the x-coordinates of the right-side points
+  (with no equality), strictly above the low edge, and strictly below
+  the high edge
+\item or the point has the same x-coordinate as the left-side points,
+  and it is distinct from any of the points in the sequence of
+  left-side points,
+\item or the point has the same x-coordinate as the right-side points,
+  and it is distinct from any of the points in the sequence of
+  right-side points.
+\end{itemize}
+
+This safety property is only guaranteed under a collection of
+assumptions concerning the input segments and events:
+\begin{itemize}
+\item The only allowed intersections between segments are at their
+  extremities
+\item all events (including segment extremeties) are inside the box
+ defined by the bottom and top edges.
+\end{itemize}
+
+A property that does not appear immediately as a safety property is
+that the middle of every cell is strictly included in the cell.  This
+property is useful for users of this algorithm who wish to use a cell
+as turning space to move from one door of the cell to another door of
+the same cell, when both doors are on the same side.  This property is
+the main reason for having a specific treatment for degenerate cases.
+This specific treatment actually guarantees that every closed cell has
+a left-hand side with an x-coordinate that is lower than the
+x-coordinate of the right-hand side.
+
+To make sure that every cell contains at least a safe point, we
+actually need the property that every event has a list of outgoing
+edges without duplications.  This needs to be guaranteed either by the
+first phase of the program (which should check that an edge is not
+already present when adding it to the outgoing edges of an event), or
+by the input data (for which we could specify that it contains no
+duplications).
 
 \end{document}

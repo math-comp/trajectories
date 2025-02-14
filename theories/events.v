@@ -62,7 +62,11 @@ Notation Bevent := (Bevent _ _).
 (* As in insertion sort, the add_event function assumes that event are
   sorted in evs (lexicographically, first coordinate, then second coordinate
   of the point.  On the other hand, no effort is made to sort the various
-  edges in each list.  *)
+  edges in each list.  The boolean value inc indicates that the edge is
+  incoming to the event (in other words, this point is the right extremity).
+  In this case, the edge is not included in the outgoing edges of the
+  found event.
+  This function does not check for duplicates of edges.  *)
 Fixpoint add_event (p : pt) (e : edge) (inc : bool) (evs : seq event) :
   seq event :=
   match evs with
@@ -266,14 +270,16 @@ have [/eqP pp1 | /eqP pnp1] := boolP(p == point ev1).
   by case: evs path_evs => [ | ev2 evs'].
 move/path_sorted/Ih: (path_evs) {Ih} => Ih.
 have [ pltp1 | pnltp1] /= := boolP(p_x p < p_x (point ev1)).
-  by case: inc {Ih}=> /=; (apply/andP; split=> //); rewrite /lexPtEv /lexPt /= pltp1.
+  by case: inc {Ih}=> /=; (apply/andP; split=> //);
+     rewrite /lexPtEv /lexPt /= pltp1.
 have [/eqP pp1 | pnp1'] /= := boolP (p_x p == p_x (point ev1)).
   have pyneq : p_y p != p_y (point ev1).
     apply/eqP=> pp1'; case pnp1.
     move: p (point ev1) {pnp1 Ih pnltp1} pp1 pp1'.
     by move=> [a b][c d] /= -> ->.
   have [ pltp1 | pnltp1'] /= := boolP(p_y p < p_y (point ev1)).
-    by case: (inc); rewrite /= path_evs andbT /lexPtEv /lexPt /= pp1 eqxx pltp1 orbT.
+    by case: (inc); rewrite /= path_evs andbT /lexPtEv /lexPt /= 
+       pp1 eqxx pltp1 orbT.
   have p1ltp : p_y (point ev1) < p_y p.
     by rewrite ltNge le_eqVlt negb_or pyneq pnltp1'.
   case evseq : evs => [ | [p2 o2] evs2].
@@ -440,6 +446,13 @@ elim: s => /= [// | ed s Ih]; rewrite -(perm_cons ed) in Ih.
 apply/(perm_trans Ih)/(perm_trans _ (add_out _ (left_pt ed) _)).
 by rewrite perm_cons; apply: add_inc.
 Qed.
+
+Lemma edges_to_events_uniq (bottom top : edge)(s : seq edge) :
+  uniq s -> {in edges_to_events s, forall ev, uniq (outgoing ev)}.
+Proof.
+elim: s=> [ | g s Ih].
+  by [].
+move=> /andP[] gnotin uniqs.
 
 Lemma edges_to_events_no_crossing s :
   {in s &, no_crossing R} ->
