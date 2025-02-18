@@ -229,10 +229,8 @@ x-coordinate of the right-hand side.
 
 To make sure that every cell contains at least a safe point, we
 actually need the property that every event has a list of outgoing
-edges without duplications.  This needs to be guaranteed either by the
-first phase of the program (which should check that an edge is not
-already present when adding it to the outgoing edges of an event), or
-by the input data (for which we could specify that it contains no
-duplications).
+edges without duplications.  Our code to generate the sequence of
+events does not include steps to guarantee this, but if the input
+list of obstacles has no duplications, the code does not duplicate them.
 
 \end{document}
