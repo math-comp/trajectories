@@ -16,50 +16,50 @@ Section working_environment.
 
 Variable R : realFieldType.
 
-Notation pt := (pt (RealField.sort R)).
-Notation p_x := (p_x (RealField.sort R)).
-Notation p_y := (p_y (RealField.sort R)).
-Notation Bpt := (Bpt (RealField.sort R)).
+Notation pt := (pt (Num.RealField.sort R)).
+Notation p_x := (p_x (Num.RealField.sort R)).
+Notation p_y := (p_y (Num.RealField.sort R)).
+Notation Bpt := (Bpt (Num.RealField.sort R)).
 Notation edge := (edge R).
 Notation left_pt := (@left_pt R).
 Notation right_pt := (@right_pt R).
-Notation event := (event (RealField.sort R) edge).
-Notation point := (point (RealField.sort R) edge).
-Notation outgoing := (outgoing (RealField.sort R) edge).
+Notation event := (event (Num.RealField.sort R) edge).
+Notation point := (point (Num.RealField.sort R) edge).
+Notation outgoing := (outgoing (Num.RealField.sort R) edge).
 
-Notation cell := (cell (RealField.sort R) edge).
-Notation low := (low (RealField.sort R) edge).
-Notation high := (high (RealField.sort R) edge).
-Notation left_pts := (left_pts (RealField.sort R) edge).
-Notation right_pts := (right_pts (RealField.sort R) edge).
+Notation cell := (cell (Num.RealField.sort R) edge).
+Notation low := (low (Num.RealField.sort R) edge).
+Notation high := (high (Num.RealField.sort R) edge).
+Notation left_pts := (left_pts (Num.RealField.sort R) edge).
+Notation right_pts := (right_pts (Num.RealField.sort R) edge).
 
-Notation dummy_pt := (dummy_pt (RealField.sort R) 1).
-Notation dummy_edge := (dummy_edge (RealField.sort R)).
-Notation dummy_cell := (dummy_cell (RealField.sort R) 1 edge (@unsafe_Bedge R)).
+Notation dummy_pt := (dummy_pt (Num.RealField.sort R) 1).
+Notation dummy_edge := (dummy_edge (Num.RealField.sort R)).
+Notation dummy_cell := (dummy_cell (Num.RealField.sort R) 1 edge (@unsafe_Bedge R)).
 Notation valid_edge :=
-  (generic_trajectories.valid_edge (RealField.sort R) le edge left_pt right_pt).
+  (generic_trajectories.valid_edge (Num.RealField.sort R) <=%R edge left_pt right_pt).
 Notation vertical_intersection_point :=
-  (vertical_intersection_point (RealField.sort R) le +%R (fun x y => x - y) *%R
+  (vertical_intersection_point (Num.RealField.sort R) <=%R +%R (fun x y => x - y) *%R
     (fun x y => x / y) edge left_pt right_pt).
 Notation point_under_edge :=
-  (point_under_edge (RealField.sort R) le +%R (fun x y => x - y) *%R 1 edge left_pt
+  (point_under_edge (Num.RealField.sort R) <=%R +%R (fun x y => x - y) *%R 1 edge left_pt
     right_pt).
 Notation "p <<= g" := (point_under_edge p g).
 Notation "p >>> g" := (~~ (point_under_edge p g)).
 Notation point_strictly_under_edge :=
-  (point_strictly_under_edge  (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
+  (point_strictly_under_edge  (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
     edge left_pt right_pt).
 Notation "p <<< g" := (point_strictly_under_edge p g).
 Notation "p >>= g" := (~~ (point_strictly_under_edge p g)).
 Notation edge_below :=
-  (edge_below (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
+  (edge_below (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
    edge left_pt right_pt).
 Notation "x <| y" := (edge_below x y).
 Notation opening_cells_aux :=
-  (opening_cells_aux (RealField.sort R) eq_op le +%R (fun x y => x - y) *%R (fun x y => x / y)
+  (opening_cells_aux (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R (fun x y => x / y)
   1 edge (@unsafe_Bedge R) left_pt right_pt).
 Notation contains_point :=
-  (contains_point (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
+  (contains_point (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
     edge left_pt right_pt).
 
 Lemma opening_cells_aux_eqn p out low_e high_e :
@@ -1388,7 +1388,7 @@ by case: ifP=> [] _ /=; rewrite /left_limit /= keepit.
 Qed.
 
 Notation update_open_cell :=
-  (update_open_cell (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R
+  (update_open_cell (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R
     (fun x y => x / y) 1 edge (@unsafe_Bedge R) left_pt right_pt).
 
 Lemma update_open_cell_edges lsto ev nos lno :

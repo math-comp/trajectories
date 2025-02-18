@@ -17,7 +17,7 @@ Section working_context.
 
 Variable (R : realFieldType).
 
-Notation pt := (pt (RealField.sort R)).
+Notation pt := (pt (Num.RealField.sort R)).
 Notation Bpt := (Bpt _).
 Notation "p .x" := (generic_trajectories.p_x _ p)
     (at level 2, left associativity, format "p .x").
@@ -70,14 +70,14 @@ Notation area3 :=
 
 (* returns true if p is under e *)
 Notation point_under_edge :=
-  (point_under_edge (RealField.sort R) le +%R (fun x y => x - y) *%R 1 edge
+  (point_under_edge (Num.RealField.sort R) <=%R +%R (fun x y => x - y) *%R 1 edge
   left_pt right_pt).
 
 Notation point_strictly_under_edge :=
-  (point_strictly_under_edge (RealField.sort R) eq_op le +%R (fun x y => x - y) *%R 1 edge
+  (point_strictly_under_edge (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1 edge
   left_pt right_pt).
 
-Lemma R_ltb_lt  x y : R_ltb R eq_op le x y = (x < y).
+Lemma R_ltb_lt  x y : R_ltb R eq_op <=%R x y = (x < y).
 Proof. by rewrite /R_ltb -lt_neqAle. Qed.
 
 Lemma strictE p e :
@@ -620,7 +620,7 @@ Lemma underWC p e :
 Proof. by move/negP=> it; apply/negP=> it'; case: it; apply : underW. Qed.
 
 Notation valid_edge :=
-  (generic_trajectories.valid_edge (RealField.sort R) le edge left_pt right_pt).
+  (generic_trajectories.valid_edge (Num.RealField.sort R) <=%R edge left_pt right_pt).
 
 Lemma valid_edge_extremities e0 p:
   (left_pt e0 == p) || (right_pt e0 == p) ->
@@ -651,11 +651,11 @@ Notation "p '===' e" := (point_on_edge p e) (at level 70, no associativity).
 || (~~  (left_pt e2 <<< e1) && ~~ (right_pt e2<<< e1)). *)
 
 Notation edge_below :=
-  (edge_below (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
+  (edge_below (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
    edge left_pt right_pt).
 
 Lemma edge_belowE e1 e2 : edge_below e1 e2 =
-  generic_trajectories.edge_below (RealField.sort R) eq_op <=%R +%R
+  generic_trajectories.edge_below (Num.RealField.sort R) eq_op <=%R +%R
     (fun x y => x - y) *%R 1 edge left_pt right_pt e1 e2.
 Proof. by []. Qed.
 
@@ -853,7 +853,7 @@ Qed.
  intersecting p and the edge e if it exists, None if it doesn't *)
 
 Notation vertical_intersection_point :=
-  (vertical_intersection_point R le +%R (fun x y => x - y) *%R
+  (vertical_intersection_point R <=%R +%R (fun x y => x - y) *%R
     (fun x y => x / y) edge left_pt right_pt).
 
 Lemma vertical_none p e :
@@ -1146,7 +1146,7 @@ Qed.
 Lemma area3_change_ext a b a' b' p :
   a.x < b.x -> a'.x < b'.x ->
   area3 a' a b = 0 -> area3 b' a b = 0 ->
-  sg (area3 p a b) = sg (area3 p a' b').
+  Num.sg (area3 p a b) = Num.sg (area3 p a' b').
 Proof.
 move=> altb altb' ona onb.
 have /area3_triangle_on_edge := ona => /(_ p) ona'.
@@ -1929,13 +1929,13 @@ have [pltq | qltp | pq ] := ltrgtP (p.x) (q.x).
       by apply: (expand_valid piint);
         rewrite /valid_edge/generic_trajectories.valid_edge -?p1p -?q1q.
     rewrite -sgr_eq0 (area3_change_ext _ (edge_cond e1) p1q1) //.
-    by rewrite (eqP pi3) /sg !eqxx.
+    by rewrite (eqP pi3) /Num.sg !eqxx.
   have pi2 : pi === e2.
     apply/andP; split; last first.
       by apply:(expand_valid piint);
           rewrite /valid_edge/generic_trajectories.valid_edge -?p1p -?q1q.
     rewrite -sgr_eq0 (area3_change_ext _ (edge_cond e2) p2q2) //.
-    by rewrite pi4 /sg !eqxx.
+    by rewrite pi4 /Num.sg !eqxx.
   move: piint; rewrite /valid_edge/generic_trajectories.valid_edge.
   rewrite /e3/= -p1p -q1q=> /andP[] ppi piq.
   case: noc=> [E | /(_ pi pi1 pi2) piext]; first by move: pae2; rewrite -E pue1.
@@ -1958,13 +1958,13 @@ have [pltq | qltp | pq ] := ltrgtP (p.x) (q.x).
       by apply: (expand_valid piint); rewrite /valid_edge
            /generic_trajectories.valid_edge -?p1p -?q1q.
     rewrite -sgr_eq0 (area3_change_ext _ (edge_cond e1) q1p1) //.
-    by rewrite (eqP pi3) /sg !eqxx.
+    by rewrite (eqP pi3) /Num.sg !eqxx.
   have pi2 : pi === e2.
     apply/andP; split; last first.
       by apply:(expand_valid piint);
         rewrite /valid_edge/generic_trajectories.valid_edge -?p1p -?q1q.
     rewrite -sgr_eq0 (area3_change_ext _ (edge_cond e2) q2p2) //.
-    by rewrite pi4 /sg !eqxx.
+    by rewrite pi4 /Num.sg !eqxx.
   move: piint; rewrite /valid_edge/generic_trajectories.valid_edge.
   rewrite /e3/= -p1p -q1q=> /andP[] qpi pip.
   case: noc=> [E | /(_ pi pi1 pi2) piext]; first by move: pae2; rewrite -E pue1.
@@ -2010,7 +2010,7 @@ by rewrite (on_edge_same_point pone (pvert_on vpe)).
 Qed.
 
 Definition cmp_slopes e1 e2 :=
-  sg(((right_pt e2).y - (left_pt e2).y) *
+  Num.sg(((right_pt e2).y - (left_pt e2).y) *
      ((right_pt e1).x -(left_pt e1).x) -
      ((right_pt e1).y - (left_pt e1).y) *
      ((right_pt e2).x - (left_pt e2).x)).
@@ -2059,17 +2059,17 @@ Definition slope e :=
   ((right_pt e).y - (left_pt e).y) / ((right_pt e).x - (left_pt e).x).
 
 Lemma cmp_slopesE e1 e2 :
-  cmp_slopes e1 e2 = sg(slope e2 - slope e1).
+  cmp_slopes e1 e2 = Num.sg(slope e2 - slope e1).
 Proof.
 have := edge_cond e1.
   rewrite -subr_gt0 =>/gtr0_sg den1.
 have := edge_cond e2.
   rewrite -subr_gt0 =>/gtr0_sg den2.
 rewrite -[RHS]mul1r -den1 -[RHS]mul1r -den2 -!sgrM.
-rewrite [X in sg( _ * X)]mulrBr /slope.
-rewrite [X in sg(X)]mulrBr 2![in X in sg(X - _)]mulrA.
-rewrite [X in sg( X * _ * _ - _)]mulrC.
-rewrite 2![in X in sg(_ - X)]mulrA.
+rewrite [X in Num.sg( _ * X)]mulrBr /slope.
+rewrite [X in Num.sg(X)]mulrBr 2![in X in Num.sg(X - _)]mulrA.
+rewrite [X in Num.sg( X * _ * _ - _)]mulrC.
+rewrite 2![in X in Num.sg(_ - X)]mulrA.
 rewrite /cmp_slopes.
 set V := ((right_pt e1).x - _).
 set W := ((right_pt e2).x - _).
@@ -2141,7 +2141,7 @@ Lemma contact_left_slope e1 e2 :
 Proof.
 move=> /[dup] on2 /andP[] form val.
 suff area3_eq :
-  sg (area3 (right_pt e1) (left_pt e2) (right_pt e2)) =
+  Num.sg (area3 (right_pt e1) (left_pt e2) (right_pt e2)) =
   -(cmp_slopes e1 e2).
   rewrite !underE !strictE.
   rewrite -sgr_le0 area3_eq oppr_le0 sgr_ge0; split;[by [] |].
@@ -2156,7 +2156,7 @@ move: (val) => /andP[] _; rewrite le_eqVlt=> /orP[/eqP atr | le1ltre2].
   rewrite sgrN.
   rewrite !area3E !(proj1 (pue_f_eq_slopes _ _ _ _ _ _)).
   rewrite -eqps -(mulrC (_.y - _)).
-  rewrite -[X in _ = - sg (X * _ - _)]opprB -[X in _ = - sg (_ -  _ * X)]opprB.
+  rewrite -[X in _ = - Num.sg (X * _ - _)]opprB -[X in _ = - Num.sg (_ -  _ * X)]opprB.
   by rewrite mulrN mulNr -opprD opprB.
 set e2' := Bedge le1ltre2.
 have signcond := area3_change_ext (right_pt e1) (edge_cond e2) le1ltre2
@@ -2176,7 +2176,7 @@ Lemma contact_right_slope e1 e2 :
 Proof.
 move=> /[dup] on2 /andP[] form val.
 suff area3_eq :
-  sg (area3 (left_pt e1) (left_pt e2) (right_pt e2)) =
+  Num.sg (area3 (left_pt e1) (left_pt e2) (right_pt e2)) =
   cmp_slopes e1 e2.
   rewrite !underE !strictE.
   rewrite -area3_eq -[X in X = _ /\ _]sgr_le0; split; first by [].
@@ -2189,7 +2189,7 @@ move: (val) => /andP[] + _; rewrite le_eqVlt eq_sym=> /orP[/eqP atl | le2ltre1].
     by move=> [] ? ? [] ? ? /= -> ->.
   rewrite !area3E !(proj1 (pue_f_eq_slopes _ _ _ _ _ _)).
   rewrite eqps (mulrC (_.x - _)).
-  rewrite -[X in _ = sg (_ * X - _)]opprB -[X in _ = sg (_ -  X * _)]opprB.
+  rewrite -[X in _ = Num.sg (_ * X - _)]opprB -[X in _ = Num.sg (_ -  X * _)]opprB.
   by rewrite mulrN mulNr -opprD opprB.
 set e2' := Bedge le2ltre1.
 have signcond := area3_change_ext (left_pt e1) (edge_cond e2) le2ltre1

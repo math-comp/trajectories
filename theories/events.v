@@ -17,7 +17,7 @@ Section working_environment.
 
 Variable R : realFieldType.
 
-Notation pt := (pt (RealField.sort R)).
+Notation pt := (pt (Num.RealField.sort R)).
 Notation edge := (edge R).
 Notation left_pt := (@left_pt R).
 Notation right_pt := (@right_pt R).
@@ -27,18 +27,18 @@ Notation p_y := (p_y R).
 Notation event := (event R edge).
 Notation point := (point R edge).
 Notation outgoing := (outgoing R edge).
-Notation valid_edge := (valid_edge R le edge left_pt right_pt).
+Notation valid_edge := (valid_edge R <=%R edge left_pt right_pt).
 Notation point_under_edge :=
-  (point_under_edge (RealField.sort R) le +%R (fun x y => x - y) *%R 1 edge left_pt
+  (point_under_edge (Num.RealField.sort R) <=%R +%R (fun x y => x - y) *%R 1 edge left_pt
     right_pt).
 Notation "p <<= g" := (point_under_edge p g).
 Notation "p >>> g" := (~~ (point_under_edge p g)).
 Notation point_strictly_under_edge :=
-  (point_strictly_under_edge  (RealField.sort R) eq_op le +%R (fun x y => x - y) *%R 1
+  (point_strictly_under_edge  (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
     edge left_pt right_pt).
 Notation "p <<< g" := (point_strictly_under_edge p g).
 Notation edge_below :=
-  (edge_below (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
+  (edge_below (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
    edge left_pt right_pt).
 
 Definition event_eqb (ea eb : event) : bool :=
@@ -447,16 +447,55 @@ apply/(perm_trans Ih)/(perm_trans _ (add_out _ (left_pt ed) _)).
 by rewrite perm_cons; apply: add_inc.
 Qed.
 
-Lemma edges_to_events_uniq (bottom top : edge)(s : seq edge) :
-  uniq s -> {in edges_to_events s, forall ev, uniq (outgoing ev)}.
+Lemma add_event_uniq g p b s :
+  g \notin events_to_edges s ->
+  {in s, forall ev, uniq (outgoing ev)} ->
+  {in add_event p g b s, forall ev, uniq (outgoing ev)}.
 Proof.
-elim: s=> [ | g s Ih].
-  by [].
-move=> /andP[] gnotin uniqs.
+elim: s => [ | e s Ih].
+  move=> _ _.
+  by case: b=> /= e1; rewrite inE=> /eqP ->.
+move=> gnin allu.
+rewrite /=.
+case: ifP=> [] cmpq.
+  case: ifP=> [] bval.
+    move=> ev1; rewrite inE=> /orP[/eqP -> | ev1ins].
+      by rewrite /=; apply: allu; rewrite inE eqxx.
+    by apply: allu; rewrite inE ev1ins orbT.
+  move=> ev1; rewrite inE => /orP[/eqP -> | ev1ins].
+    rewrite /=; apply/andP; split; last first.
+      by apply: allu; rewrite inE eqxx.
+    apply/negP=> gin; case/negP: gnin.
+    by rewrite /events_to_edges /= mem_cat gin.
+  by apply: allu; rewrite inE ev1ins orbT.
+case: ifP=> [] cmplt.
+  case: ifP=> [] bval.
+    move=> ev1; rewrite inE => /orP[/eqP -> | ev1ines].
+      by [].
+    by apply: allu.
+  move=> ev1; rewrite inE => /orP[/eqP -> | ev1ines].
+    by [].
+  by apply: allu.
+case: ifP=> [] cmplex.
+  case: ifP=> [] bval.
+    move=> ev1; rewrite inE => /orP[/eqP -> | evines].
+      by [].
+    by apply: allu.
+  move=> ev1; rewrite inE => /orP[/eqP -> | evines].
+    by [].
+  by apply: allu.
+move=> ev1; rewrite inE => /orP[/eqP -> | evinrec].
+  by apply: allu; rewrite inE eqxx.
+apply: Ih.
+    by move: gnin; rewrite events_to_edges_cons mem_cat negb_or => /andP[].
+  by move=> ev' ev'in; apply: allu; rewrite inE ev'in orbT.
+by [].
+Qed.
 
-Lemma edges_to_events_no_crossing s :
-  {in s &, no_crossing R} ->
-  {in events_to_edges (edges_to_events s) &, no_crossing R}.
+Lemma edges_to_events_inter_at_ext (s : seq edge) :
+  {in s &, forall g1 g2, inter_at_ext g1 g2} ->
+  {in events_to_edges (edges_to_events s) &, 
+    forall g1 g2, inter_at_ext g1 g2}.
 Proof.
 by apply: sub_in2=> x; rewrite (perm_mem (edges_to_events_no_loss s)).
 Qed.

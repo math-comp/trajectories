@@ -17,44 +17,44 @@ Section working_environment.
 
 Variable R : realFieldType.
 
-Notation pt := (pt (RealField.sort R)).
-Notation Bpt := (Bpt (RealField.sort R)).
-Notation p_x := (p_x (RealField.sort R)).
-Notation p_y := (p_y (RealField.sort R)).
+Notation pt := (pt (Num.RealField.sort R)).
+Notation Bpt := (Bpt (Num.RealField.sort R)).
+Notation p_x := (p_x (Num.RealField.sort R)).
+Notation p_y := (p_y (Num.RealField.sort R)).
 Notation edge := (edge R).
 Notation left_pt := (@left_pt R).
 Notation right_pt := (@right_pt R).
-Notation valid_edge := (valid_edge (RealField.sort R) le edge left_pt right_pt).
+Notation valid_edge := (valid_edge (Num.RealField.sort R) <=%R edge left_pt right_pt).
 Notation point_under_edge :=
-  (point_under_edge (RealField.sort R) le +%R (fun x y => x - y) *%R 1 edge left_pt
+  (point_under_edge (Num.RealField.sort R) <=%R +%R (fun x y => x - y) *%R 1 edge left_pt
     right_pt).
 
 Notation "p <<= g" := (point_under_edge p g).
 Notation "p >>> g" := (~~ (point_under_edge p g)).
 Notation point_strictly_under_edge :=
-  (point_strictly_under_edge  (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
+  (point_strictly_under_edge  (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
     edge left_pt right_pt).
 Notation "p <<< g" := (point_strictly_under_edge p g).
 Notation "p >>= g" := (~~ (point_strictly_under_edge p g)).
 Notation edge_below :=
-  (edge_below (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
+  (edge_below (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1
    edge left_pt right_pt).
 Notation "e1 '<|' e2" := (edge_below e1 e2)( at level 70, no associativity).
-Notation event := (event (RealField.sort R) edge).
-Notation point := (point (RealField.sort R) edge).
-Notation outgoing := (outgoing (RealField.sort R) edge).
+Notation event := (event (Num.RealField.sort R) edge).
+Notation point := (point (Num.RealField.sort R) edge).
+Notation outgoing := (outgoing (Num.RealField.sort R) edge).
 
-Notation cell := (cell (RealField.sort R) edge).
-Notation Bcell := (Bcell (RealField.sort R) edge).
-Notation low := (low (RealField.sort R) edge).
-Notation high := (high (RealField.sort R) edge).
-Notation left_pts := (left_pts (RealField.sort R) edge).
-Notation right_pts := (right_pts (RealField.sort R) edge).
-Notation set_left_pts := (set_left_pts (RealField.sort R) edge).
-Notation cell_center := (cell_center (RealField.sort R) +%R
+Notation cell := (cell (Num.RealField.sort R) edge).
+Notation Bcell := (Bcell (Num.RealField.sort R) edge).
+Notation low := (low (Num.RealField.sort R) edge).
+Notation high := (high (Num.RealField.sort R) edge).
+Notation left_pts := (left_pts (Num.RealField.sort R) edge).
+Notation right_pts := (right_pts (Num.RealField.sort R) edge).
+Notation set_left_pts := (set_left_pts (Num.RealField.sort R) edge).
+Notation cell_center := (cell_center (Num.RealField.sort R) +%R
              (fun x y => x / y) 1 edge).
 Notation update_closed_cell :=
-  (update_closed_cell (RealField.sort R) 1 edge).
+  (update_closed_cell (Num.RealField.sort R) 1 edge).
 
 Definition cell_eqb (ca cb : cell) : bool :=
   let: generic_trajectories.Bcell lptsa rptsa lowa higha := ca in
@@ -103,12 +103,12 @@ Definition unsafe_Bedge (a b : pt) :=
   if (ltrP (p_x a) (p_x b)) is LtrNotGe h then Bedge h else
     Bedge (ltr01 : p_x (Bpt 0 0) < p_x (Bpt 1 0)).
 
-Notation dummy_pt := (generic_trajectories.dummy_pt (RealField.sort R) 1).
-Notation dummy_event := (generic_trajectories.dummy_event (RealField.sort R) 1 edge).
-Notation dummy_edge := (generic_trajectories.dummy_edge (RealField.sort R) 1 edge unsafe_Bedge).
-Notation dummy_cell := (dummy_cell (RealField.sort R) 1 edge unsafe_Bedge).
+Notation dummy_pt := (generic_trajectories.dummy_pt (Num.RealField.sort R) 1).
+Notation dummy_event := (generic_trajectories.dummy_event (Num.RealField.sort R) 1 edge).
+Notation dummy_edge := (generic_trajectories.dummy_edge (Num.RealField.sort R) 1 edge unsafe_Bedge).
+Notation dummy_cell := (dummy_cell (Num.RealField.sort R) 1 edge unsafe_Bedge).
 Notation vertical_intersection_point :=
-  (vertical_intersection_point (RealField.sort R) le +%R (fun x y => x - y) *%R
+  (vertical_intersection_point (Num.RealField.sort R) <=%R +%R (fun x y => x - y) *%R
     (fun x y => x / y) edge left_pt right_pt).
 
 Definition head_cell (s : seq cell) := head dummy_cell s.
@@ -118,10 +118,10 @@ Lemma left_pts_set c l: left_pts (set_left_pts c l) = l.
 Proof. by move: c => []. Qed.
 
 Notation  contains_point :=
-  (contains_point (RealField.sort R) eq_op le +%R (fun x y => x - y) *%R 1 edge
+  (contains_point (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R 1 edge
   left_pt right_pt).
 Notation midpoint :=
-  (midpoint (RealField.sort R) +%R (fun x y => x / y) 1).
+  (midpoint (Num.RealField.sort R) +%R (fun x y => x / y) 1).
 
 Lemma contains_pointE p c :
   contains_point p c = (p >>= low c) && (p <<= high c).
@@ -136,7 +136,7 @@ by move=> /andP[] /underWC A B; rewrite contains_pointE A B.
 Qed.
 
 Definition open_limit c :=
-  min (p_x (right_pt (low c))) (p_x (right_pt (high c))).
+  Num.min (p_x (right_pt (low c))) (p_x (right_pt (high c))).
 
 Definition bottom_left_corner (c : cell) := last dummy_pt (left_pts c).
 
@@ -270,7 +270,7 @@ Definition closing_cells (p : pt) (contact_cells: seq cell) : seq cell :=
 
 Lemma closing_cellsE p cs :
   closing_cells p cs =
-  generic_trajectories.closing_cells (RealField.sort R) eq_op <=%R +%R
+  generic_trajectories.closing_cells (Num.RealField.sort R) eq_op <=%R +%R
   (fun x y => x - y) *%R (fun x y => x / y) edge left_pt right_pt
    p cs.
 Proof. by []. Qed.
@@ -1542,7 +1542,7 @@ Qed.
 
 Lemma left_limit_max c:
   open_cell_side_limit_ok c ->
-  max (p_x (left_pt (high c))) (p_x (left_pt (low c))) <= left_limit c.
+  Num.max (p_x (left_pt (high c))) (p_x (left_pt (low c))) <= left_limit c.
 Proof.
 move=>/andP[] + /andP[] + /andP[] _ /andP[] /andP[] _ + /andP[] _ +.
 rewrite /left_limit ge_max.
@@ -1627,7 +1627,7 @@ Qed.
 
 Lemma inside_box_lt_min_right (p : pt) :
   inside_box p ->
-  p_x p < min (p_x (right_pt bottom)) (p_x (right_pt top)).
+  p_x p < Num.min (p_x (right_pt bottom)) (p_x (right_pt top)).
 Proof.
 move=> /andP[] _ /andP[] /andP[] _ + /andP[] _.
 by case : (ltrP (p_x (right_pt bottom)) (p_x (right_pt top))).
