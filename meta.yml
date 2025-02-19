@@ -28,7 +28,7 @@ license:
 
 supported_coq_versions:
   text: Coq >= 8.17, MathComp >= 2.2.0
-  opam: '{ (>= "8.17" & < "8.20~") | (= "dev") }'
+  opam: '{ (>= "8.17" & < "8.21~") | (= "dev") }'
 
 tested_coq_opam_versions:
 - version: '2.2.0-coq-8.19'

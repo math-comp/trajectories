@@ -181,7 +181,7 @@ move: sub=>/=; case sa: (b == a).
 by move=>/IHs' [f [fn flt]]; exists (fun i => lift ord0 (f i)).
 Qed.
 
-Lemma hom_lt_inj {disp disp' : unit} {T : orderType disp} {T' : porderType disp'} [f : T -> T'] :
+Lemma hom_lt_inj {disp disp'} {T : orderType disp} {T' : porderType disp'} [f : T -> T'] :
   {homo f : x y / (x < y)%O >-> (x < y)%O} -> injective f.
 Proof.
 move=>flt i j.
