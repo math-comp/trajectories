@@ -208,7 +208,17 @@ The safe part of a closed cell is defined in this manner:
   right-side points.
 \end{itemize}
 
-This safety property is only guaranteed under a collection of
+In a similar manner, we can describe unsafe locations as points lying
+on an obstacle:
+\begin{itemize}
+\item the x-coordinate of these points is between the x-coordinates of
+the two extremities,
+\item the signed area function for these points and the edge
+  extremities has value 0,
+\item any point taken from the list of input events is unsafe.
+\end{itemize}
+
+is only guaranteed under a collection of
 assumptions concerning the input segments and events:
 \begin{itemize}
 \item The only allowed intersections between segments are at their
@@ -216,6 +226,10 @@ assumptions concerning the input segments and events:
 \item all events (including segment extremeties) are inside the box
  defined by the bottom and top edges.
 \end{itemize}
+
+In the end, the main safety property can be expressed as a very simple
+set-theoretical statement:  The intersection between the set of unsafe
+locations and the safe part of all produced cells is empty.
 
 A property that does not appear immediately as a safety property is
 that the middle of every cell is strictly included in the cell.  This
@@ -233,4 +247,77 @@ edges without duplications.  Our code to generate the sequence of
 events does not include steps to guarantee this, but if the input
 list of obstacles has no duplications, the code does not duplicate them.
 
+\section{Proving the safety property}
+\subsection{Mirroring contexts}
+The infra-structure of definitions provided by the Mathematical
+Components library is not fully compatible with the extraction
+process.  To obtain code that is amenable for extraction, we write a
+first file called {\tt generic\_trajectories}, that does not rely on
+any of the mathematical structures present in math comp, but is
+parameterized by a given type supposed to represent numbers, with 4
+operations (addition, subtraction, multiplication, division) and two
+comparisons.  Also, this algorithm relies on a degraded type of edges,
+where the condition that the first point is on the left of the second
+point is absent from the data-structure.
+
+The generic algorithm is used in all the proof files.  In each of
+these proof files, we open a section where the type of numbers is
+actually provided by a structure of type {\tt realFieldType}.  It
+should be noted that all the proofs performed about this algorithm
+only rely on the fact that the type of numbers forms a field, so that
+any implementation of rational numbers is for making all the
+computations.
+
+Every function imported from {\tt generic\_trajectories} is a function
+with at least 7 arguments.  To make the whole setup comfortable, a
+header of notation definition is provided to instantiate the function
+to the type and operations provided by the field structure.
+
+
+\subsection{Main organization of the proof}
+The first part of the algorithm consists in preparing the list of
+events, processing these events in the order given by the list
+simulates the intuitive behavior of moving a vertical line
+progressively from the left-hand side of the box to the right-hand
+side.
+
+The algorithm maintains a sequence of open cells between two events,
+the topological properties of these cells are preserved as one moves
+from one event to the next: the low and high edges of the cell are the
+same, the neighbor cells on the other side of these edges are the
+same, etc.  Only when an event occurs does the structure of the list
+of open cells change.  Some cells that were present in the list of
+open cells are removed from that list, and after some modification,
+they are added to the list of closed cells, new cells are created
+where the low or high edge, or both, are taken from the outgoing edges
+of the currently processed event.
+
+This feels like reasoning by homotopy.  Depending on the position of
+the sweeping line, the intersections between these lines and the low
+and high edges of each open cell are at different heights, but these
+points are always ordered on this line in the same manner.  In other
+words, the topological structure of the sequence of cells evolves
+continuously as the sweeping line moves from one event to the other.
+This relies on a strong invariant concerning the sequence of events:
+any change of topology (for example the end of an active edge) must be
+recorded in the sequence of events.  This is reflected by two
+predicates {\tt close\_alive\_edges} and {\tt close\_edges\_from\_events}.
+
+In our work, we rely quite a lot on a relation between edges, named
+{\em edge\_below} and noted by the infix symbol {\tt <|}.  It turns
+out that this relation is reflexive, not transitive, and not
+antisymmetric, so many of the tools we
+would like to inherit from the ambient formal mathematics library
+cannot be used directly out of the box.
+
+In the proof, we established five levels of invariants:
+\begin{itemize}
+\item In the first level, we look for properties that concern only the
+sequence of open cells,
+\item In the second level, 
+\end{itemize}
+
+\subsection{Algebraic properties of the area function}
+\subsection{Building up invariants}
+\subsection{The key property of disjoint cells}
 \end{document}
