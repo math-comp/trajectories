@@ -6,23 +6,13 @@ Follow the instructions on https://github.com/coq-community/templates to regener
 
 [![Docker CI][docker-action-shield]][docker-action-link]
 
-[docker-action-shield]: https://github.com/math-comp/trajectories/actions/workflows/docker-action.yml/badge.svg?branch=master
-[docker-action-link]: https://github.com/math-comp/trajectories/actions/workflows/docker-action.yml
+[docker-action-shield]: https://github.com/math-comp/trajectories/workflows/Docker%20CI/badge.svg?branch=master
+[docker-action-link]: https://github.com/math-comp/trajectories/actions?query=workflow:"Docker%20CI"
 
-This directory contain a variety of developments that were  thought to be
-useful for the computation of trajectories between obstacles.
 
-The leading example relies on a decomposition of a plane area in vertical
-cells, which gives a graph whose nodes are the cells.  The next step is to
-compute a path in this graph, from which a piecewise straight line
-trajectory is computed, which is guaranted to stay inside the safe cells, or
-to go from one cell to a neighbor only through a safe crossing.  The final
-step is to smoothen the trajectory, by using Bezier curves for which checks
-are performed to verify that they stay within the safe part of the area.
 
-A demonstration version is available at 
-[this page](https://stamp.gitlabpages.inria.fr/trajectories.html).
 
+TODO
 
 ## Meta
 
@@ -30,7 +20,7 @@ A demonstration version is available at
   - Reynald Affeldt (initial)
   - Yves Bertot (initial)
 - License: [CeCILL-C](LICENSE)
-- Compatible Coq versions: Coq >= 8.17, MathComp >= 2.2.0
+- Compatible Coq versions: Coq >= 8.19, MathComp >= 2.2.0
 - Additional dependencies:
   - [MathComp ssreflect 2.2.0 or later](https://math-comp.github.io)
   - [MathComp fingroup 2.2.0 or later](https://math-comp.github.io)
@@ -64,6 +54,19 @@ make   # or make -j <number-of-cores-on-your-machine>
 make install
 ```
 
+
+This directory contain a variety of developments that were  thought to be
+useful for the computation of trajectories between obstacles.
+
+The leading example relies on a decomposition of a plane area in vertical
+cells, which gives a graph whose nodes are the cells.  The next step is to
+compute a path in this graph, from which a piecewise straight line
+trajectory is computed, which is guaranted to stay inside the safe cells, or
+to go from one cell to a neighbor only through a safe crossing.  The final
+step is to smoothen the trajectory, by using Bezier curves for which checks
+are performed to verify that they stay within the safe part of the area.
+
+A demonstration version is available at [this page](https://stamp.gitlabpages.inria.fr/trajectories.html).
 
 ## Disclaimer
 
