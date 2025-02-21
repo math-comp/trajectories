@@ -6,23 +6,13 @@ Follow the instructions on https://github.com/coq-community/templates to regener
 
 [![Docker CI][docker-action-shield]][docker-action-link]
 
-[docker-action-shield]: https://github.com/math-comp/trajectories/actions/workflows/docker-action.yml/badge.svg?branch=master
-[docker-action-link]: https://github.com/math-comp/trajectories/actions/workflows/docker-action.yml
+[docker-action-shield]: https://github.com/math-comp/trajectories/workflows/Docker%20CI/badge.svg?branch=master
+[docker-action-link]: https://github.com/math-comp/trajectories/actions?query=workflow:"Docker%20CI"
 
-This directory contain a variety of developments that were  thought to be
-useful for the computation of trajectories between obstacles.
 
-The leading example relies on a decomposition of a plane area in vertical
-cells, which gives a graph whose nodes are the cells.  The next step is to
-compute a path in this graph, from which a piecewise straight line
-trajectory is computed, which is guaranted to stay inside the safe cells, or
-to go from one cell to a neighbor only through a safe crossing.  The final
-step is to smoothen the trajectory, by using Bezier curves for which checks
-are performed to verify that they stay within the safe part of the area.
 
-A demonstration version is available at 
-[this page](https://stamp.gitlabpages.inria.fr/trajectories.html).
 
+TODO
 
 ## Meta
 
@@ -39,8 +29,8 @@ A demonstration version is available at
   - [MathComp field 2.2.0 or later](https://math-comp.github.io)
   - [Mathcomp real closed 2.0.0 or later](https://github.com/math-comp/real-closed/)
   - [Algebra tactics 1.2.0 or later](https://github.com/math-comp/algebra-tactics)
-  - [MathComp analysis 1.0.0 or later](https://github.com/math-comp/analysis)
-  - [Infotheo 0.7.0 of later](https://github.com/affeldt-aist/infotheo)
+  - [MathComp analysis 1.9.0 or later](https://github.com/math-comp/analysis)
+  - [Infotheo 0.9.1 of later](https://github.com/affeldt-aist/infotheo)
 - Coq namespace: `mathcomp.trajectories`
 - Related publication(s):
   - [Safe Smooth Paths between Straight Line Obstacles](https://inria.hal.science/hal-04312815) doi:[https://doi.org/10.1007/978-3-031-61716-4_3](https://doi.org/https://doi.org/10.1007/978-3-031-61716-4_3)

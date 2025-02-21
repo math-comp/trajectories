@@ -72,14 +72,14 @@ dependencies:
     [Algebra tactics 1.2.0 or later](https://github.com/math-comp/algebra-tactics)
 - opam:
     name: coq-mathcomp-analysis
-    version: '{ (>= "1.0.0") }'
+    version: '{ (>= "1.9.0") }'
   description: |-
-    [MathComp analysis 1.0.0 or later](https://github.com/math-comp/analysis)
+    [MathComp analysis 1.9.0 or later](https://github.com/math-comp/analysis)
 - opam:
     name: coq-infotheo
-    version: '{ >= "0.7.0"}'
+    version: '{ >= "0.9.1"}'
   description: |-
-    [Infotheo 0.7.0 of later](https://github.com/affeldt-aist/infotheo)
+    [Infotheo 0.9.1 of later](https://github.com/affeldt-aist/infotheo)
 
 namespace: mathcomp.trajectories
 
