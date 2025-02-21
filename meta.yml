@@ -27,13 +27,11 @@ license:
   file: LICENSE
 
 supported_coq_versions:
-  text: Coq >= 8.19, MathComp >= 2.2.0
-  opam: '{ (>= "8.19" & < "8.21~") | (= "dev") }'
+  text: Coq >= 8.17, MathComp >= 2.2.0
+  opam: '{ (>= "8.17" & < "8.21~") | (= "dev") }'
 
 tested_coq_opam_versions:
-- version: '2.3.0-coq-8.19'
-  repo: 'mathcomp/mathcomp'
-- version: '2.3.0-coq-8.20'
+- version: '2.2.0-coq-8.19'
   repo: 'mathcomp/mathcomp'
 
 dependencies:
@@ -97,21 +95,8 @@ publications:
   pub_doi: https://doi.org/10.1007/978-3-031-61716-4_3
 
 documentation: |-
-  This directory contain a variety of developments that were  thought to be
-  useful for the computation of trajectories between obstacles.
- 
-  The leading example relies on a decomposition of a plane area in vertical
-  cells, which gives a graph whose nodes are the cells.  The next step is to
-  compute a path in this graph, from which a piecewise straight line
-  trajectory is computed, which is guaranted to stay inside the safe cells, or
-  to go from one cell to a neighbor only through a safe crossing.  The final
-  step is to smoothen the trajectory, by using Bezier curves for which checks
-  are performed to verify that they stay within the safe part of the area.
-
-  A demonstration version is available at [this page](https://stamp.gitlabpages.inria.fr/trajectories.html).
-
   ## Disclaimer
-
+ 
   TODO
 
   ## Documentation
