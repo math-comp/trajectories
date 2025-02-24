@@ -27,12 +27,10 @@ license:
   file: LICENSE
 
 supported_coq_versions:
-  text: Coq >= 8.17, MathComp >= 2.2.0
-  opam: '{ (>= "8.17" & < "8.21~") | (= "dev") }'
+  text: Coq >= 8.19, MathComp >= 2.2.0
+  opam: '{ (>= "8.19" & < "8.21~") | (= "dev") }'
 
 tested_coq_opam_versions:
-- version: '2.3.0-coq-8.19'
-  repo: 'mathcomp/mathcomp'
 - version: '2.3.0-coq-8.20'
   repo: 'mathcomp/mathcomp'
 

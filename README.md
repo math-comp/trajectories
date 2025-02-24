@@ -20,7 +20,7 @@ TODO
   - Reynald Affeldt (initial)
   - Yves Bertot (initial)
 - License: [CeCILL-C](LICENSE)
-- Compatible Coq versions: Coq >= 8.17, MathComp >= 2.2.0
+- Compatible Coq versions: Coq >= 8.19, MathComp >= 2.2.0
 - Additional dependencies:
   - [MathComp ssreflect 2.2.0 or later](https://math-comp.github.io)
   - [MathComp fingroup 2.2.0 or later](https://math-comp.github.io)
