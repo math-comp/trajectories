@@ -1,4 +1,5 @@
-From mathcomp Require Import all_ssreflect all_algebra lra.
+From mathcomp Require Import all_ssreflect all_algebra.
+Require Export Field.
 Require Import generic_trajectories.
 Require Import math_comp_complements points_and_edges events cells.
 Require Import opening_cells cells_alg initial_cell simple_step.
@@ -13,6 +14,7 @@ Import Order.TTheory GRing.Theory Num.Theory Num.ExtraDef Num.
 Open Scope ring_scope.
 
 Section working_environment.
+
 Variable R : realFieldType.
 
 (* Notation prefix, duplicated from cells_alg.v *)
@@ -39,13 +41,13 @@ Notation edge_below :=
 Notation "x <| y" := (edge_below x y).
 Notation valid_edge :=
   (generic_trajectories.valid_edge (Num.RealField.sort R)
-   le edge left_pt right_pt).
+   <=%R edge left_pt right_pt).
 Notation vertical_intersection_point :=
   (vertical_intersection_point (Num.RealField.sort R)
-  le +%R (fun x y => x - y) *%R
+  <=%R +%R (fun x y => x - y) *%R
   (fun x y => x / y) edge left_pt right_pt).
 Notation point_under_edge :=
-  (point_under_edge (Num.RealField.sort R) le +%R (fun x y => x - y) *%R 1
+  (point_under_edge (Num.RealField.sort R) <=%R +%R (fun x y => x - y) *%R 1
   edge left_pt right_pt).
 Notation "p <<= g" := (point_under_edge p g).
 Notation "p >>> g" := (~~ (point_under_edge p g)).
@@ -60,14 +62,14 @@ Notation contains_point :=
     edge left_pt right_pt).
 
 Notation open_cells_decomposition_contact :=
-  (open_cells_decomposition_contact (Num.RealField.sort R) eq_op le +%R
+  (open_cells_decomposition_contact (Num.RealField.sort R) eq_op <=%R +%R
   (fun x y => x - y) *%R 1 edge left_pt right_pt).
 Notation open_cells_decomposition_rec :=
-  (open_cells_decomposition_rec (Num.RealField.sort R) eq_op le +%R
+  (open_cells_decomposition_rec (Num.RealField.sort R) eq_op <=%R +%R
   (fun x y => x - y) *%R 1 edge (@unsafe_Bedge R) left_pt
   right_pt).
 Notation open_cells_decomposition :=
-  (open_cells_decomposition (Num.RealField.sort R) eq_op le +%R
+  (open_cells_decomposition (Num.RealField.sort R) eq_op <=%R +%R
   (fun x y => x - y) *%R 1 edge (@unsafe_Bedge R) left_pt
   right_pt).
 
@@ -107,11 +109,11 @@ Notation set_pts := (set_pts (Num.RealField.sort R) edge).
   the first segment of the last opening cells should keep its existing
   left points.*)
 Notation update_open_cell :=
-  (update_open_cell (Num.RealField.sort R) eq_op le +%R (fun x y => x - y)
+  (update_open_cell (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
   *%R (fun x y => x / y) 1 edge (@unsafe_Bedge R) left_pt right_pt).
 
 Notation update_open_cell_top :=
-  (update_open_cell_top (Num.RealField.sort R) eq_op le +%R (fun x y => x - y)
+  (update_open_cell_top (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
   *%R (fun x y => x / y) 1
   edge (@unsafe_Bedge R) left_pt right_pt).
 
@@ -122,12 +124,12 @@ Notation opening_cells_aux :=
   *%R (fun x y => x / y) 1 edge (@unsafe_Bedge R) left_pt right_pt).
 
 Notation simple_step :=
-  (generic_trajectories.simple_step (Num.RealField.sort R) eq_op le +%R
+  (generic_trajectories.simple_step (Num.RealField.sort R) eq_op <=%R +%R
   (fun x y => x - y) *%R (fun x y => x / y)
   1 edge (@unsafe_Bedge R) left_pt right_pt).
 
 Notation step :=
-  (step (Num.RealField.sort R) eq_op le +%R (fun x y => x - y) *%R
+  (step (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R
   (fun x y => x / y) 1 edge (@unsafe_Bedge R) left_pt right_pt).
 (*
 Definition scan events st : seq cell * seq cell :=
@@ -136,7 +138,7 @@ Definition scan events st : seq cell * seq cell :=
    lst_closed final_state :: sc_closed final_state). *)
 
 Notation start_open_cell :=
-  (start_open_cell (Num.RealField.sort R) eq_op le +%R (fun x y => x - y)
+  (start_open_cell (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
   *%R (fun x y => x / y) edge left_pt right_pt).
 
 Notation open_cell_side_limit_ok :=
@@ -155,8 +157,9 @@ Notation open_cell_side_limit_ok :=
   cells, here named "open", should be reduced to only one element. *)
 
 Record common_general_position_invariant bottom top edge_set s
-  (events : seq event) :=
-  { gcomm : common_invariant bottom top edge_set s events;
+  (all_events processed_events events : seq event) :=
+  { gcomm : common_invariant bottom top edge_set s all_events processed_events
+    events;
    general_pos :
      all (fun ev => lst_x _ _ s < p_x (point ev)) events &&
      sorted (fun e1 e2 => p_x (point e1) < p_x (point e2)) events;
@@ -164,20 +167,21 @@ Record common_general_position_invariant bottom top edge_set s
 
 Record disjoint_general_position_invariant (bottom top : edge)
  (edge_set : seq edge)
- (s : scan_state) (events : seq event) :=
+ (s : scan_state) (all_events processed_events events : seq event) :=
  { op_cl_dis :
      {in state_open_seq s & state_closed_seq s,
        disjoint_open_closed_cells R};
    cl_dis : {in state_closed_seq s &, disjoint_closed_cells R};
    common_inv_dis : common_general_position_invariant bottom top
-        edge_set s events;
+        edge_set s all_events processed_events events;
    pairwise_open : pairwise edge_below
        (bottom :: [seq high c | c <- state_open_seq s]);
    closed_at_left :
        {in state_closed_seq s & events,
           forall c e, right_limit c <= p_x (point e)}}.
 
-Lemma initial_common_general_position_invariant bottom top s events:
+Lemma initial_common_general_position_invariant bottom top s 
+  events:
   sorted (fun e1 e2=> p_x (point e1) < p_x (point e2)) events ->
   bottom <| top ->
   (* TODO: rephrase this statement in a statement that easier to understand. *)
@@ -191,7 +195,8 @@ Lemma initial_common_general_position_invariant bottom top s events:
   close_edges_from_events events ->
   events != [::] ->
   common_general_position_invariant bottom top s
-    (initial_state bottom top events) (behead events).
+    (initial_state bottom top events)
+    events (take 1 events) (behead events).
 Proof.
 move=> ltev boxwf startok nocs' evin lexev evsub out_evs uniqout cle evsn0.
 have ici := initial_common_invariant boxwf startok nocs' evin lexev evsub
@@ -220,8 +225,7 @@ Lemma initial_disjoint_general_position_invariant
   close_edges_from_events events ->
   events != [::] ->
   disjoint_general_position_invariant bottom top s
-   (initial_state bottom top events)
-   (* (head (dummy_event _) events) *) (behead events).
+   (initial_state bottom top events) events (take 1 events) (behead events).
 Proof.
 move=> ltev boxwf startok nocs' evin lexev evsub out_evs uniqout cle evsn0.
 have := initial_common_general_position_invariant ltev boxwf startok
@@ -268,7 +272,7 @@ Qed.
 
 Lemma simple_step_common_general_position_invariant
   bottom top s fop lsto lop fc cc lcc lc le he cls lstc ev
-  lsthe lstx evs :
+  lsthe lstx all_events processed_events evs :
   bottom <| top ->
   {in bottom :: top :: s &, forall e1 e2, inter_at_ext e1 e2} ->
   {in s, forall g, inside_box bottom top (left_pt g) &&
@@ -276,10 +280,11 @@ Lemma simple_step_common_general_position_invariant
   open_cells_decomposition (fop ++ lsto :: lop) (point ev) =
     (fc, cc, lcc, lc, le, he) ->
   common_general_position_invariant bottom top s
-     (Bscan fop lsto lop cls lstc lsthe lstx)
+     (Bscan fop lsto lop cls lstc lsthe lstx) all_events processed_events
      (ev :: evs) ->
   common_general_position_invariant bottom top s
-     (simple_step fc cc lc lcc le he cls lstc ev)
+     (simple_step fc cc lc lcc le he cls lstc ev) all_events
+     (rcons processed_events ev)
     evs.
 Proof.
 move=> boxwf nocs' inbox_s oe.
@@ -314,7 +319,7 @@ Qed.
 
 Lemma simple_step_disjoint_general_position_invariant
   bottom top s fop lsto lop fc cc lcc lc le he cls lstc ev
-  lsthe lstx evs :
+  lsthe lstx all_events processed_events evs :
   bottom <| top ->
   {in bottom :: top :: s &, forall e1 e2, inter_at_ext e1 e2} ->
   {in s, forall g, inside_box bottom top (left_pt g) &&
@@ -322,18 +327,19 @@ Lemma simple_step_disjoint_general_position_invariant
   open_cells_decomposition (fop ++ lsto :: lop) (point ev) =
     (fc, cc, lcc, lc, le, he) ->
   disjoint_general_position_invariant bottom top s
-     (Bscan fop lsto lop cls lstc lsthe lstx)
+     (Bscan fop lsto lop cls lstc lsthe lstx) all_events processed_events
      (ev :: evs) ->
   disjoint_general_position_invariant bottom top s
-     (simple_step fc cc lc lcc le he cls lstc ev)
+     (simple_step fc cc lc lcc le he cls lstc ev) all_events
+     (rcons processed_events ev)
     evs.
 Proof.
 move=> boxwf nocs' inbox_s oe.
 move=> []; rewrite /state_open_seq/state_closed_seq/=.
 move=> oc_dis c_dis Cinv pw rl.
 have := Cinv=> -[] []; rewrite /state_open_seq/state_closed_seq/=.
-move=> inv1 lstxq lstheq sub_edges cle out_es uniqout inbox_es.
-move=> no_dup lexev oks gen_pos.
+move=> inv1 lstxq lstheq sub_edges events_dec cle out_es uniqout inbox_es.
+move=> no_dup lexev oks _ _ _.
 have := inv1 => -[] clae [] []; first by [].
 move=> sval []adj []cbtom rfo.
 rewrite /simple_step.
@@ -341,7 +347,8 @@ case oca_eq : (opening_cells_aux _ _ _ _) => [nos lno].
 have Cinv' : common_general_position_invariant bottom top s
          (Bscan (fc ++ nos) lno lc
             (cls ++ lstc :: closing_cells (point ev) cc)
-            (close_cell (point ev) lcc) he (p_x (point ev))) evs.
+            (close_cell (point ev) lcc) he (p_x (point ev)))
+            all_events (rcons processed_events ev) evs.
   have := simple_step_common_general_position_invariant boxwf nocs' inbox_s oe.
   rewrite /simple_step.
   by rewrite oca_eq=> /(_ _ _ lsthe lstx); apply.
@@ -349,9 +356,9 @@ have cl_at_left' : {in rcons cls lstc,
         forall c, right_limit c <= p_x (point ev)}.
   by move=> c cin; apply: rl; rewrite // inE eqxx.
 have oute : out_left_event ev by apply: out_es; rewrite inE eqxx.
-have := step_keeps_disjoint_default inbox_es oute rfo
+have disjointness := step_keeps_disjoint_default inbox_es oute rfo
          cbtom adj sval pw oks oc_dis c_dis cl_at_left'.
-rewrite oe oca_eq /= !cat_rcons -!cats1 /= => disjointness.
+rewrite oe oca_eq /= !cat_rcons -!cats1 /= in disjointness.
 have op_cl_dis':
   {in (fc ++ nos) ++ lno :: lc & rcons (cls ++ lstc ::
            closing_cells (point ev) cc) (close_cell (point ev) lcc),
@@ -368,8 +375,7 @@ have noc : {in all_edges (fop ++ lsto :: lop) (ev :: evs) &,
   by move=> g1 gt2 g1in g2in; apply: nocs; apply: sub_edges.
 have pwo' : pairwise edge_below
            (bottom :: [seq high c | c <- (fc ++ nos) ++ lno :: lc]).
-have := step_keeps_pw_default inbox_es oute rfo cbtom adj sval
-      noc pw.
+  have := step_keeps_pw_default inbox_es oute rfo cbtom adj sval noc pw.
   by rewrite oe oca_eq -catA.
 have right_limit_closed' :
   {in  rcons(cls ++
@@ -378,6 +384,8 @@ have right_limit_closed' :
   have:= step_keeps_right_limit_closed_default inbox_es cbtom adj
     sval lexev cl_at_left'.
   by rewrite oe oca_eq /=.
+have all_events_break' : all_events = rcons processed_events ev ++ evs.
+  by rewrite cat_rcons.
 by constructor.
 Qed.
 
@@ -411,18 +419,21 @@ have := initial_disjoint_general_position_invariant ltev boxwf startok nocs'
   evin lexev evsub out_evs uniq_evs cle evsn0.
 rewrite /initial_state evsq.
 case oca_eq : (opening_cells_aux _ _ _ _) => [nos1 lno1] /=.
-elim: (future_events) {oca_eq evsq} (Bscan _ _ _ _ _ _ _)=> [ | ev' fut' Ih].
+have : ev :: future_events = (ev :: take 0 future_events) ++ future_events.
+  by case: (future_events).
+move: (ev :: future_events) (ev :: take 0 future_events).
+elim: (future_events) {oca_eq evsq} (Bscan _ _ _ _ _ _ _)=> [ | ev' fut' Ih] + ae pe.
   move=> state_f /=; case: state_f=> [] f m l cls lstc lsthe lstx.
-  move=> /[swap] -[] <- <-; case; rewrite /state_open_seq /state_closed_seq /=.
+  move=> aeq /[swap] -[] <- <-; case; rewrite /state_open_seq /state_closed_seq /=.
   move=> dis_op_cl dis_cl *; split; move=> c1 c2 c1in c2in.
     by apply: dis_cl; rewrite // mem_rcons.
   by apply: dis_op_cl; rewrite // mem_rcons.
 move=> {evs ltev evin lexev evsub out_evs uniq_evs cle evsn0}.
-move=> [fop lsto lop cls lstc lsthe lstx].
+move=> [fop lsto lop cls lstc lsthe lstx] aeq.
 case; set ops' := (state_open_seq _); set (cls' := state_closed_seq _).
 rewrite /=.
 move=> dis_open_closed dis_cl /[dup] Cinv [] [] inv1 lstxq lstheq sub_edges.
-move=> /[dup] cle /andP[cl_e_fut' cle'] out_fut'.
+move=> all_events_dec /[dup] cle /andP[cl_e_fut' cle'] out_fut'.
 move=> uniq_evs'.
 move=> /= /[dup]  inbox_all_events' /andP[inbox_e inbox_all_events].
 move=> no_dup lexevs oks.
@@ -438,7 +449,8 @@ rewrite -/(open_cells_decomposition _ _).
 rewrite /generic_trajectories.simple_step.
 case oe : (open_cells_decomposition _ _) => [[[[[fc cc] lcc] lc] le] he].
 case oca_eq : (opening_cells_aux _ _ _ _) => [nos lno].
-apply: Ih.
+apply: (Ih _ ae (rcons pe ev')).
+  by rewrite aeq cat_rcons.
 have :=
   simple_step_disjoint_general_position_invariant boxwf nocs' inbox_s oe.
   rewrite /simple_step.
@@ -447,7 +459,7 @@ by apply.
 Qed.
 
 Record edge_covered_general_position_invariant (bottom top : edge)
- (edge_set : seq edge) (processed_set : seq event)
+ (edge_set : seq edge) (all_events processed_set : seq event)
  (s : scan_state) (events : seq event) :=
  { edge_covered_ec : {in processed_set, forall e,
        {in outgoing e, forall g,
@@ -456,7 +468,7 @@ Record edge_covered_general_position_invariant (bottom top : edge)
        exists2 c, c \in (state_closed_seq s) &
            point e \in (right_pts c : seq pt) /\ point e >>> low c}  ;
    common_inv_ec : common_general_position_invariant bottom top edge_set
-     s events;
+     s all_events processed_set events;
    non_in_ec :
       {in edge_set & events, forall g e, non_inner g (point e)};
    inj_high : {in state_open_seq s &, injective high};
@@ -482,7 +494,7 @@ Lemma initial_edge_covering_general_position
   {in events, forall ev, uniq (outgoing ev)} ->
   events != [::] ->
   edge_covered_general_position_invariant bottom top s
-   [:: (head dummy_event events)]
+   events [:: (head dummy_event events)]
    (initial_state bottom top events) (behead events).
 Proof.
 move=> gen_pos lexev wf cle startok nocs' n_inner inbox_es sub_es out_es
@@ -559,7 +571,7 @@ by constructor.
 Qed.
 
 Lemma simple_step_edge_covered_general_position
-  bottom top s cov_set fop lsto lop fc cc lcc lc le he cls lstc ev
+  bottom top s all_events cov_set fop lsto lop fc cc lcc lc le he cls lstc ev
   lsthe lstx evs :
   bottom <| top ->
   {in bottom :: top :: s &, forall e1 e2, inter_at_ext e1 e2} ->
@@ -568,10 +580,10 @@ Lemma simple_step_edge_covered_general_position
   open_cells_decomposition (fop ++ lsto :: lop) (point ev) =
     (fc, cc, lcc, lc, le, he) ->
   edge_covered_general_position_invariant bottom top s
-   cov_set (Bscan fop lsto lop cls lstc lsthe lstx)
+   all_events cov_set (Bscan fop lsto lop cls lstc lsthe lstx)
    (ev :: evs) ->
   edge_covered_general_position_invariant bottom top s
-    (rcons cov_set ev) (simple_step fc cc lc lcc le he cls lstc ev)
+    all_events (rcons cov_set ev) (simple_step fc cc lc lcc le he cls lstc ev)
     evs.
 Proof.
 move=> boxwf nocs' inbox_s.
@@ -582,7 +594,7 @@ move=> oe.
 move=> [] covered p_covered /[dup] Cinv [] [] /[dup] inv_s [] clae.
 move=> - [] []; first by [].
 rewrite /state_open_seq/state_closed_seq /= => sval [] adj [] cbtom rfo.
-move=> lstxq lstheq sub_edges cle out_es uniq_evs.
+move=> lstxq lstheq sub_edges events_dec cle out_es uniq_evs.
 move=> /[dup] inbox0 /andP[] inbox_e inbox_es no_dup lexev oks.
 move=> bottom_left_corner_cond strd.
 move=> /andP[] lstxlt pathlt n_inner inj_high btm_left_lex.
@@ -725,17 +737,17 @@ rewrite /initial_state evsq /=.
 case oca_eq : (opening_cells_aux _ _ _ _) => [nos lno].
 set istate := Bscan _ _ _ _ _ _ _.
 move=> istateP req.
-suff main : forall events op cl st cov_set,
-  edge_covered_general_position_invariant bottom top s cov_set st events ->
+suff main : forall events all_events op cl st cov_set,
+  edge_covered_general_position_invariant bottom top s all_events cov_set st events ->
   scan events st = (op, cl) ->
   ({in events_to_edges (cov_set ++ events), forall g, edge_covered g op cl} /\
   {in cov_set ++ events, forall e, exists2 c, c \in cl &
     point e \in (right_pts c : seq pt) /\ point e >>> low c}).
-  by move: req; apply: (main _ _ _ _ [:: ev]).
-  move=> {req istateP istate oca_eq lno nos evsn0 evsq future_events ev}.
-  move=> {uniq_edges n_inner out_evs evsub lexev evin startok ltev}.
-  move=> {cle closed open evs}.
-  elim=> [ | ev evs Ih] op cl st cov_set.
+  by move: req; apply: (main _ (ev :: future_events) _ _ _ [:: ev]).
+move=> {req istateP istate oca_eq lno nos evsn0 evsq future_events ev}.
+move=> {uniq_edges n_inner out_evs evsub lexev evin startok ltev}.
+move=> {cle closed open evs}.
+elim=> [ | ev evs Ih] all_events op cl st cov_set.
   case: st => fop lsto lop cls lstc lsthe lstx /=.
   move=> []; rewrite /state_open_seq/state_closed_seq /= => + p_main.
   move=> main _ _ _ _ [] <- <-; rewrite cats0; split.
@@ -745,7 +757,7 @@ suff main : forall events op cl st cov_set,
   move=> e=> /p_main [c2 c2in pin2]; exists c2=> //.
   by move: c2in; rewrite mem_rcons.
 move=> inv0; rewrite -cat_rcons.
-apply: Ih.
+apply: (Ih all_events).
 case stq : st => [fop lsto lop cls lstc lsthe lstx].
 rewrite /step/generic_trajectories.step.
 have /andP[/andP[+ _] _] := general_pos (common_inv_ec inv0).
@@ -759,13 +771,14 @@ by have := simple_step_edge_covered_general_position boxwf nocs'
 Qed.
 
 Record safe_side_general_position_invariant (bottom top : edge)
- (edge_set : seq edge) (processed_set : seq event)
+ (edge_set : seq edge) (all_events processed_set : seq event)
  (s : scan_state) (events : seq event) :=
  { disjoint_ss :
-     disjoint_general_position_invariant bottom top edge_set s events;
+     disjoint_general_position_invariant bottom top edge_set s 
+     all_events processed_set events;
    covered_ss :
      edge_covered_general_position_invariant bottom top edge_set
-       processed_set s events;
+       all_events processed_set s events;
     left_proc : {in processed_set & events, forall e1 e2,
                      p_x (point e1) < p_x (point e2)};
     rf_closed : {in state_closed_seq s, forall c, low c <| high c};
@@ -779,7 +792,7 @@ Record safe_side_general_position_invariant (bottom top : edge)
           forall c e, left_limit c < p_x (point e)};
    left_o_b :
         {in state_open_seq s, forall c, left_limit c <
-              min (p_x (right_pt bottom)) (p_x (right_pt top))};
+              Num.min (p_x (right_pt bottom)) (p_x (right_pt top))};
    closed_lt :
         {in state_closed_seq s, forall c, left_limit c < right_limit c};
    closed_ok :
@@ -819,7 +832,7 @@ Lemma initial_safe_side_general_position bottom top s events:
   {in events, forall ev, uniq (outgoing ev)} ->
   events != [::] ->
   safe_side_general_position_invariant bottom top s
-    [::(head dummy_event events)]
+    events [::(head dummy_event events)]
    (initial_state bottom top events) (behead events).
 Proof.
 move=> gen_pos lexev wf cle startok nocs' n_inner inbox_es sub_es out_es
@@ -949,14 +962,15 @@ have lt_p_ev :
   by move=> e1 e2; rewrite inE => /eqP ->; apply: lte.
 have ll_o_b :
   {in nos ++ [:: lno], forall c,
-       left_limit c < min (p_x (right_pt bottom)) (p_x (right_pt top))}.
+       left_limit c < Num.min (p_x (right_pt bottom)) (p_x (right_pt top))}.
   move=> c cin.
   have := opening_cells_left oute vb0 vt0; rewrite /opening_cells oca_eq.
   rewrite -cats1 => /(_ _ cin) ->.
   by apply: inside_box_lt_min_right.
+rewrite [take 1 _](_ : _ = [:: ev]) in d_inv; last first.
+  by case: (evs).
 by constructor.
 Qed.
-
 
 Lemma start_safe_sides bottom top s closed open evs :
   sorted (fun e1 e2=> p_x (point e1) < p_x (point e2)) evs ->
@@ -989,7 +1003,7 @@ Lemma start_safe_sides bottom top s closed open evs :
     high (head_cell open) = top /\
     {in open & closed, disjoint_open_closed_cells R} /\
     (evs != [::] ->
-      left_limit (head_cell open) < min (p_x (right_pt bottom))
+      left_limit (head_cell open) < Num.min (p_x (right_pt bottom))
       (p_x (right_pt top))).
 Proof.
 move=> ltev boxwf startok nocs' inbox_s evin lexev evsub out_evs cle
@@ -1001,14 +1015,15 @@ case evsq : evs => [ | ev future_events]; first by  move=> [] <- <-.
 have evsn0 : evs != [::] by rewrite evsq.
 case oca_eq : opening_cells_aux => [nos lno].
 set istate := Bscan _ _ _ _ _ _ _.
-have : safe_side_general_position_invariant bottom top s [:: ev]
+have : safe_side_general_position_invariant bottom top s evs [:: ev]
   istate future_events.
   have := initial_safe_side_general_position ltev lexev boxwf cle startok
     nocs' n_inner evin evsub out_evs uniq_edges evsn0.
   by rewrite evsq /= oca_eq.
 move=> invss req.
-suff main: forall events op cl st processed_set,
-  safe_side_general_position_invariant bottom top s processed_set st events ->
+suff main: forall events op cl st all_events processed_set,
+  safe_side_general_position_invariant bottom top s all_events
+    processed_set st events ->
   scan events st = (op, cl) ->
   {in cl, forall c,
     low c <| high c /\
@@ -1027,14 +1042,14 @@ suff main: forall events op cl st processed_set,
   low (head_cell op) = bottom /\
   high (head_cell op) = top /\
   {in op & cl, disjoint_open_closed_cells R} /\
-  (left_limit (head_cell op) < min (p_x (right_pt bottom))
+  (left_limit (head_cell op) < Num.min (p_x (right_pt bottom))
       (p_x (right_pt top))).
-  have [A [B [C [D [E [F [G [H I]]]]]]]] := main _ _ _ _ _ invss req.
+  have [A [B [C [D [E [F [G [H I]]]]]]]] := main _ _ _ _ _ _ invss req.
   split; last by [].
   move=> c cin; move: (A c cin) => [] crf [] difc [] lltr [] clok A'.
   do 4 (split; first by []).
   by move=> p pside; have := A' _ pside.
-elim=> [ | {evsq oca_eq istate invss}ev {req}future_events Ih] op cl st p_set.
+elim=> [ | {evsq oca_eq istate invss}ev {req}future_events Ih] op cl st all_events p_set.
   case stq : st => [fop lsto lop cls lstc lsthe lstx] [].
   move=> d_inv e_inv.
   set c_inv := common_inv_dis d_inv.
@@ -1116,7 +1131,7 @@ rewrite /simple_step/generic_trajectories.simple_step/=.
 rewrite -/(opening_cells_aux _ _ _ _).
 case oca_eq : (opening_cells_aux _ _ _ _) => [{}nos {}lno].
 rewrite -(cat_rcons ev).
-apply: Ih.
+apply: (Ih _ _ _ all_events).
 have [clae [pre_sval [adj [cbtom rfo]]]] := inv1 (gcomm c_inv).
 move: pre_sval=> [| sval]; first by[].
 have inbox_es := inbox_events (gcomm c_inv).
@@ -1136,16 +1151,17 @@ have oute : out_left_event ev.
 have oute' :
   {in (sort edge_below (outgoing ev)), forall g, left_pt g == point ev}.
   by move=> g; rewrite mem_sort; apply: oute.
-set rstate := Bscan _ _ _ _ _ _ _.
+set rstate := Bscan (fc ++ nos) _ _ _ _ _ _.
 have d_inv':
-  disjoint_general_position_invariant bottom top s rstate future_events.
+  disjoint_general_position_invariant bottom top s rstate all_events
+    (rcons p_set ev) future_events.
   move: (d_inv); rewrite stq=> d_inv'.
   have := simple_step_disjoint_general_position_invariant boxwf nocs'
       inbox_s oe d_inv'.
   rewrite /simple_step/generic_trajectories.simple_step/=.
   by rewrite -/(opening_cells_aux _ _ _ _) oca_eq.
 have e_inv' :edge_covered_general_position_invariant bottom top s
-    (rcons p_set ev) rstate future_events.
+    all_events (rcons p_set ev) rstate future_events.
   move: e_inv; rewrite stq=> e_inv.
   have := simple_step_edge_covered_general_position boxwf nocs'
       inbox_s oe e_inv.
@@ -1519,7 +1535,7 @@ have rf_closed1 : {in state_closed_seq rstate, forall c, low c <| high c}.
   move=> [] _ [] _ [] _ [] _ /allP; apply.
   by rewrite ocd -cat_rcons !mem_cat c'in orbT.
 have lo_lb' : {in state_open_seq rstate, forall c,
-               left_limit c < min (p_x (right_pt bottom)) (p_x (right_pt top))}.
+               left_limit c < Num.min (p_x (right_pt bottom)) (p_x (right_pt top))}.
   move=>c; rewrite /state_open_seq/= -catA -cat_rcons !mem_cat orbCA.
   move=> /orP[cnew | cold]; last first.
     by apply: lo_lb; rewrite ocd -cat_rcons !mem_cat orbCA cold orbT.
