@@ -1,5 +1,5 @@
-From mathcomp Require Import all_ssreflect all_algebra vector reals ereal classical_sets.
-From mathcomp Require Import zmodp.
+From mathcomp Require Import all_ssreflect all_algebra.
+From mathcomp Require Import reals ereal classical_sets.
 Require Export preliminaries preliminaries_hull axiomsKnuth.
 
 (******************************************************************************)

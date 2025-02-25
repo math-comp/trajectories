@@ -14,11 +14,9 @@ Elpi Query lp:{{
   coq.say "snd primproj" Q2 N2
 }}.
 
-
-
-Require Import Reals.
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect all_algebra vector reals classical_sets Rstruct.
+From mathcomp Require Import all_ssreflect all_algebra.
+From mathcomp Require Import classical_sets reals Rstruct.
 From infotheo Require Import convex.
 
 Import GRing.Theory Num.Theory convex.
@@ -29,7 +27,6 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 (* TODO: move to mathcomp ? *)
-
 Lemma enum_rank_index {T : finType} i :
   nat_of_ord (enum_rank i) = index i (enum T).
 Proof.
@@ -162,7 +159,9 @@ case: i; case=>[| i] ilt.
 by left; exists (Ordinal (ltnSE ilt)); apply val_inj.
 Qed.
 
-Lemma subseq_incl (T: eqType) (s s': seq T) x: subseq s s' -> {f: 'I_(size s) -> 'I_(size s') | (forall i, nth x s' (f i) = nth x s i) /\ {homo f : y x / (x < y)%O >-> (x < y)%O}}.
+Lemma subseq_incl (T : eqType) (s s' : seq T) x : subseq s s' ->
+  {f : 'I_(size s) -> 'I_(size s') | (forall i, nth x s' (f i) = nth x s i) /\
+    {homo f : y x / (x < y)%O >-> (x < y)%O}}.
 Proof.
 elim: s' s=> [| a s' IHs'] s sub.
    by move:sub=>/eqP -> /=; exists id; split=>// i j.
@@ -181,7 +180,7 @@ move: sub=>/=; case sa: (b == a).
 by move=>/IHs' [f [fn flt]]; exists (fun i => lift ord0 (f i)).
 Qed.
 
-Lemma hom_lt_inj {disp disp' : unit} {T : orderType disp} {T' : porderType disp'} [f : T -> T'] :
+Lemma hom_lt_inj {disp disp'} {T : orderType disp} {T' : porderType disp'} [f : T -> T'] :
   {homo f : x y / (x < y)%O >-> (x < y)%O} -> injective f.
 Proof.
 move=>flt i j.
@@ -215,8 +214,8 @@ case Pa: (P a).
 by case: n=>//=; rewrite ltnS; apply IHs.
 Qed.
 
-Lemma big_pair [R : Type] (idr : R) (opr : R -> R -> R) [S : Type] (ids : S) (ops : S -> S -> S) [I : Type]
-  (r : seq I) (F : I -> R) (G: I -> S) :
+Lemma big_pair [R : Type] (idr : R) (opr : R -> R -> R) [S : Type] (ids : S)
+    (ops : S -> S -> S) [I : Type] (r : seq I) (F : I -> R) (G: I -> S) :
   \big[(fun (x y: R*S)=> (opr x.1 y.1, ops x.2 y.2))/(idr, ids)]_(i <- r) (F i, G i) =
   (\big[opr/idr]_(i <- r) F i, \big[ops/ids]_(i <- r) G i).
 Proof.
@@ -228,12 +227,15 @@ Qed.
 From infotheo Require Import fdist.
 Local Open Scope fdist_scope.
 
-Lemma Convn_pair [T U : convType] [n : nat] (g : 'I_n -> T * U) (d : {fdist 'I_n}) :
-  Convn conv d g = (Convn conv d (Datatypes.fst \o g), Convn conv d (Datatypes.snd \o g)).
+Lemma Convn_pair [T U : @convType Rdefinitions.R] [n : nat] (g : 'I_n -> T * U)
+    (d : {fdist 'I_n}) :
+  Convn conv d g = (Convn conv d (Datatypes.fst \o g),
+                    Convn conv d (Datatypes.snd \o g)).
 Proof.
 elim: n g d => [|n IHn] g d.
    by have := fdistI0_False d.
-rewrite /Convn; case: (Bool.bool_dec _ _) => [_|d0]; first by rewrite -surjective_pairing.
+rewrite /Convn; case: (Bool.bool_dec _ _) => [_|d0].
+  by rewrite -surjective_pairing.
 have := IHn (g \o fdist_del_idx ord0) (fdist_del (Bool.eq_true_not_negb _ d0)).
 by rewrite/Convn => ->.
 Qed.

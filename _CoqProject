@@ -9,7 +9,6 @@ theories/civt.v
 theories/desc.v
 theories/desc1.v
 theories/desc2.v
-theories/infra.v
 theories/bern.v
 theories/bern5.v
 theories/casteljau.v

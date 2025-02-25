@@ -4959,7 +4959,7 @@ Record common_invariant bottom top edge_set s
      lexePt (point (head dummy_event events)) (right_pt g)}
 }.
 
-Record common_non_gp_invariant bottom top edge_set s 
+Record common_non_gp_invariant bottom top edge_set s
   (all_events processed_events events : seq event) :=
   { ngcomm : common_invariant bottom top edge_set s all_events
     processed_events events;

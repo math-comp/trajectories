@@ -116,7 +116,7 @@ case: (ord_S_split a).
 by move=>_; rewrite inE.
 Qed.
 
-Lemma homo_lt_total {disp disp' : unit} {T : orderType disp}
+Lemma homo_lt_total disp disp' {T : orderType disp}
    {T' : orderType disp'} [f : T -> T'] : {homo f : x y / x < y >-> x < y} ->
    forall x y, f x < f y -> x < y.
 Proof.
@@ -126,7 +126,7 @@ move:xy=>/negbT/lt_total/orP; case=>// /fh fyx.
 by move:(lt_trans fxy fyx); rewrite lt_irreflexive.
 Qed.
 
-Lemma homo_lt_inj {disp disp' : unit} {T : orderType disp}
+Lemma homo_lt_inj {disp disp'} {T : orderType disp}
    {T' : orderType disp'} [f : T -> T'] : {homo f : x y / x < y >-> x < y} ->
    injective f.
 Proof.

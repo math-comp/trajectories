@@ -1,5 +1,7 @@
 Require Export counterclockwise conv encompass preliminaries.
-From mathcomp Require Import all_ssreflect ssralg matrix ssrnum vector reals normedtype order boolp classical_sets constructive_ereal.
+From mathcomp Require Import all_ssreflect ssralg matrix ssrnum vector reals.
+From mathcomp Require Import normedtype order boolp classical_sets.
+From mathcomp Require Import constructive_ereal.
 
 (******************************************************************************)
 (*  separated a b c d == true if a = b or (ab) intersects [c,d]               *)
@@ -204,8 +206,6 @@ Qed.
    show that b <| t |> a is between x and y, which concludes the proof.
    *)
 
-Import Order.TBLatticeTheory.
-
 Lemma hull_border_no_intersection (l : seq Plane) (a b : Plane) :
   (3 <= size l)%N ->
   uniq l ->
@@ -307,7 +307,7 @@ have : [exists i : 'I_(size l), det l`_i l`_i.+1mod (b <| sup I |> a) <= 0].
   have t01: in01 (fine (mine t 1%E)).
     apply/andP; split; rewrite -lee_fin tfin; last by rewrite lteIx le_refl orbT.
     rewrite ltexI; apply/andP; split; last by rewrite lee_fin ler01.
-    apply: Order.TLatticeTheory.meets_ge => i abgt; rewrite lee_fin; apply: (mulr_ge0 (la _)).
+    apply: Order.TMeetTheory.meets_ge => i abgt; rewrite lee_fin; apply: (mulr_ge0 (la _)).
     by apply ltW; rewrite invr_gt0 -2![det l`_i _ _]det_cyclique.
   apply: sup_upper_bound => //; apply/andP; split => //.
   rewrite encompass_all_index l0/=; apply/forallP => i.
@@ -318,7 +318,7 @@ have : [exists i : 'I_(size l), det l`_i l`_i.+1mod (b <| sup I |> a) <= 0].
     rewrite -subr_ge0 -(pmulr_lge0 _ abgt0) mulrBl subr_ge0 -mulrA divff// mulr1.
     rewrite -lee_fin tfin leIx; apply/orP; left.
     rewrite ![det _ l`_i _]det_cyclique /t.
-    by move:abgt0; rewrite invr_gt0=>abgt; exact: Order.TLatticeTheory.meets_inf.
+    by move:abgt0; rewrite invr_gt0=>abgt; exact: Order.TMeetTheory.meets_inf.
   rewrite {2}[det a _ _]det_cyclique (le_trans _ (la i))// mulr_ge0_le0 //.
   by move:t01 => /andP[].
 move=> /existsP[i] iable0.

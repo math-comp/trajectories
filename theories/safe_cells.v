@@ -17,14 +17,14 @@ Section safety_property.
 
 Variable R : realFieldType.
 
-Notation pt := (@pt (RealField.sort R)).
+Notation pt := (@pt (Num.RealField.sort R)).
 Notation p_x := (p_x R).
 Notation p_y := (p_y R).
 Notation Bpt := (Bpt R).
 Notation edge := (@edge R).
-Notation cell := (@cell (RealField.sort R) edge).
-Notation low := (low (RealField.sort R) edge).
-Notation high := (high (RealField.sort R) edge).
+Notation cell := (@cell (Num.RealField.sort R) edge).
+Notation low := (low (Num.RealField.sort R) edge).
+Notation high := (high (Num.RealField.sort R) edge).
 Notation left_pts := (left_pts R edge).
 Notation right_pts := (right_pts R edge).
 Notation dummy_pt := (dummy_pt R 1).
@@ -32,19 +32,19 @@ Notation event := (@event R edge).
 Notation point' := (@point R edge).
 Notation outgoing := (@point R edge).
 Notation point_under_edge :=
-  (point_under_edge (RealField.sort R) <=%R +%R (fun x y => x - y)
+  (point_under_edge (Num.RealField.sort R) <=%R +%R (fun x y => x - y)
     *%R 1 edge (@left_pt R)(@right_pt R)).
 Notation "p <<= e" := (point_under_edge p e).
 Notation "p >>> e" := (negb (point_under_edge p e)).
 Notation valid_edge :=
-  (valid_edge (RealField.sort R) <=%R edge (@left_pt R) (@right_pt R)).
+  (valid_edge (Num.RealField.sort R) <=%R edge (@left_pt R) (@right_pt R)).
 Notation point_strictly_under_edge :=
-  (point_strictly_under_edge (RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
+  (point_strictly_under_edge (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
     *%R 1 edge (@left_pt R)(@right_pt R)).
 Notation "p <<< e" := (point_strictly_under_edge p e).
 Notation "p >>= e" := (negb (point_strictly_under_edge p e)).
 Notation edge_below :=
-  (generic_trajectories.edge_below (RealField.sort R) eq_op <=%R +%R
+  (generic_trajectories.edge_below (Num.RealField.sort R) eq_op <=%R +%R
     (fun x y => x - y) *%R 1 edge (@left_pt R) (@right_pt R)).
 Notation "x <| y" := (edge_below x y).
 
@@ -262,46 +262,46 @@ Section main_statement.
 
 Variable R : realFieldType.
 
-Notation pt := (@pt (RealField.sort R)).
-Notation p_x := (p_x (RealField.sort R)).
-Notation p_y := (p_y (RealField.sort R)).
-Notation Bpt := (Bpt (RealField.sort R)).
+Notation pt := (@pt (Num.RealField.sort R)).
+Notation p_x := (p_x (Num.RealField.sort R)).
+Notation p_y := (p_y (Num.RealField.sort R)).
+Notation Bpt := (Bpt (Num.RealField.sort R)).
 Notation edge := (@edge R).
-Notation cell := (@cell (RealField.sort R) edge).
-Notation low := (low (RealField.sort R) edge).
-Notation high := (high (RealField.sort R) edge).
-Notation left_pts := (left_pts (RealField.sort R) edge).
-Notation right_pts := (right_pts (RealField.sort R) edge).
-Notation dummy_pt := (dummy_pt (RealField.sort R) 1).
-Notation event := (@event (RealField.sort R) edge).
-Notation point := (@point (RealField.sort R) edge).
-Notation outgoing := (@outgoing (RealField.sort R) edge).
+Notation cell := (@cell (Num.RealField.sort R) edge).
+Notation low := (low (Num.RealField.sort R) edge).
+Notation high := (high (Num.RealField.sort R) edge).
+Notation left_pts := (left_pts (Num.RealField.sort R) edge).
+Notation right_pts := (right_pts (Num.RealField.sort R) edge).
+Notation dummy_pt := (dummy_pt (Num.RealField.sort R) 1).
+Notation event := (@event (Num.RealField.sort R) edge).
+Notation point := (@point (Num.RealField.sort R) edge).
+Notation outgoing := (@outgoing (Num.RealField.sort R) edge).
 Notation point_under_edge :=
-  (point_under_edge (RealField.sort R) <=%R +%R (fun x y => x - y)
+  (point_under_edge (Num.RealField.sort R) <=%R +%R (fun x y => x - y)
     *%R 1 edge (@left_pt R)(@right_pt R)).
 Notation "p <<= e" := (point_under_edge p e).
 Notation "p >>> e" := (negb (point_under_edge p e)).
 Notation valid_edge :=
-  (valid_edge (RealField.sort R) <=%R edge (@left_pt R) (@right_pt R)).
+  (valid_edge (Num.RealField.sort R) <=%R edge (@left_pt R) (@right_pt R)).
 Notation point_strictly_under_edge :=
-  (point_strictly_under_edge (RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
+  (point_strictly_under_edge (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
     *%R 1 edge (@left_pt R)(@right_pt R)).
 Notation "p <<< e" := (point_strictly_under_edge p e).
 Notation "p >>= e" := (negb (point_strictly_under_edge p e)).
 Notation edge_below :=
-  (generic_trajectories.edge_below (RealField.sort R) eq_op <=%R +%R
+  (generic_trajectories.edge_below (Num.RealField.sort R) eq_op <=%R +%R
     (fun x y => x - y) *%R 1 edge (@left_pt R) (@right_pt R)).
 Notation "x <| y" := (edge_below x y).
 
 Notation vertical_intersection_point :=
-  (vertical_intersection_point (RealField.sort R) le +%R
+  (vertical_intersection_point (Num.RealField.sort R) <=%R +%R
   (fun x y => x - y) *%R
   (fun x y => x / y) edge (@left_pt R) (@right_pt R)).
 Notation leftmost_points :=
- (leftmost_points (RealField.sort R) eq_op le +%R (fun x y => x - y) *%R
+ (leftmost_points (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R
   (fun x y => x / y) edge (@left_pt R) (@right_pt R)).
 Notation start_open_cell :=
-  (start_open_cell (RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R
+  (start_open_cell (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y) *%R
   (fun x y => x / y) edge (@left_pt R) (@right_pt R)).
 
 Arguments pt_eqb : simpl never.
