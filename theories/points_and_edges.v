@@ -682,6 +682,18 @@ Definition inter_at_ext (e1 e2 : edge) :=
   e1 = e2 \/
   forall p, p === e1 -> p === e2 -> p \in [:: left_pt e1; right_pt e1].
 
+(* TODO: prove the equivalence between inter_at_ext and inter_at_extb
+  (or find another boolean predicate to be used instead).
+  Note that this is the readable encoding of the function by the same
+  name in generic_trajectories. *)
+Definition inter_at_extb (e1 e2 : edge) : bool :=
+  (e1 == e2) ||
+  ((edge_below e1 e2 || edge_below e2 e1) &&
+  ((left_pt e1 === e2) ==> (left_pt e1 \in [:: left_pt e2; right_pt e2])) &&
+  ((right_pt e1 === e2) ==> (right_pt e1 \in [:: left_pt e2; right_pt e2])) &&
+  ((left_pt e2 === e1) ==> (left_pt e2 \in [:: left_pt e1; right_pt e1])) &&
+  ((right_pt e2 === e1) ==> (right_pt e2 \in [:: left_pt e1; right_pt e1]))).
+
 Definition inter_at_ext' (e1 e2 : edge) :=
   e1 = e2 \/
   forall p, p === e2 -> p === e1 -> p \in [:: left_pt e2; right_pt e2].

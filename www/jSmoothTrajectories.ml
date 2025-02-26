@@ -75,6 +75,19 @@ let rec l2stringr l =
                else 
                ((string_of_int a) ^ " " ^ l2stringr l1)
 
+(* This function checks that there are no intersections between edges
+  (but accepts edges that only touch at their extremities). *)
+let call_no_intersections s =
+  let l = string2ln s in
+  if qno_intersections (list2es l) = True then "true" else "false"
+
+(* The first 24 elements of the sequence are representations of integers for
+   numerators and denominators of 6 points (each point has 2 coordinates,
+   each coordinate has a numerator and a denominator).  The other elements
+   of the input sequence are descriptions of the obstacles.  The results
+   are curve elements, which are either Bezier elements or straight elements.
+*)
+
 let call_smooth s = 
   let l = string2ln s in
   match l with
@@ -90,7 +103,7 @@ let call_smooth s =
       (n2pt p2n1 p2d1 p2n2 p2d2) in 
     l2stringr (curve_elements2n v)
 
-
+(* The results are curve elements that are all straight segments. *)
 let call_straight s = 
   let l = string2ln s in
   match l with
@@ -134,6 +147,8 @@ let call_cells s =
 let _ =
   Js.export "ocamlLib"
     (object%js
+      method no_intersection s =
+           Js.string (call_no_intersections (Js.to_string s))
       method straight s = Js.string (call_straight (Js.to_string s))
       method smooth s = Js.string (call_smooth (Js.to_string s))
       method cells s = Js.string (call_cells (Js.to_string s))

@@ -3,6 +3,11 @@ Require Import Reals.
 
 Open Scope R_scope.
 
+(* In this file, we define a function edges_to_events_nc which takes a collection
+  of edges with potential crossings and construct a sequence of events whose
+  edges cover the same parts of the plane, but with no crossings.  It relies
+  on rational number computations.  *)
+
 (* x1 is the first coordinate of the vector corresponding to an edge.  It is
  reasonable to assume it is non-zero in the context of vertical cell
  decomposition, because edges are not vertical.  If intersection with
@@ -75,7 +80,9 @@ Definition pre_cross_second_coordinate (e1 : edge) (cross_coordinate : Q) :=
   (p_x (right_pt e1) - p_x (left_pt e1)) *
  (cross_coordinate - p_x (left_pt e1))).
 
-Definition cross_second_coordinate (e1 e2 : edge) :=
+(* This function computes the second coordinate of the intersection between the two
+  edges, without assuming that none of them is vertical (but it assumes they cross). *)
+ Definition cross_second_coordinate (e1 e2 : edge) :=
   if Qeq_bool (p_x (left_pt e1)) (p_x (right_pt e1)) then
      pre_cross_second_coordinate e2 (cross_first_coordinate e1 e2)
   else
@@ -88,13 +95,18 @@ Definition edge_determinant (e1 e2 : edge) : Q :=
   let x2 := p_x (right_pt e2) - p_x (left_pt e2) in
   x1 * y2 - x2 * y1.
 
-(* We don't consider edges to cross if they touch at their extremeties. *)
+(* We don't consider edges to cross if they touch at their extremities. *)
 Definition have_crossing (e1 e2 : edge) : bool :=
   let x1 := p_x (right_pt e1) - p_x (left_pt e1) in
   let d2 := edge_determinant e1 e2 in
   if Qeq_bool x1 0 then
+    let y1 := Qminmax.Qmin (p_y (left_pt e1)) (p_y (right_pt e1)) in
+    let y2 := Qminmax.Qmax (p_y (left_pt e1)) (p_y (right_pt e1)) in
+    let y3 := cross_second_coordinate e2 e1 in 
      Qlt_bool (p_x (left_pt e2)) (p_x (left_pt e1)) &&
-     Qlt_bool (p_x (left_pt e1)) (p_x (right_pt e2))
+     Qlt_bool (p_x (left_pt e1)) (p_x (right_pt e2))  &&
+     Qlt_bool y1 y3 &&
+     Qlt_bool y3 y2
   else
   if negb (Qeq_bool d2 0) then
      (Qlt_bool (p_x (left_pt e2)) (cross_first_coordinate e1 e2) &&
@@ -201,6 +213,7 @@ Definition add_edge_avoid_cross_debug (evs : seq event) (e : edge) :=
 Definition edges_to_events_nc (es : seq edge) : seq event :=
   seq.foldl add_edge_avoid_cross nil es.
 
+(*
 Definition e1 := (Bedge (Bpt 0 (-2)) (Bpt 2 (-1))).
 Definition e2 := (Bedge (Bpt 0 0) (Bpt 2 (-2))).
 Definition e3 := (Bedge (Bpt 0 (-3)) (Bpt 2 1)).
@@ -277,7 +290,7 @@ Compute cross_first_coordinate e2 e3.
 Compute find_all_crossing_points e3 (edges_to_events_nc (e1 :: nil)).
 Compute evs12.
 Compute find_all_crossing_points e3 evs12.
-(*
+
 Compute (concat "
 " (postscript_header ++
         (display_edge 300 400 70 e1) ::

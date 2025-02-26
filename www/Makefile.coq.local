@@ -9,7 +9,7 @@ clean::
 
 
 SmoothTrajectories.ml SmoothTrajectories.mli : ../theories/smooth_trajectories.vo
-	cd ../theories; echo 'Require Import QArith smooth_trajectories. Extraction "SmoothTrajectories.ml" Qsmooth_point_to_point Qstraight_point_to_point Qedges_to_cells Qreduction.Qred.' | coqtop -R . trajectories
+	cd ../theories; echo 'Require Import QArith smooth_trajectories. Extraction "SmoothTrajectories.ml" Qno_intersections Qsmooth_point_to_point Qstraight_point_to_point Qedges_to_cells Qreduction.Qred.' | coqtop -R . trajectories
 	cp ../theories/SmoothTrajectories.ml ../theories/SmoothTrajectories.mli .
 
 SmoothTrajectories.cmi : SmoothTrajectories.mli

@@ -198,6 +198,29 @@ Definition edge_below (e1 : edge) (e2 : edge) : bool :=
 || (negb (point_strictly_under_edge (left_pt e2) e1) &&
    negb (point_strictly_under_edge (right_pt e2) e1)).
 
+Definition inter_at_extb (e1 e2 : edge) : bool :=
+   (pt_eqb (left_pt e1) (left_pt e2) &&
+    pt_eqb (left_pt e1) (left_pt e2)) ||
+   ((edge_below e1 e2 || edge_below e2 e1) &&
+   ((R_eqb (area3 (left_pt e2) (right_pt e2) (left_pt e1) ) R0  &&
+     valid_edge e2 (left_pt e1)) ==>
+     (pt_eqb (left_pt e1) (left_pt e2) || pt_eqb (left_pt e1) (right_pt e2))) &&
+   ((R_eqb (area3 (left_pt e2) (right_pt e2) (right_pt e1)) R0 &&
+     valid_edge e2 (right_pt e1)) ==>
+     (pt_eqb (right_pt e1) (left_pt e2) || pt_eqb (right_pt e1) (right_pt e2))) &&
+   ((R_eqb (area3 (left_pt e1) (right_pt e1) (left_pt e2)) R0 &&
+     valid_edge e1 (left_pt e2)) ==>
+     (pt_eqb (left_pt e2) (left_pt e1) || pt_eqb (left_pt e2) (right_pt e1))) &&
+   ((R_eqb (area3 (left_pt e1) (right_pt e1) (right_pt e2)) R0 &&
+     valid_edge e1 (right_pt e2)) ==>
+     (pt_eqb (right_pt e2) (left_pt e1) || pt_eqb (right_pt e2) (right_pt e1)))).
+
+Fixpoint no_intersections (s : seq edge) : bool :=
+  match s with
+  | nil => true
+  | a :: s' => forallb (inter_at_extb a) s' && no_intersections s'
+  end.
+
 Definition contains_point (p : pt) (c : cell)  : bool :=
    negb (point_strictly_under_edge p (low c)) && point_under_edge p (high c).
 

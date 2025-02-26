@@ -45,6 +45,9 @@ Definition euclidean_distance  (p1x p1y p2x p2y : R) :=
 
 Definition pt_distance := euclidean_distance.
 
+Definition Qno_intersections := no_intersections Q Qeq_bool Qle_bool Qplus
+  Qminus Qmult 1 edge left_pt right_pt.
+
 Definition Qstraight_point_to_point :=
   point_to_point Q Qeq_bool Qle_bool Qplus Qminus Qmult Qdiv
    pt_distance 1 edge Bedge left_pt right_pt.
