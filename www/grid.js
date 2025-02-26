@@ -127,8 +127,23 @@ function addObstacle(fX, fZ, tX, tZ) {
     const v = {fX : fX, fZ : fZ, tX : tX, tZ : tZ, line : vline };
     obstacles.push(v);
     renderer.render( scene, camera );
+    var val = "";  
+    for (const obstacle of obstacles) {
+      val += outVal(obstacle.fX) + outVal(obstacle.fZ)
+             + outVal(obstacle.tX) + outVal(obstacle.tZ);  
+    } 
+    console.log("boarders " + borders.length + " obstacles " + obstacles.length);
+    console.log("val " + val);
+    let res = ocamlLib.nointersection(val);
+    console.log("intersection?");
+    console.log(res);
+    if (res == "false") {
+      console.log("cancelling");
+      addObstacle(fX, fZ, tX, tZ);
+      return;
+    }
     cleanCells();
-    getCells();     
+    getCells();   
 }
 
 
