@@ -311,13 +311,90 @@ would like to inherit from the ambient formal mathematics library
 cannot be used directly out of the box.
 
 In the proof, we established five levels of invariants:
-\begin{itemize}
-\item In the first level, we look for properties that concern only the
-sequence of open cells,
-\item In the second level, 
-\end{itemize}
+\begin{enumerate}
+\item In the first level, we state properties that concern only the
+sequence placement of low and high edges for the open cells,
+\item In the second level, we add the cache consistency properties of
+  the scan state, the expected properties of the sequence of events,
+  and the consistency between the open cells and the future events,
+\item In the third level, we add properties that are specific to the
+  last created cell,
+\item In the third level, we add mainly the properties that concern
+  the closed cells that were built so far and their interactions with
+  the current open cells.  The main purpose of the properties
+  available in this invariant is to contribute to the proof that
+  all closed cells are disjoint and non-empty.
+\item In the fourth level, we add mainly the properties that concern
+  processed edges and their coverage by existing closed and open
+  cells.
+\item In the fiftth level, we add mainly the properties that concern
+  the points recorded in cell sides.  The point is to show that cell
+  sides enumerate the points that are unsafe on the vertical
+  sides of cells.
+\end{enumerate}
+In the end, the safety property for the space inside a given cell was
+guaranteed by the main argument that if edges are covered by the high
+edges of all closed cells, and all closed cells are disjoint, then
+edges cannot appear in the interior of a given cell.
 
+We performed two proofs of the main result.  The first proof takes
+stronger assumptions on the inputs: it assumes that two events are
+never vertically aligned.  If this is the case, no specific treatement
+is needed to handle the last created open cell, which is guaranteed to
+be transformed later into a non-empty closed cell.  The second proof
+observes the case where verical alignment of events is permitted.  In
+this case, it sometimes necessary to not create new open cells, but
+only to modify existing cells.n
 \subsection{Algebraic properties of the area function}
+The area function is instrumental to detect when a point is above or
+below an edge.  More precisely, it makes it possible to detect when a
+point is above the straight line that carries the obstacle.
+
+This area function is given by a determinant formula that we learned
+from Knuth, but is probably part of the folklore in algorithmic
+geometry.  It is quite important that this is only computed using a
+determinant, as it only needs ring operations (no division), without
+ever mentioning the projection of the given point on the given
+straight line.
+
+For proofs, however it is useful to have an alternative point of view,
+where one expresses the property of being above using a comparison of
+the second coordinates of the given point with the projected point on
+the given line.
+
+The edge comparison relation is directly related with the area
+function.  To detect whether an edge is below another, we simply
+verify whether the two extremities of one are in the same half plane
+with respect to the other.
+
+In the end, to express that a point lies on a segment, we use the area
+function to detect that the point is aligned with the extremities, and
+using the invariant that no obstacle is given is vertical, we simply
+verify that the first coordinate is between the first coordinates of
+the segment extremities.
 \subsection{Building up invariants}
 \subsection{The key property of disjoint cells}
+In the end, each closed cell has four boundaries: two vertical ones, a
+low boundary (a fragment of an obstacle that is not vertical) and a
+high boundary (again, not vertical).  We define three zones:
+\begin{itemize}
+\item inside the union of the cell and its boundaries,
+\item strictly inside the cell, not on the boundaries,
+\item half-inside (for lack of a better name): inside the cell and its
+ boundaries, but neither on the bottom boundary nor on the left boundary.
+\end{itemize}
+The main key property that we want to guarantee is that every point
+strictly inside a cell does not belong to any obstacle.  To establish
+this, we decompose the problem in two parts: first we show
+that the ``half-inside'' of all closed cells are disjoint.  Later, we
+prove that every obstacle is included the union of high boundaries of
+all cells, this makes it possible to conclude with the key property.
+
+In the rest of this section, we 
+
+To prove that closed cells are disjoint, we need to prove that new
+cells are disjoint with the existing ones, when new cells are added.
+At any iteration, the newly created closed cell actually come from
+existing open cells.  Therefore, we need to prove the invariant that
+closed cells are disjoint 
 \end{document}
