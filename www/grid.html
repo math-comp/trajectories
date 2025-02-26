@@ -37,15 +37,20 @@
 
 <p>
   To add an obstacle, click to a first end-point (blue square)
-  then click to the second end-point
+  then click to the second end-point.<br/>
+ The user interface will silently
+  refuse to add vertical obstacles or obstacles that cross existing ones.</p>
 <p>
   To remove an obstacle, click to a first end-point (blue square)
-  then click to the second end-point
+  then click to the second end-point.</p>
 <p>
   After giving the starting point and the ending point (positions) the system 
-  gives a path avoiding the obstacles.
+  gives a path avoiding<br/>
+ the obstacles.  The path is smooth or piecewise
+  straight depending on the status of the<br/>
+ "Show Straight" check-box.</p>
 <p> 
-  To see the cells used by the algorithm, tick the Show Cell check-box
+  To see the cells used by the algorithm, tick the Show Cell check-box.
 </p>
   <script defer type="module" src="./SmoothTrajectories.js"></script>
   <script defer type="module" src="./grid.js"></script>
