@@ -380,21 +380,123 @@ high boundary (again, not vertical).  We define three zones:
 \begin{itemize}
 \item inside the union of the cell and its boundaries,
 \item strictly inside the cell, not on the boundaries,
-\item half-inside (for lack of a better name): inside the cell and its
- boundaries, but neither on the bottom boundary nor on the left boundary.
+\item inside the cell and its
+ boundaries, but neither on the bottom boundary nor on the left
+ boundary.  In the rest of the paper, we say a point that satisfies
+ this property with respect to a cell is {\em attached to the cell}.
+ We say that two cells are disjoint if no point can be attached to
+ both of them.
 \end{itemize}
 The main key property that we want to guarantee is that every point
 strictly inside a cell does not belong to any obstacle.  To establish
 this, we decompose the problem in two parts: first we show
-that the ``half-inside'' of all closed cells are disjoint.  Later, we
+that points can only be attached to one cell.  Later, we
 prove that every obstacle is included the union of high boundaries of
 all cells, this makes it possible to conclude with the key property.
 
-In the rest of this section, we 
-
 To prove that closed cells are disjoint, we need to prove that new
-cells are disjoint with the existing ones, when new cells are added.
-At any iteration, the newly created closed cell actually come from
+cells added at each iteration are disjoint with the existing ones.
+The new closed closed cell actually come from
 existing open cells.  Therefore, we need to prove the invariant that
-closed cells are disjoint 
+closed cells are disjoint from open cells, and in turn, we need to
+show that open cell are disjoint.
+
+The position of the sweeping line plays an important role when proving
+that existing closed cells and open cells are disjoint.  At any
+iteration, the newly created cells have their left side on the
+sweeping line.  On the other hand, newly closed cells have their right
+side on the sweeping line.  Moreover, since the sweeping line is moving
+from left to right, all previously existing closed cells have their
+right side on the left of the sweeping line.
+
+In the degenerate case where two successive events are vertically
+aligned and the second event lies below the high edge of the last
+closed cell created when processing the first event, this last closed
+cell is modified and the new modified cell becomes the last closed
+cell after processing the second event.  We need to guarantee that
+the modification does interfere with the disjointness property with
+respect to the other cells.  This is given to us by the fact that the
+points attached to last closed are the same before and after the
+modification (which consists only in adding the second event to
+sequence of right points in the cell, in second position).  Because
+our model of the algorithm follows the style of functional
+programming, the modified cell is logically a completely different cell,
+and we need to be very explicit about the fact that the modified cell
+is disjoint with any other cell because the un-modified cell already
+was.
+
+\marginpar{\textcolor{blue}{not sure about this par, probably useful,
+    but not the right place.}}
+Just expressing that the two cells have the same attached point is not
+logically sufficient, because the two cells could have an empty set of
+attached points.  It turns out that our algorithm only produces
+non-empty cells, so we chose to add to our collection of invariant
+properties the fact that any closed cell contains at least one point:
+the cell center, computed by as first coordinate the middle between
+the left and right sides, and as second coordinate, the middle of the
+intersections between the low and high boundaries of the cells.
+\subsection{Obstacle covering}
+As the sweep line progresses from left to right, more and more events
+are processed, and the obstacles whose leftmost point is at the
+processed event are included in the boundaries of existing cell.  The
+property that is invariant here, is that every obstacle belonging in
+the outgoing edges from an event that has already been processed is
+included in the high boundaries of a collection of cells, with two
+important cases:
+\begin{itemize}
+\item If the event corresponding to the right extremity of the
+  obstacle is yet to be processed, then the rightmost part of the
+  obstacle is included in the high boundary of an open cell,
+\item Otherwise, the obstacle is completely included in the high
+  boundaries of a collection of adjacent closed cells.
+\end{itemize}
+
+When an event is processed, the cell decomposition algorithm computes
+a sequence contact cell together with a last contact cell.  The latter
+is meant to become the future last closed cell.  It high edge is the
+same obstacle as the high edge of future last open cell.  If we
+are in general position (the current event is not vertically aligned
+with the previous one) This high
+edge was covered by the combination of a sequence of closed cells and
+an open cell before this iteration, and after this iteration, the
+sequence of closed cells receives a new element (the last contact cell
+that was just closed) and the new last open cell still participates in
+its covering.
+
+For the high edges of all the other contact cells, they are
+necessarily ending in the current event.  So these obstacles move from
+the category of obstacles that are partially covered by open cells to
+the category of obstacles that completely covered by closed cells.
+
+If we are in the degenerate position where the current event is
+vertically aligned with the previous event and below the high edge of
+last closed cell, then the sequence of closed cells that participate
+in covering this edge keeps the same number of elements: the previous last
+closed cell is removed and replaced by the the modified closed cell
+where the event is added among its right points.  The portion of the
+obstacle that is covered by the previous last closed cell and the
+modified cell is the same.  Concerning coverage by an open cell, the
+new last open cell has the same high edge as the previous one, and
+they have the same left side, because the two events that created
+these open cells are vertically aligned.
+\subsection{Safety for points strictly inside cells}
+In the end, there are no more events left to process, so that all
+obstacles are covered by closed cells.  
+We can guarantee that points strictly inside these closed cells are not
+on obstacles by combining the edge covering property and the
+dijointness property.  If we name \(c_1\) a closed cell and \(p\) an
+point inside that cell, then \(p\) cannot be on the high edge of
+\(c_1\) by definition of ``strictly inside''.  If \(p\) is on an
+obstacle, this obstacle is covered by cells, so that there must be a
+cell \(c_2\) such that \(c_2\) contains \(p\) and \(p\) is on the high
+edge of \(c_2\).  Because \(p\) is not on the high edge of \(c_1\),
+\(c_1\) and \(c_2\) must be distinct, but by the definition of
+attached points, \(p\) must be attached to both \(c_1\) and \(c_2\).
+\subsection{Safety for points on the lateral boundaries}
+For each closed cell, our algorithm provides two sequences of points
+corresponding to the points on the left and right boundary that are
+unsafe.  We need to prove that the other points are safe, so that they
+can be used to compute trajectories that move from on cell to a
+neighboring one.
+
 \end{document}
