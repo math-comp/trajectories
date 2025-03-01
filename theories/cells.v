@@ -107,8 +107,8 @@ Notation dummy_pt := (generic_trajectories.dummy_pt (Num.RealField.sort R) 1).
 Notation dummy_event := (generic_trajectories.dummy_event (Num.RealField.sort R) 1 edge).
 Notation dummy_edge := (generic_trajectories.dummy_edge (Num.RealField.sort R) 1 edge unsafe_Bedge).
 Notation dummy_cell := (dummy_cell (Num.RealField.sort R) 1 edge unsafe_Bedge).
-Notation vertical_intersection_point :=
-  (vertical_intersection_point (Num.RealField.sort R) <=%R +%R (fun x y => x - y) *%R
+Notation vertical_projection :=
+  (vertical_projection (Num.RealField.sort R) <=%R +%R (fun x y => x - y) *%R
     (fun x y => x / y) edge left_pt right_pt).
 
 Definition head_cell (s : seq cell) := head dummy_cell s.
@@ -258,8 +258,8 @@ Qed.
 
 (* TODO : remove duplication with generic_trajectories *)
 Definition close_cell (p : pt) (c : cell) :=
-  match vertical_intersection_point p (low c),
-        vertical_intersection_point p (high c) with
+  match vertical_projection p (low c),
+        vertical_projection p (high c) with
   | None, _ | _, None => c
   | Some p1, Some p2 =>
     Bcell (left_pts c) (no_dup_seq [:: p2; p; p1]) (low c) (high c)
@@ -291,8 +291,8 @@ Lemma close_cell_preserve_3sides p c :
       left_pts (close_cell p c) = left_pts c].
 Proof.
 rewrite /close_cell.
-case: (vertical_intersection_point p (low c))=> [p1 | ] //.
-by case: (vertical_intersection_point p (high c))=> [p2 | ].
+case: (vertical_projection p (low c))=> [p1 | ] //.
+by case: (vertical_projection p (high c))=> [p2 | ].
 Qed.
 
 Lemma right_limit_close_cell p1 c :
@@ -308,7 +308,7 @@ Lemma left_limit_close_cell p1 c :
    left_limit (close_cell p1 c) = left_limit c.
 Proof.
 rewrite /close_cell.
-by do 2 (case: (vertical_intersection_point _ _) => //).
+by do 2 (case: (vertical_projection _ _) => //).
 Qed.
 
 Lemma top_right_close_cell p1 c :

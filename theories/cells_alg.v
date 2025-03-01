@@ -41,8 +41,8 @@ Notation "x <| y" := (edge_below x y).
 Notation valid_edge :=
   (generic_trajectories.valid_edge (Num.RealField.sort R)
    <=%R edge left_pt right_pt).
-Notation vertical_intersection_point :=
-  (vertical_intersection_point (Num.RealField.sort R)
+Notation vertical_projection :=
+  (vertical_projection (Num.RealField.sort R)
   <=%R +%R (fun x y => x - y) *%R
   (fun x y => x / y) edge left_pt right_pt).
 Notation point_under_edge :=
@@ -1146,7 +1146,7 @@ case: ifP => [ebelow_st {ebelow} | eonlsthe].
     have := invariant1_default_case.
     rewrite open_cells_decomposition_single=> //; last by rewrite -lstheq.
     rewrite ogq /=.
-    do 2 rewrite -/(vertical_intersection_point _ _).
+    do 2 rewrite -/(vertical_projection _ _).
     rewrite pvertE // pvertE //=; rewrite cats0.
     rewrite -[pt_eqb _ _ (point e) _]/((point e) == _:> pt).
     rewrite -[pt_eqb _ _ _ (point e)]/(_ == (point e):> pt).
@@ -1660,7 +1660,7 @@ case o_eq : (outgoing e) => [ | g l]; rewrite -?o_eq; last first.
 have := step_keeps_pw_default; rewrite oe' -lelsto o_eq /=.
 have vle : valid_edge le (point e) by apply: open_edge_valid.
 have vhe : valid_edge he (point e) by apply: open_edge_valid.
-do 2 rewrite -/(vertical_intersection_point _ _).
+do 2 rewrite -/(vertical_projection _ _).
 by rewrite pvertE // pvertE // !map_cat /= cats0.
 Qed.
 
@@ -2140,8 +2140,8 @@ move=> vlc vhc; rewrite /update_open_cell/generic_trajectories.update_open_cell.
 case ogeq : (outgoing e) => [ | fog ogs].
   move=> -[] <- <- /=.
   rewrite /opening_cells /=.
-  rewrite -/(vertical_intersection_point _ _) /= pvertE //.
-  by rewrite -/(vertical_intersection_point _ _) pvertE.
+  rewrite -/(vertical_projection _ _) /= pvertE //.
+  by rewrite -/(vertical_projection _ _) pvertE.
 rewrite /opening_cells /=.
 have onn : outgoing e != [::] by rewrite ogeq.
 have := opening_cells_aux_absurd_case vlc vhc onn oute; rewrite ogeq.
@@ -2159,8 +2159,8 @@ Proof.
 move=> vlc vhc; rewrite /update_open_cell/generic_trajectories.update_open_cell.
 case ogeq : (outgoing e) => [ | fog ogs].
   move=> -[] <- <- /=.
-  rewrite /opening_cells /= -/(vertical_intersection_point _ _) pvertE //.
-  by rewrite -/(vertical_intersection_point _ _) pvertE.
+  rewrite /opening_cells /= -/(vertical_projection _ _) pvertE //.
+  by rewrite -/(vertical_projection _ _) pvertE.
 rewrite /opening_cells /=.
 have onn : outgoing e != [::] by rewrite ogeq.
 have := opening_cells_aux_absurd_case vlc vhc onn oute; rewrite ogeq.
@@ -2222,14 +2222,14 @@ Proof.
 rewrite /start_open_cell/generic_trajectories.start_open_cell /leftmost_points => /andP[] /=.
 rewrite R_ltb_lt.
 case: ltrP => cmpl.
-  rewrite -/(vertical_intersection_point _ _).
-  case peq: (vertical_intersection_point (left_pt top) bottom) => [p' | //].
+  rewrite -/(vertical_projection _ _).
+  case peq: (vertical_projection (left_pt top) bottom) => [p' | //].
   move=> _ /andP[] samex _ /=.
   move: peq.
-  rewrite /vertical_intersection_point/generic_trajectories.vertical_intersection_point.
+  rewrite /vertical_projection/generic_trajectories.vertical_projection.
   by case: ifP=> // ve [] <-.
-rewrite -/(vertical_intersection_point _ _).
-case peq: (vertical_intersection_point (left_pt bottom) top)=> [p' | //] _.
+rewrite -/(vertical_projection _ _).
+case peq: (vertical_projection (left_pt bottom) top)=> [p' | //] _.
 by case: ifP=> [/eqP A | B]; move=> /andP[].
 Qed.
 
@@ -2749,8 +2749,8 @@ have lelow : le = low lsto.
   case : (open_cells_decomposition_contact _ _) => [[[a b] c] |] /=;
     by move=> [] _ _ _ _ ->.
 have := step_keeps_disjoint_default'; rewrite oe' ogq lelow /=.
-rewrite -/(vertical_intersection_point _ _).
-rewrite pvertE // -/(vertical_intersection_point _ _) pvertE //=.
+rewrite -/(vertical_projection _ _).
+rewrite pvertE // -/(vertical_projection _ _) pvertE //=.
 have: Bpt (p_x (point e)) (pvert_y (point e) he) == point e :>pt = false.
   apply/negP=> abs.
   move: puh; rewrite strict_under_pvert_y // -[X in p_y X](eqP abs) /=.
@@ -3402,8 +3402,8 @@ have oca_eq : opening_cells_aux (point e) (sort edge_below (outgoing e))
           (Bpt (p_x (point e)) (pvert_y (point e) le))]) [::] le he)).
   rewrite ogq -[sort _ _]/[::].
   rewrite /opening_cells_aux/generic_trajectories.opening_cells_aux.
-  by rewrite -/(vertical_intersection_point _ _) (pvertE vl)
-       -/(vertical_intersection_point _ _)  (pvertE vp).
+  by rewrite -/(vertical_projection _ _) (pvertE vl)
+       -/(vertical_projection _ _)  (pvertE vp).
 move: main; rewrite oca_eq => /(_ _ in_e' ee' e'fut)=> main.
 move: cin; rewrite mem_cat=> /orP[cin |].
   by apply: main; apply/mapP; exists c; rewrite // !mem_cat cin.
@@ -3430,7 +3430,7 @@ rewrite inE=> /orP[/eqP -> | gin]; move=> + le nos lno vle.
   rewrite /=.
   rewrite -/(opening_cells_aux _ _ _ _).
   case: (opening_cells_aux _ _ _ _) => s nc.
-  rewrite -/(vertical_intersection_point _ _) (pvertE vle).
+  rewrite -/(vertical_projection _ _) (pvertE vle).
   set it := Bcell _ _ _ _; move=> [] sq ncq; exists it.
   rewrite -sq inE eqxx; split=> //; split=> //.
   rewrite /left_limit /=.
@@ -3442,7 +3442,7 @@ have outg : {in og, forall g, left_pt g == point e}.
 rewrite /=.
 rewrite -/(opening_cells_aux _ _ _ _).
 case oca_eq : (opening_cells_aux _ _ _ _) => [s nc].
-rewrite -/(vertical_intersection_point _ _) (pvertE vle) => - [sq ncq].
+rewrite -/(vertical_projection _ _) (pvertE vle) => - [sq ncq].
 have vg : valid_edge g' (point e).
   rewrite -(eqP (outg' g' _)); last by rewrite inE eqxx.
   by apply: valid_edge_left.
@@ -4141,7 +4141,7 @@ case: ifP => [ebelow_st | enolsthe].
   case ogq: (outgoing e) => [ | fog ogs] /=.
     have := step_keeps_subset_default; rewrite oe ogq /=.
     rewrite !cats0.
-    do 2 rewrite -/(vertical_intersection_point _ _).
+    do 2 rewrite -/(vertical_projection _ _).
     by rewrite (pvertE vl) (pvertE vp) /= !map_cat /=.
   have := step_keeps_subset_default; rewrite oe ogq /=.
   rewrite -/(opening_cells_aux _ _ _ _).
@@ -5222,8 +5222,8 @@ Lemma opening_cells_aux_event le he p gs nos lno :
 Proof.
 move=> vle vhe; elim: gs le vle nos lno=>
    [ | g1 gs Ih] le vle nos lno pal puh oute /=.
-  rewrite -/(vertical_intersection_point p le) (pvertE vle).
-  rewrite -/(vertical_intersection_point p he) (pvertE vhe).
+  rewrite -/(vertical_projection p le) (pvertE vle).
+  rewrite -/(vertical_projection p he) (pvertE vhe).
   case: ifP=> [/eqP abs1 | dif1 //]; last first.
     case: ifP=> [/eqP abs2 | dif2 //]; last first.
       by move=> [] _ <- /=.
@@ -5233,7 +5233,7 @@ move=> vle vhe; elim: gs le vle nos lno=>
   move: puh => /negP; case.
   by rewrite on_pvert // -abs1 pvert_on.
 case oca_eq : (opening_cells_aux p gs g1 he) => [no1 lno1].
-rewrite -/(vertical_intersection_point p le) (pvertE vle).
+rewrite -/(vertical_projection p le) (pvertE vle).
 have g1q : left_pt g1 = p.
   have g1in : g1 \in g1 :: gs by rewrite inE eqxx.
   by rewrite (eqP (oute g1 g1in)).

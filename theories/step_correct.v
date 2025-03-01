@@ -43,8 +43,8 @@ Notation "x <| y" := (edge_below x y).
 Notation valid_edge :=
   (generic_trajectories.valid_edge (Num.RealField.sort R)
    <=%R edge left_pt right_pt).
-Notation vertical_intersection_point :=
-  (vertical_intersection_point (Num.RealField.sort R)
+Notation vertical_projection :=
+  (vertical_projection (Num.RealField.sort R)
   <=%R +%R (fun x y => x - y) *%R
   (fun x y => x / y) edge left_pt right_pt).
 Notation point_under_edge :=
@@ -938,6 +938,8 @@ apply/idP/idP=> /allP it; apply/allP=> x xin.
 by rewrite mem_no_dup_seq in xin; apply: it.
 Qed.
 
+(* This lemma uses assumptions of minimal strength, but the amount of assumptions
+ is quite verbose. *)
 Lemma complete_safe (bottom top : edge) s 
   (closed open : seq cell) (evs : seq event) :
   evs != [::] ->
@@ -1228,4 +1230,6 @@ case evsq: evs evsn0 => [ | ev future_events] // _.
   by [].
   Qed.
 
+(* In this lemma we attempt to agree with a smaller set of assumptions as in
+  the paper.*)
 End working_environment.

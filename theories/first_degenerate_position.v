@@ -42,8 +42,8 @@ Notation "x <| y" := (edge_below x y).
 Notation valid_edge :=
   (generic_trajectories.valid_edge (Num.RealField.sort R)
    <=%R edge left_pt right_pt).
-Notation vertical_intersection_point :=
-  (vertical_intersection_point (Num.RealField.sort R)
+Notation vertical_projection :=
+  (vertical_projection (Num.RealField.sort R)
   <=%R +%R (fun x y => x - y) *%R
   (fun x y => x / y) edge left_pt right_pt).
 Notation point_under_edge :=
@@ -1001,7 +1001,7 @@ by case : left_pts => [ | a [ | b tl]].
 Qed.
 
 Lemma on_edge_vertical p g : p === g ->
-  vertical_intersection_point p g = Some p.
+  vertical_projection p g = Some p.
 Proof.
 move=> /[dup] pong /andP[] _ vp.
 rewrite (pvertE vp) (on_pvert pong).
@@ -1089,7 +1089,7 @@ rewrite /= inE=> /orP[/eqP ->| ].
 elim: l f oute' nos' lno' oca_eq c => [ | s l Ih] f oute' nos' lno' oca_eq c
   cin spc.
   move: oca_eq; rewrite /=.
-  have -> : vertical_intersection_point (point ev) f = Some (point ev).
+  have -> : vertical_projection (point ev) f = Some (point ev).
     apply: on_edge_vertical.
     rewrite -(eqP (oute' f _)); last by rewrite inE eqxx.
     by apply: left_on_edge.

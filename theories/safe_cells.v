@@ -293,8 +293,8 @@ Notation edge_below :=
     (fun x y => x - y) *%R 1 edge (@left_pt R) (@right_pt R)).
 Notation "x <| y" := (edge_below x y).
 
-Notation vertical_intersection_point :=
-  (vertical_intersection_point (Num.RealField.sort R) <=%R +%R
+Notation vertical_projection :=
+  (vertical_projection (Num.RealField.sort R) <=%R +%R
   (fun x y => x - y) *%R
   (fun x y => x / y) edge (@left_pt R) (@right_pt R)).
 Notation leftmost_points :=
@@ -391,7 +391,7 @@ case: ifP => [lbl | ltl].
   rewrite pvertE //= andbT.
   have := order_below_viz_vertical vtb (valid_edge_left top).
   rewrite pvertE // => /(_ _ (left_pt top) erefl _ blt) /=.
-  have -> : vertical_intersection_point
+  have -> : vertical_projection
     (left_pt top) top = Some (left_pt top).
    rewrite (pvertE (valid_edge_left _)); congr (Some _); apply/eqP.
    by rewrite pt_eqE /= (on_pvert (left_on_edge _)) !eqxx.
@@ -409,12 +409,12 @@ case: ifP => [lbl | ltl].
 move: ltl=> /negbT; rewrite R_ltb_lt -leNgt=> ltl.
 have vbt : valid_edge top (left_pt bottom).
   by rewrite /valid_edge/generic_trajectories.valid_edge ltl ltW // (lt_trans lbp prt).
-rewrite -/(vertical_intersection_point _ _).
+rewrite -/(vertical_projection _ _).
 rewrite pvertE //=.
 case: ifP=> [bont | bnont ].
   by [].
 have := order_below_viz_vertical (valid_edge_left bottom) vbt.
-have -> : vertical_intersection_point (left_pt bottom) bottom =
+have -> : vertical_projection (left_pt bottom) bottom =
                Some (left_pt bottom).
   rewrite (pvertE (valid_edge_left _)); congr (Some _); apply/eqP.
   by rewrite pt_eqE /= (on_pvert (left_on_edge _)) !eqxx.

@@ -864,25 +864,25 @@ Qed.
 (* returns the point of the intersection between a vertical edge
  intersecting p and the edge e if it exists, None if it doesn't *)
 
-Notation vertical_intersection_point :=
-  (vertical_intersection_point R <=%R +%R (fun x y => x - y) *%R
+Notation vertical_projection :=
+  (vertical_projection R <=%R +%R (fun x y => x - y) *%R
     (fun x y => x / y) edge left_pt right_pt).
 
 Lemma vertical_none p e :
-  ~~ valid_edge e p -> vertical_intersection_point p e = None.
+  ~~ valid_edge e p -> vertical_projection p e = None.
 Proof.
 move: p e => [px py] [[ax ay] [b_x b_y] ab] h /=.
-rewrite /generic_trajectories.vertical_intersection_point /=.
+rewrite /generic_trajectories.vertical_projection /=.
 by rewrite (negbTE h).
 Qed.
 
 Lemma vertical_correct p e :
-    match vertical_intersection_point p e with
+    match vertical_projection p e with
   None => ~~ valid_edge e p | Some(i) => i === e end.
 Proof.
 move: p e => [ptx pty] [[ax ay] [bx b_y]  /=ab] .
-rewrite /vertical_intersection_point/valid_edge.
-rewrite /generic_trajectories.vertical_intersection_point.
+rewrite /vertical_projection/valid_edge.
+rewrite /generic_trajectories.vertical_projection.
 case : ifP => /= h ; last by [].
 have: ax != bx by rewrite neq_lt ab.
 set py := ((b_y - ay) / (bx - ax) * ptx + (ay - (b_y - ay) / (bx - ax) * ax)).
@@ -896,10 +896,10 @@ Qed.
 
 Lemma exists_point_valid e p :
   valid_edge e p ->
-  exists p', vertical_intersection_point p e = Some p'.
+  exists p', vertical_projection p e = Some p'.
 Proof.
 have := vertical_correct p e.
-case : (vertical_intersection_point p e)=> [vp |//= a b].
+case : (vertical_projection p e)=> [vp |//= a b].
   rewrite /point_on_edge  => a b.
   by exists vp.
 exists p.
@@ -907,14 +907,14 @@ by rewrite b in a.
 Qed.
 
 Lemma intersection_on_edge e p p' :
-  vertical_intersection_point p e = Some p' ->
+  vertical_projection p e = Some p' ->
   p' === e /\ p.x = p'.x.
 Proof.
 have := vertical_correct p e.
-case vert : (vertical_intersection_point p e)=> [vp |//=].
+case vert : (vertical_projection p e)=> [vp |//=].
 move: vert.
-rewrite /vertical_intersection_point.
-rewrite /generic_trajectories.vertical_intersection_point.
+rewrite /vertical_projection.
+rewrite /generic_trajectories.vertical_projection.
 case : (generic_trajectories.valid_edge _ _ _ _ _ e p) => [| //].
 move => [] /= vpq  poe [] <-.
 by rewrite poe -vpq.
@@ -1992,13 +1992,13 @@ by move: yp; rewrite p1q1 p2q2; rewrite ltNge le_eqVlt yq orbT.
 Qed.
 
 Definition pvert_y (p : pt) (e : edge) :=
-  match vertical_intersection_point p e with
+  match vertical_projection p e with
     Some p' => p'.y
   | None => 0
   end.
 
 Lemma pvertE p e : valid_edge e p ->
-  vertical_intersection_point p e = Some (Bpt (p.x) (pvert_y p e)).
+  vertical_projection p e = Some (Bpt (p.x) (pvert_y p e)).
 Proof.
 move=> vep; rewrite /pvert_y.
 have [p' p'P] := exists_point_valid vep; rewrite p'P.
@@ -2260,8 +2260,8 @@ Qed.
 
 Lemma order_below_viz_vertical low_e high_e p pl ph:
 valid_edge low_e p -> valid_edge high_e p ->
-vertical_intersection_point p low_e = Some pl ->
-vertical_intersection_point p high_e = Some ph ->
+vertical_projection p low_e = Some pl ->
+vertical_projection p high_e = Some ph ->
 low_e <| high_e ->
 pl.y <= ph.y.
 Proof.

@@ -11,7 +11,7 @@ Open Scope R_scope.
 (* x1 is the first coordinate of the vector corresponding to an edge.  It is
  reasonable to assume it is non-zero in the context of vertical cell
  decomposition, because edges are not vertical.  If intersection with
- vertical lines is needed, then we can use vertical_intersection. *)
+ vertical lines is needed, then we can use vertical_projection. *)
 Lemma find_segment_intersection t1 t2 x1 y1 xl1 yl1 x2 y2 xl2 yl2 :
   x1 <> 0 ->
   x2 * y1 - x1 * y2 <> 0 ->

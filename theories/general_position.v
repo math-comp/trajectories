@@ -42,8 +42,8 @@ Notation "x <| y" := (edge_below x y).
 Notation valid_edge :=
   (generic_trajectories.valid_edge (Num.RealField.sort R)
    <=%R edge left_pt right_pt).
-Notation vertical_intersection_point :=
-  (vertical_intersection_point (Num.RealField.sort R)
+Notation vertical_projection :=
+  (vertical_projection (Num.RealField.sort R)
   <=%R +%R (fun x y => x - y) *%R
   (fun x y => x / y) edge left_pt right_pt).
 Notation point_under_edge :=

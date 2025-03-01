@@ -148,7 +148,7 @@ Definition valid_edge e p := (R_leb (p_x (left_pt e)) (p_x p)) &&
 
 (* TODO: check again the mathematical formula after replacing the infix     *)
 (* operations by prefix function calls. *)
-Definition vertical_intersection_point (p : pt) (e : edge) : option pt :=
+Definition vertical_projection (p : pt) (e : edge) : option pt :=
   if valid_edge e p then
     Some(Bpt (p_x p) (R_add
        (R_mul (R_sub (p_x p) (p_x (left_pt e)))
@@ -225,8 +225,8 @@ Definition contains_point (p : pt) (c : cell)  : bool :=
    negb (point_strictly_under_edge p (low c)) && point_under_edge p (high c).
 
 Definition close_cell (p : pt) (c : cell) :=
-  match vertical_intersection_point p (low c),
-        vertical_intersection_point p (high c) with
+  match vertical_projection p (low c),
+        vertical_projection p (high c) with
   | None, _ | _, None => c
   | Some p1, Some p2 =>
     Bcell (left_pts c) (no_dup_seq (p2 :: p :: p1 :: nil)) (low c) (high c)
@@ -236,7 +236,7 @@ Definition closing_cells (p : pt) (contact_cells: seq cell) : seq cell :=
   List.map (fun c => close_cell p c) contact_cells.
 
 Definition pvert_y (p : pt) (e : edge) :=
-  match vertical_intersection_point p e with
+  match vertical_projection p e with
     Some p' => p_y p'
   | None => R0
   end.
@@ -245,15 +245,15 @@ Fixpoint opening_cells_aux (p : pt) (out : seq edge) (low_e high_e : edge)
   : seq cell * cell :=
   match out with
   | [::] =>
-    let op0 := vertical_intersection_point p low_e in
-    let op1 := vertical_intersection_point p high_e in
+    let op0 := vertical_projection p low_e in
+    let op1 := vertical_projection p high_e in
     match (op0,op1) with
     | (None,_) | (_,None) => ([::], dummy_cell)
     | (Some p0,Some p1) =>
       ([::] , Bcell  (no_dup_seq ([:: p1; p; p0])) [::] low_e high_e)
     end
   | c::q =>
-    let op0 := vertical_intersection_point p low_e in
+    let op0 := vertical_projection p low_e in
     let (s, nc) := opening_cells_aux p q c high_e in
     match op0 with
     | None => ([::], dummy_cell)
@@ -395,24 +395,24 @@ Definition step (st : scan_state) (e : event) : scan_state :=
 
 Definition leftmost_points (bottom top : edge) :=
   if R_ltb (p_x (left_pt bottom)) (p_x (left_pt top)) then
-    if vertical_intersection_point (left_pt top) bottom is Some pt then
+    if vertical_projection (left_pt top) bottom is Some pt then
        [:: left_pt top; pt]
     else
         [::]
   else
-     if vertical_intersection_point (left_pt bottom) top is Some pt then
+     if vertical_projection (left_pt bottom) top is Some pt then
         no_dup_seq [:: pt; left_pt bottom]
      else
         [::].
 
 Definition rightmost_points (bottom top : edge) :=
   if R_ltb (p_x (right_pt bottom)) (p_x (right_pt top)) then
-    if vertical_intersection_point (right_pt bottom) top is Some pt then
+    if vertical_projection (right_pt bottom) top is Some pt then
        [:: pt; right_pt bottom]
     else
         [::]
   else
-     if vertical_intersection_point (right_pt top) bottom is Some pt then
+     if vertical_projection (right_pt top) bottom is Some pt then
         no_dup_seq [:: right_pt top; pt]
      else
         [::].
