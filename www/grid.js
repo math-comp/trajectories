@@ -80,6 +80,8 @@ var  obstacles = [];
 const lineColor = new THREE.Color( 'green' );
 const lineMat = new THREE.LineBasicMaterial({color: lineColor, linewidth: 1});
 
+var error = false; 
+
 function addObstacle(fX, fZ, tX, tZ) {
     if (tX < fX) {
         let xX = fX;
@@ -127,25 +129,47 @@ function addObstacle(fX, fZ, tX, tZ) {
     const v = {fX : fX, fZ : fZ, tX : tX, tZ : tZ, line : vline };
     obstacles.push(v);
     renderer.render( scene, camera );
+    cleanCells();
+    getCells();   
+}
+
+function checkCrossing (fX, fZ, tX, tZ) {
+    if (tX < fX) {
+        let xX = fX;
+        let xZ = fZ;
+        fX = tX;
+        fZ = tZ;
+        tX = xX;
+        tZ = xZ;
+    }
     var val = "";  
     for (const obstacle of obstacles) {
       val += outVal(obstacle.fX) + outVal(obstacle.fZ)
              + outVal(obstacle.tX) + outVal(obstacle.tZ);  
     } 
-    console.log("boarders " + borders.length + " obstacles " + obstacles.length);
+    val += outVal(fX) + outVal(fZ) + outVal(tX) + outVal(tZ);  
     console.log("val " + val);
     let res = ocamlLib.nointersection(val);
     console.log("intersection?");
     console.log(res);
-    if (res == "false") {
-      console.log("cancelling");
-      addObstacle(fX, fZ, tX, tZ);
-      return;
-    }
-    cleanCells();
-    getCells();   
+    return (res == "false"); 
 }
 
+function setErrorCross() {
+  error = true;
+  document.getElementById('cross').style.background = "red";
+}
+
+function setErrorVertical() {
+  error = true;
+  document.getElementById('vertical').style.background = "red";
+}
+
+function cleanError() {
+  error = false;
+  document.getElementById('vertical').style.background = "white";
+  document.getElementById('cross').style.background = "white";
+}
 
 /* The cells */
 var cells = [];
@@ -490,7 +514,10 @@ renderer.domElement.addEventListener('click', onDocumentMouseDown, false);
 var positions;
 
 function onDocumentMouseDown( event ) {
-
+   if (error) {
+    error = false;
+    cleanError();
+   }
     // Get screen-space x/y
     mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
     mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
@@ -526,6 +553,7 @@ function onDocumentMouseDown( event ) {
         toZ = Math.round(gSize + posZ + 0.5) -gSize - 0.5;
         toX = Math.round(gSize + posX + 0.5) -gSize - 0.5;
         if ((fromX == toX) && (fromZ != toZ) && (modality == "obstacles")) {
+            setErrorVertical();
             return;
         }
         console.log("modality = " + modality);
@@ -537,6 +565,12 @@ function onDocumentMouseDown( event ) {
                 toCube.position.y = -0.2;
                 renderer.render( scene, camera ); 
                 return;
+            }
+            if (checkCrossing(fromX, fromZ, toX, toZ)) {
+              fromValid = true;  
+              toValid = false;
+              setErrorCross();
+              return;         
             }
             cleanCurve();
             cleanStraight();
