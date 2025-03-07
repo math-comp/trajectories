@@ -93,7 +93,9 @@ Notation right_pts := (right_pts (Num.RealField.sort R) edge).
 Notation Bcell := (Bcell (Num.RealField.sort R) edge).
 Notation cell_center :=
   (cell_center (Num.RealField.sort R) +%R (fun x y => x / y) 1%:R edge).
-
+Notation left_limit := (left_limit (Num.RealField.sort R) 1 edge).
+Notation right_limit := (right_limit (Num.RealField.sort R) 1 edge).
+  
 Notation closing_cells :=
   (generic_trajectories.closing_cells (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
     *%R (fun x y => x / y) edge left_pt right_pt).
@@ -373,11 +375,13 @@ have [/= pal puh vle vhe ncont] :=
   connect_properties  cbtom adj rfo sval bet_e ocd allnct allct
   lcc_ctn flcnct.
 rewrite /simple_step.
+have lstok : open_cell_side_limit_ok lsto.
+  by apply: (allP oks); rewrite mem_cat inE eqxx orbT.
 case oca_eq: opening_cells_aux => [nos lno].
 have evin : ev \in ev :: evs by rewrite inE eqxx.
 have lstxle: lstx <= p_x (point ev).
   have := bottom_left_cond _ evin.
-  rewrite lstxq /left_limit=> /orP[].
+  rewrite lstxq -(open_cell_side_limit_ok_last lstok) => /orP[].
     by rewrite le_eqVlt orbC => ->.
   by move => /andP[] /eqP -> _; apply: le_refl.
 have cl_at_left' : {in rcons cls lstc,
@@ -477,7 +481,12 @@ have wcl' : {in rcons (cls ++ (lstc :: closing_cells (point ev) cc))
     move=> /allrelP /(_ _ _ (map_f _ c'fop) (map_f _ lstoin2)) hc'blsto.
     apply: (order_edges_viz_point' vhc' vho hc'blsto).
     by move/andP: cont=>[].
-  move: llt; rewrite /left_limit atlstx le_eqVlt=> /orP[/eqP abs|]; last by [].
+  rewrite -/(left_limit c').
+  move: llt.
+  have c'ok : open_cell_side_limit_ok c'.
+    by apply: (allP oks).
+  rewrite -(open_cell_side_limit_ok_last c'ok).
+  rewrite atlstx le_eqVlt=> /orP[/eqP abs|]; last by [].
   have nth1in : nth dummy_pt (left_pts lsto) 1 \in (left_pts lsto).
      by apply: mem_nth.
   (* TODO: make this a lemma. *)
@@ -731,15 +740,9 @@ have ucc' : uniq [seq cell_center c | c <-
         rewrite /left_limit.
         have [_ -> ->] := close_cell_preserve_3sides (point ev)
             (nth dummy_cell (rcons cc lcc) i).
-        have := allP oks _ (nth_in _ i_s) => /andP[] lf_size /andP[] xs
-        /andP[] _ /andP[] hdon _.
-        case: left_pts lf_size xs hdon => [ | a tl] // _ xs hdon.
-        have ain : a \in (a :: tl) by rewrite inE eqxx.
-        have lstin : last a tl \in (a :: tl) by rewrite mem_last.
-        have /eqP ax := allP xs _ ain.
-        have /eqP lx := allP xs _ lstin.
-        rewrite /= lx -ax.
-        by move: hdon; rewrite /= => /andP[] _ /andP[] it _.
+        have := allP oks _ (nth_in _ i_s).
+        move=> /andP[] lf_size /andP[] xs /andP[] _ /andP[] + _.
+        by move=> /andP[] _ /andP[].
       apply: (le_trans (proj2 (andP C))).
       rewrite (nth_map dummy_cell); last by rewrite size_rcons.
       rewrite right_limit_close_cell //; last first.
@@ -759,7 +762,11 @@ have ucc' : uniq [seq cell_center c | c <-
         rewrite /left_limit.
         have [-> _ ->] := close_cell_preserve_3sides (point ev)
             (nth dummy_cell (rcons cc lcc) j).
-        have := allP oks _ (nth_in _ js) => /andP[] lf_size /andP[] xs
+        rewrite -/(left_limit (nth _ _ _)).
+        have jok : open_cell_side_limit_ok (nth dummy_cell (rcons cc lcc) j).
+          apply: (allP oks _ (nth_in _ js)).
+        rewrite -(open_cell_side_limit_ok_last jok).
+        move: jok => /andP[] lf_size /andP[] xs
         /andP[] _ /andP[] hdon lston.
         by move: lston=> /andP[] _ /andP[].
       apply: (le_trans (proj2 (andP B))).

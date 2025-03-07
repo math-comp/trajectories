@@ -55,6 +55,20 @@ Notation cell_center := (cell_center (Num.RealField.sort R) +%R
              (fun x y => x / y) 1 edge).
 Notation update_closed_cell :=
   (update_closed_cell (Num.RealField.sort R) 1 edge).
+Notation left_limit := (left_limit (Num.RealField.sort R) 1 edge).
+Notation right_limit := (right_limit (Num.RealField.sort R) 1 edge).
+Notation check_bounding_box :=
+  (check_bounding_box (Num.RealField.sort R) eq_op <=%R +%R
+  (fun x y => x - y) *%R (fun x y => x / y) 1 edge left_pt right_pt).
+
+Notation start_open_cell :=
+  (start_open_cell (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
+  *%R (fun x y => x / y) edge left_pt right_pt).
+
+Notation complete_last_open :=
+  (generic_trajectories.complete_last_open (Num.RealField.sort R) eq_op
+    <=%R +%R (fun x y => x - y) *%R
+    (fun x y => x / y) edge left_pt right_pt).
 
 Definition cell_eqb (ca cb : cell) : bool :=
   let: generic_trajectories.Bcell lptsa rptsa lowa higha := ca in
@@ -142,12 +156,6 @@ Definition bottom_left_corner (c : cell) := last dummy_pt (left_pts c).
 
 Definition bottom_left_cells_lex (open : seq cell) p :=
   {in open, forall c, lexPt (bottom_left_corner c) p}.
-
-(* TODO: these should be at the head. *)
-Definition left_limit (c : cell) :=
-  p_x (last dummy_pt (left_pts c)).
-
-Definition right_limit c := p_x (last dummy_pt (right_pts c)).
 
 Lemma add_point_left_limit (c : cell) (p : pt) :
   (1 < size (left_pts c))%N ->
@@ -803,7 +811,7 @@ Definition cover_left_of p s1 s2 :=
 Lemma contains_to_inside_open' open evs c p :
   seq_valid open p -> close_alive_edges open evs ->
   inside_box p ->
-  p_x (last dummy_pt (left_pts c)) < p_x p ->
+  p_x (head dummy_pt (left_pts c)) < p_x p ->
   all (lexePt p) [seq point e | e <- evs] ->
   c \in open -> contains_point' p c -> inside_open' p c.
 Proof.
@@ -1025,14 +1033,25 @@ have := same_x_valid (high c) (eq_trans hll (esym sx)) => <-.
 by rewrite hh ll.
 Qed.
 
+Lemma open_cell_side_limit_ok_last c :
+  open_cell_side_limit_ok c ->
+  p_x (last dummy_pt (left_pts c)) = left_limit c.
+Proof.
+rewrite /open_cell_side_limit_ok/left_limit=> /andP[] + /andP[] + _.
+case: (left_pts c)=> [ // | a tl] _ /allP /(_ (last a tl) (mem_last _ _)) .
+by move=> /eqP.
+Qed.
+
 Lemma strict_inside_open_valid c (p : pt) :
   open_cell_side_limit_ok c ->
   strict_inside_open p  c ->
   valid_edge (low c) p && valid_edge (high c) p.
 Proof.
+move=> /[dup] + /open_cell_side_limit_ok_last.
 move=> /andP[]; rewrite /strict_inside_open /left_limit /open_limit.
 case: (left_pts c) => [// | w tl _] /andP[] allxl /andP[] _ /andP[].
-rewrite /=; move=> /andP[] _ /andP[] lh _ /andP[] _ /andP[] ll _.
+rewrite /=; move=> /andP[] _ /andP[] lh _ /andP[] _ /andP[] ll _ lastq.
+rewrite lastq in ll.
 move=> /andP[] _ /andP[] ls rs.
 rewrite /valid_edge/generic_trajectories.valid_edge ltW; last first.
   by apply: (le_lt_trans ll).
@@ -1064,8 +1083,10 @@ Lemma valid_low_limits c p :
   open_cell_side_limit_ok c ->
   left_limit c < p_x p <= open_limit c -> valid_edge (low c) p.
 Proof.
+move=> /[dup] + /open_cell_side_limit_ok_last.
 move=>/andP[] wn0 /andP[] /allP ax /andP[] _ /andP[] _ /andP[] _ /andP[] onl _.
-rewrite /left_limit=> /andP[] /ltW llim.
+rewrite /left_limit=> lastq /andP[] /ltW llim.
+rewrite lastq in onl.
 rewrite /valid_edge/generic_trajectories.valid_edge (le_trans onl llim) /=.
 rewrite /open_limit.
 case: (lerP (p_x (right_pt (low c))) (p_x (right_pt (high c))))=> // /[swap].
@@ -1371,12 +1392,23 @@ split; rewrite /valid_edge/generic_trajectories.valid_edge.
 by rewrite (le_trans llh lp) (le_trans pr rrh).
 Qed.
 
+Lemma closed_cell_side_limit_ok_last c :
+  closed_cell_side_limit_ok c ->
+  p_x (last dummy_pt (right_pts c)) = right_limit c.
+Proof.
+do 5 (move=> /andP[] _); move=> /andP[] + /andP[] + _.
+rewrite /right_limit.
+by case: (right_pts c) => [ // | a tl] _ /allP /(_ _ (mem_last _ _)) /eqP.
+Qed.
+
 Lemma closed_right_imp_open c:
   closed_cell_side_limit_ok c -> right_limit c <= open_limit c.
 Proof.
+move=> /[dup] + /closed_cell_side_limit_ok_last lastq.
 move=> /andP[] _ /andP[] _ /andP[] _ /andP[] _ /andP[] _.
 move=> /andP[] ln0 /andP[] eqs /andP[] _ /andP[] /andP[] _ /andP[] _ /[swap].
 move=> /andP[] _ /andP[] _.
+rewrite lastq.
 rewrite (eqP (allP eqs (head dummy_pt (right_pts c)) (head_in_not_nil _ ln0))).
 rewrite /right_limit /open_limit.
 by case : (lerP (p_x (right_pt (low c))) (p_x (right_pt (high c)))).
@@ -1544,14 +1576,17 @@ Lemma left_limit_max c:
   open_cell_side_limit_ok c ->
   Num.max (p_x (left_pt (high c))) (p_x (left_pt (low c))) <= left_limit c.
 Proof.
+move=>/[dup] cok.
 move=>/andP[] + /andP[] + /andP[] _ /andP[] /andP[] _ + /andP[] _ +.
-rewrite /left_limit ge_max.
+rewrite -(open_cell_side_limit_ok_last cok) ge_max.
 case: (left_pts c) => [ // | p tl] /=.
 by move => _ /andP[] /eqP +  _ /andP[] + _ /andP[] + _ => <- -> ->.
 Qed.
 
-Lemma bottom_left_x c : left_limit c = p_x (bottom_left_corner c).
-Proof. by[]. Qed.
+Lemma bottom_left_x c :
+  open_cell_side_limit_ok c ->
+  left_limit c = p_x (bottom_left_corner c).
+Proof. by move=> cok; rewrite -(open_cell_side_limit_ok_last cok). Qed.
 
 Lemma bottom_left_lex_to_high s p:
 cells_bottom_top s ->
@@ -1869,11 +1904,13 @@ Lemma inside_open_cell_valid c p1 :
   inside_open_cell p1 c ->
   valid_edge (low c) p1 && valid_edge (high c) p1.
 Proof.
+move=> /[dup] + /open_cell_side_limit_ok_last lastq.
 move=> /andP[] ne /andP[] sxl /andP[] _ /andP[] /andP[] _ onh /andP[] _ onl.
 move=> /andP[] _; rewrite /left_limit /open_limit=> /andP[] ge lemin.
 apply/andP; split.
   apply/andP; split.
-    by apply: le_trans ge; move: onl=> /andP[].
+    apply: le_trans ge.
+    by move: onl=> /andP[]; rewrite lastq.
   apply: (le_trans lemin).
   by rewrite ge_min lexx.
 apply/andP; split.
@@ -1932,15 +1969,15 @@ have xcond :
   left_limit c < p_x (cell_center c) < right_limit c.
   rewrite /cell_center/midpoint.
   rewrite xrl xrh xll xlh /=.
-  rewrite [left_limit c]/left_limit.
-  rewrite -[p_x (last _ _)]/(left_limit _).
+  (* rewrite -[left_limit c](open_cell_side_limit_ok_last cok).
+  rewrite -[p_x (last _ _)]/(left_limit _). *)
   rewrite -mulrDr.
   set one := (X in _ < _ * X / _ < _).
   have one1 : one = 1.
     rewrite /one -(mulr1 (_ ^-1)) -mulrDr mulVf //.
     by move: twogt0; rewrite lt0r=> /andP[].
   rewrite one1 mulr1.
-  rewrite /right_limit xrl.
+  rewrite /right_limit xrh.
   by apply: half_between_lt.
 rewrite xcond andbT.
 have [ab bel] : cell_center c >>> low c /\
@@ -2012,10 +2049,10 @@ case:ifP (o1) (o2) =>[/eqP q1 |enp1];case:ifP=>[/eqP q2 |enp2];
   rewrite -?q1 -?q2 /= ?eqxx ?x2 ?x1 /= => -> -> //=; rewrite ?andbT.
 - move: x1 x2 ctp=> /eqP/esym x1 /eqP x2 /andP[] el _.
   have := (above_edge_strict_higher_y x1 (negbT enp2) el).
-  by rewrite /right_limit /= x1 eqxx /=; apply.
+  by apply.
 - move: x1 x2 ctp=> /eqP/esym x1 /eqP x2 /andP[] _ eh.
   have := (under_edge_strict_lower_y x2 (negbT enp1) eh o2).
-  rewrite /right_limit /= x2 eqxx /=; apply.
+  by [].
 move: x1 x2 ctp=> /eqP/esym x1 /eqP x2 /andP[] el eh.
 rewrite (above_edge_strict_higher_y x1 _ el) //; last first.
   exact: negbT.
@@ -2064,11 +2101,11 @@ have lon : last dummy_pt (right_pts (close_cell p c)) === low c.
   rewrite /close_cell (pvertE vlc) (pvertE vhc) /=.
   have := pvert_on vlc.
   by case: ifP => [/eqP pish | pnh]; case: ifP => [/eqP pisl | pnl].
-apply: (cell_center_inside_main _ _ _ _ llltx); 
+apply: (cell_center_inside_main _ _ _ _ llltx);
   (rewrite ?(lccq, hccq, llccq)); move=> //.
 Qed.
 
-Lemma strict_inside_closedW c p : 
+Lemma strict_inside_closedW c p :
  strict_inside_closed p c -> inside_closed' p c.
 Proof.
 move=> /andP[] /andP[] cu ca /andP[] lb rb.
@@ -2255,6 +2292,63 @@ Lemma in_safe_side_left_contains c p :
   in_safe_side_left p c -> contains_point p c.
 Proof.
 by rewrite /contains_point=> /andP[] _ /andP[] /underW -> /andP[] /underWC ->.
+Qed.
+
+
+Notation bare_closed_cell_side_limit_ok :=
+ (bare_closed_cell_side_limit_ok (Num.RealField.sort R) eq_op <=%R +%R
+   (fun x y => x - y) *%R 1 edge left_pt right_pt).
+
+Lemma unbare_closed_cell_ok c :
+  bare_closed_cell_side_limit_ok c ->
+  closed_cell_side_limit_ok c.
+Proof.
+move=> bc.
+have lcn0 : left_pts c != [::].
+  by move:bc=> /andP[]; rewrite size_eq0.
+have rcn0 : right_pts c != [::].
+  by move: bc; do 5 (move=> /andP[] _); move=> /andP[]; rewrite size_eq0.
+have lxs : all (fun p => p_x p == left_limit c) (left_pts c).
+  by move: bc=> /andP[] _ /andP[].
+have rxs : all (fun p => p_x p == right_limit c) (right_pts c).
+  by move: bc; do 5 (move => /andP[] _); move=> /andP[] _ /andP[].
+have same_rel : (fun x y => R_ltb R eq_op <=%R y x) =2 (>%R : R -> R -> bool).
+  by move=> x y; rewrite R_ltb_lt.
+have sl : sorted >%R [seq p_y p | p <- left_pts c].
+  move: bc=> /andP[] _ /andP[] _ /andP[] + _.
+  by rewrite (eq_sorted same_rel).
+have sr : sorted >%R [seq p_y p | p <- right_pts c].
+    move: bc; do 5 (move=> /andP[] _); move=> /andP[] _ /andP[] _ /andP[] + _.
+    by rewrite (eq_sorted same_rel).
+have blon : last dummy_pt (left_pts c) === low c.
+  move: bc=> /andP[] _ /andP[] _ /andP[] _ /andP[] _ /andP[] it _.
+  by rewrite addrN in it.
+have bron : last dummy_pt (right_pts c) === low c.
+  move: bc; do 5 (move=> /andP[] _). 
+  move=> /andP[] _ /andP[] _ /andP[] _ /andP[] _ it.
+  by rewrite addrN in it.
+have hlon : head dummy_pt (left_pts c) === high c.
+  move: bc=> /andP[] _ /andP[] _ /andP[] _ /andP[] it _.
+  by rewrite addrN in it.
+have hron : head dummy_pt (right_pts c) === high c.
+  move: bc; do 5 (move=> /andP[] _). 
+  move=> /andP[] _ /andP[] _ /andP[] _ /andP[] it _.
+  by rewrite addrN in it.
+rewrite /closed_cell_side_limit_ok.
+by rewrite lcn0 rcn0 lxs rxs sl sr blon hlon bron hron.
+Qed.
+
+Lemma check_bounding_box_to_closed_cell :
+  let cc := (complete_last_open (start_open_cell bottom top)) in
+  check_bounding_box bottom top ->
+  (bottom <| top) &&
+  (left_limit cc < right_limit cc) &&
+  closed_cell_side_limit_ok cc.
+Proof.
+move=> cc /andP[] /andP[] /andP[] boxwf.
+rewrite R_ltb_lt => lr.
+move=> /unbare_closed_cell_ok cok extra.
+by rewrite boxwf lr cok.
 Qed.
 
 End proof_environment.

@@ -27,6 +27,8 @@ Notation low := (low (Num.RealField.sort R) edge).
 Notation high := (high (Num.RealField.sort R) edge).
 Notation left_pts := (left_pts R edge).
 Notation right_pts := (right_pts R edge).
+Notation left_limit := (left_limit (Num.RealField.sort R) 1 edge).
+Notation right_limit := (right_limit (Num.RealField.sort R) 1 edge).
 Notation dummy_pt := (dummy_pt R 1).
 Notation event := (@event R edge).
 Notation point' := (@point R edge).
@@ -272,6 +274,8 @@ Notation low := (low (Num.RealField.sort R) edge).
 Notation high := (high (Num.RealField.sort R) edge).
 Notation left_pts := (left_pts (Num.RealField.sort R) edge).
 Notation right_pts := (right_pts (Num.RealField.sort R) edge).
+Notation left_limit := (left_limit (Num.RealField.sort R) 1 edge).
+Notation right_limit := (right_limit (Num.RealField.sort R) 1 edge).
 Notation dummy_pt := (dummy_pt (Num.RealField.sort R) 1).
 Notation event := (@event (Num.RealField.sort R) edge).
 Notation point := (@point (Num.RealField.sort R) edge).
@@ -320,6 +324,7 @@ rewrite /open_cell_side_limit_ok /=.
 have ln0 : leftmost_points bottom top != [::] :> seq pt.
   rewrite /leftmost_points/generic_trajectories.leftmost_points.
   case: ifP=> [lbl | ltl]; rewrite pvertE //.
+        by rewrite /no_dup_seq /=; case: ifP.
       rewrite R_ltb_lt in lbl.
       rewrite /valid_edge/generic_trajectories.valid_edge.
       by rewrite ltW // ?ltW // (lt_trans ltp).
@@ -329,14 +334,16 @@ have ln0 : leftmost_points bottom top != [::] :> seq pt.
 rewrite ln0 /=.
 have samex : all (fun p => p_x p == left_limit (start_open_cell bottom top))
                (leftmost_points bottom top).
-  rewrite /left_limit/generic_trajectories.left_limit.
-  rewrite /left_pts/generic_trajectories.left_pts /=.
-  rewrite /leftmost_points/generic_trajectories.leftmost_points.
+  rewrite /left_limit.
+  rewrite /left_pts /=.
+  rewrite /leftmost_points.
   case: ifP=> [lbl | ltl].
     rewrite R_ltb_lt in lbl.
     rewrite pvertE; last first.
-      by rewrite /valid_edge/generic_trajectories.valid_edge ltW // ltW // (lt_trans ltp).
-    by rewrite /= !eqxx.
+      by rewrite /valid_edge ltW // ltW // (lt_trans ltp).
+    rewrite -no_dup_seq_aux_eq head_no_dup_seq.
+    apply/allP=> q; rewrite mem_no_dup_seq /=.
+    by rewrite !inE=> /orP[] /= /eqP -> /=.
   move: ltl=> /negbT; rewrite R_ltb_lt -leNgt=> ltl.
   rewrite pvertE; last first.
     by rewrite /valid_edge/generic_trajectories.valid_edge ltl ltW // (lt_trans lbp).
@@ -345,7 +352,7 @@ have samex : all (fun p => p_x p == left_limit (start_open_cell bottom top))
     by apply/esym/(@no_dup_seq_aux_eq pt).
   have := (@eq_all_r pt _ _ (@mem_no_dup_seq pt _)).
   move=> ->.
-  rewrite (@last_no_dup_seq pt).
+  rewrite head_no_dup_seq.
   by rewrite /W /= !eqxx.
 rewrite samex /=.
 have headin : head dummy_pt (leftmost_points bottom top) === top.
@@ -353,7 +360,8 @@ have headin : head dummy_pt (leftmost_points bottom top) === top.
   case: ifP => [lbl | ltl].
     rewrite R_ltb_lt in lbl.
     rewrite pvertE; last first.
-      by rewrite /valid_edge/generic_trajectories.valid_edge ltW // ltW // (lt_trans ltp).
+      by rewrite /valid_edge ltW // ltW // (lt_trans ltp).
+    rewrite -no_dup_seq_aux_eq head_no_dup_seq.
     by rewrite /= left_on_edge.
   move: ltl=> /negbT; rewrite R_ltb_lt -leNgt=> ltl.
   rewrite pvertE; last first.
@@ -369,11 +377,12 @@ have lastin : last dummy_pt (leftmost_points bottom top) === bottom.
   case: ifP => [lbl | ltl].
     rewrite R_ltb_lt in lbl.
     rewrite pvertE; last first.
-      by rewrite /valid_edge/generic_trajectories.valid_edge ltW // ltW // (lt_trans ltp).
-    by rewrite /= pvert_on // /valid_edge/generic_trajectories.valid_edge ltW // ltW // (lt_trans ltp).
+      by rewrite /valid_edge ltW // ltW // (lt_trans ltp).
+    rewrite -no_dup_seq_aux_eq last_no_dup_seq.
+    by rewrite /= pvert_on // /valid_edge ltW // ltW // (lt_trans ltp).
   move: ltl=> /negbT; rewrite R_ltb_lt -leNgt=> ltl.
   rewrite pvertE; last first.
-    by rewrite /valid_edge/generic_trajectories.valid_edge ltl ltW // (lt_trans lbp).
+    by rewrite /valid_edge ltl ltW // (lt_trans lbp).
   set W := (X in no_dup_seq_aux _ X).
   have -> : no_dup_seq_aux (pt_eqb R eq_op) W = no_dup_seq (W : seq pt).
     by apply/esym/(@no_dup_seq_aux_eq pt).
@@ -387,8 +396,8 @@ case: ifP => [lbl | ltl].
   rewrite R_ltb_lt in lbl.
   have vtb : valid_edge bottom (left_pt top).
     by rewrite /valid_edge/generic_trajectories.valid_edge ltW // ltW // (lt_trans ltp).
-
-  rewrite pvertE //= andbT.
+  rewrite pvertE //=.
+  rewrite -/(_ == _); case: ifP=> //= /negbT dif.
   have := order_below_viz_vertical vtb (valid_edge_left top).
   rewrite pvertE // => /(_ _ (left_pt top) erefl _ blt) /=.
   have -> : vertical_projection

@@ -396,7 +396,7 @@ Definition step (st : scan_state) (e : event) : scan_state :=
 Definition leftmost_points (bottom top : edge) :=
   if R_ltb (p_x (left_pt bottom)) (p_x (left_pt top)) then
     if vertical_projection (left_pt top) bottom is Some pt then
-       [:: left_pt top; pt]
+       no_dup_seq [:: left_pt top; pt]
     else
         [::]
   else
@@ -417,11 +417,25 @@ Definition rightmost_points (bottom top : edge) :=
      else
         [::].
 
-Definition complete_last_open (bottom top : edge) (c : cell) :=
+Definition complete_last_open (c : cell) :=
   match c with
   | Bcell lpts rpts le he =>
-      Bcell lpts (rightmost_points bottom top) le he
+      Bcell lpts (rightmost_points le he) le he
   end.
+
+Definition midpoint (p1 p2 : pt) : pt :=
+  {| p_x := R_div (R_add (p_x p1) (p_x p2)) R2;
+     p_y := R_div (R_add (p_y p1) (p_y p2)) R2|}.
+ 
+ (* The center of the cell is computed using the middle of the high edge
+    the middle of the low edge, and their middle. *)
+
+Definition cell_center (c : cell) :=
+   midpoint
+     (midpoint (seq.last dummy_pt (left_pts c))
+               (head dummy_pt (right_pts c)))
+     (midpoint (head dummy_pt (left_pts c))
+               (seq.last dummy_pt (right_pts c))).
 
 Definition start_open_cell (bottom top : edge) :=
   Bcell (leftmost_points bottom top) [::] bottom top.
@@ -435,13 +449,56 @@ Definition start (first_event : event) (bottom : edge) (top : edge) :
          (close_cell (point first_event) (start_open_cell bottom top))
          top (p_x (point first_event))).
 
+Definition left_limit (c : cell) := p_x (seq.head dummy_pt (left_pts c)).
+
+Definition right_limit c := p_x (seq.head dummy_pt (right_pts c)).
+
+Definition cmp_option := cmp_option _ R_ltb.
+
+Definition strict_inside_closed p c :=
+  negb (point_under_edge p (low c)) &&
+  point_strictly_under_edge p (high c) &&
+  (R_ltb (left_limit c) (p_x p) &&
+  (R_ltb (p_x p) (right_limit c))).
+
+Definition bare_closed_cell_side_limit_ok c :=
+  [&& size (left_pts c) != 0%N,
+    all (fun p : pt => R_eqb (p_x p) (left_limit c)) (left_pts c),
+    sorted (fun x y => R_ltb y x) [seq p_y p | p <- left_pts c],
+    (R_eqb
+      (area3 (head dummy_pt (left_pts c)) (left_pt (high c)) (right_pt (high c)))
+       R0 && valid_edge (high c) (head dummy_pt (left_pts c))),
+    (R_eqb
+      (area3 (seq.last dummy_pt (left_pts c)) (left_pt (low c)) (right_pt (low c)))
+      R0 && valid_edge (low c) (seq.last dummy_pt (left_pts c))),
+     size (right_pts c) != 0%N,
+    all (fun p : pt => R_eqb (p_x p) (right_limit c)) (right_pts c),
+    sorted (fun x y => R_ltb y x) [seq p_y p | p <- right_pts c],
+    (R_eqb (area3 (head dummy_pt (right_pts c))
+        (left_pt (high c)) (right_pt (high c))) R0 &&
+      valid_edge (high c) (head dummy_pt (right_pts c))) &
+    (R_eqb (area3 (seq.last dummy_pt (right_pts c)) (left_pt (low c)) 
+      (right_pt (low c)))
+      R0 && valid_edge (low c) (seq.last dummy_pt (right_pts c)))].
+
+Definition check_bounding_box (bottom top : edge) :=
+  let cc := complete_last_open (start_open_cell bottom top) in
+  edge_below bottom top &&
+  R_ltb (left_limit cc) (right_limit cc) &&
+  bare_closed_cell_side_limit_ok cc &&
+  strict_inside_closed (cell_center cc) cc.
+         
 Definition complete_process (events : seq event) (bottom top : edge) : seq cell :=
   match events with
-  | [::] => [:: complete_last_open bottom top (start_open_cell bottom top)]
+  | [::] => 
+    if check_bounding_box bottom top then
+      [:: complete_last_open (start_open_cell bottom top)]
+    else
+      [::]
   | ev0 :: events =>
     let start_scan := start ev0 bottom top in
     let final_scan := foldl step start_scan events in
-      map (complete_last_open bottom top)
+      map complete_last_open
       (sc_open1 final_scan ++ lst_open final_scan :: sc_open2 final_scan) ++
       lst_closed final_scan :: sc_closed final_scan
   end.
@@ -548,18 +605,6 @@ Definition one_door_neighbors
               Nat.eqb i' i0 || Nat.eqb i' i'0) && (negb (Nat.eqb j vi)))
           indexed_doors)
   end.
-
-Definition left_limit (c : cell) := p_x (seq.head dummy_pt (left_pts c)).
-
-Definition right_limit c := p_x (seq.head dummy_pt (right_pts c)).
-
-Definition cmp_option := cmp_option _ R_ltb.
-
-Definition strict_inside_closed p c :=
-  negb (point_under_edge p (low c)) &&
-  point_strictly_under_edge p (high c) &&
- (R_ltb (left_limit c) (p_x p) &&
- (R_ltb (p_x p) (right_limit c))).
 
 (* For each extremity, we check whether it is already inside an existing
   door.  If it is the case, we need to remember the index of that door.
@@ -694,19 +739,6 @@ Definition c_shortest_path cells s t :=
   (adj, shortest_path R R0 R_ltb R_add node node_eqb
          (seq.nth [::] adj.2) i_s i_t _ empty
          gfind update pop (iota 0 (size adj.2)), i_s, i_t).
-
-Definition midpoint (p1 p2 : pt) : pt :=
- {| p_x := R_div (R_add (p_x p1) (p_x p2)) R2;
-    p_y := R_div (R_add (p_y p1) (p_y p2)) R2|}.
-
-(* The center of the cell is computed using the middle of the high edge
-   the middle of the low edge, and their middle. *)
-Definition cell_center (c : cell) :=
-  midpoint
-    (midpoint (seq.last dummy_pt (left_pts c))
-              (head dummy_pt (right_pts c)))
-    (midpoint (head dummy_pt (left_pts c))
-              (seq.last dummy_pt (right_pts c))).
 
 (* Each point used in the doors is annotated with the doors on which they
   are and the cells they connect.  The last information may be useless

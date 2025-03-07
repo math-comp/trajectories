@@ -154,6 +154,10 @@ Notation rightmost_points :=
   (rightmost_points (Num.RealField.sort R) eq_op <=%R +%R
   (fun x y => x - y) *%R (fun x y => x / y) edge left_pt right_pt).
 
+Notation check_bounding_box :=
+  (check_bounding_box (Num.RealField.sort R) eq_op <=%R +%R
+  (fun x y => x - y) *%R (fun x y => x / y) 1 edge left_pt right_pt).
+
  (* End of notation prefix. *)
 
 Lemma edges_inside_from_events_inside (bottom top : edge) evs:
@@ -982,9 +986,10 @@ case evsq: evs evsn0 => [ | ev future_events] // _.
   have ops : size op = 1%N.
     by move: Main=> -[] _ [] _ [] _ [] _ [] _ [] +.
   case opq : op ops => [ | a [ | ? ?]] //= _.
-  set a' := cells_alg.complete_last_open bottom top a => /esym clq.
+  set a' := cells_alg.complete_last_open a => /esym clq.
   case aeq: a => [lp rp b t].
-  have a'eq : a' = Bcell lp (rightmost_points bottom top) b t.
+  (* have a'eq : a' = Bcell lp (rightmost_points bottom top) b t. *)
+  have a'eq : a' = Bcell lp (rightmost_points b t) b t.
     by rewrite /a' /cells_alg.complete_last_open /complete_last_open aeq /=.
   have ain : a \in op by rewrite opq inE eqxx.
   have tq : t = top.
@@ -1084,6 +1089,7 @@ case evsq: evs evsn0 => [ | ev future_events] // _.
     by case: (leP (p_x (right_pt bottom)) (p_x (right_pt top))) => // /ltW.
   have rxq : rx = right_limit a'.
     rewrite /right_limit a'eq /rx /=; move: right_configs.
+    rewrite tq bq.
     move=> /orP[] /andP[] xcond /eqP ->; rewrite last_no_dup_seq /=.
       by case: ltP xcond.
     by case: leP xcond.
@@ -1106,6 +1112,7 @@ case evsq: evs evsn0 => [ | ev future_events] // _.
   have haon : head dummy_pt (right_pts a') === high a'.
     rewrite a'eq tq /=.
     move: right_configs.
+    rewrite ?tq bq.
     move=> /orP[] /andP[] xcond /eqP ->; rewrite head_no_dup_seq /=.
       have vbt : valid_edge top (right_pt bottom) by apply: vbt'.
       by have := pvert_on vbt.
@@ -1113,6 +1120,7 @@ case evsq: evs evsn0 => [ | ev future_events] // _.
   have laon : last dummy_pt (right_pts a') === low a'.
     rewrite a'eq bq /=.
     move: right_configs.
+    rewrite tq ?bq.
     move=> /orP[] /andP[] xcond /eqP ->; rewrite last_no_dup_seq /=.
       by apply: right_on_edge.
     have vtb : valid_edge bottom (right_pt top) by apply: vtb'.
@@ -1121,12 +1129,14 @@ case evsq: evs evsn0 => [ | ev future_events] // _.
     by rewrite a'eq tq bq /=; apply: nocs'; rewrite !inE eqxx ?orbT.
   have allrx : all (eq_op^~ rx) [seq p_x p | p <- right_pts a'].
     rewrite a'eq /=; move: right_configs.
+    rewrite ?tq ?bq.
     move=> /orP[] /andP[] xcond /eqP ->; rewrite all_map all_no_dup_seq /=;
       rewrite /rx; move: xcond.
       by case: ltP; rewrite ?eqxx //.
     by case: lerP; rewrite ?eqxx //.
   have rpn0 : right_pts a' != [::].
     rewrite a'eq /=; move: right_configs.
+    rewrite ?tq ?bq.
     by move=> /orP[] /andP[] _ /eqP ->; rewrite no_dup_seq_cons_n0.
   have ccain : strict_inside_closed (cell_center a') a'.
     by apply: (cell_center_inside_main nocbt la'difh awf a'ook lllt rx_low).
@@ -1134,6 +1144,7 @@ case evsq: evs evsn0 => [ | ev future_events] // _.
     by move: ccain=> /andP[] _ /andP[] A B; apply: (lt_trans A B).
   have sorted_righta : sorted >%R [seq p_y p | p <- right_pts a'].
     rewrite a'eq /=; move: right_configs.
+    rewrite ?tq ?bq.
     move=> /orP[] /andP[] xcond /eqP -> /=.
       case: ifP=> // /negbT pcond /=; rewrite andbT.
       have vbt : valid_edge top (right_pt bottom) := vbt' xcond.
@@ -1230,6 +1241,4 @@ case evsq: evs evsn0 => [ | ev future_events] // _.
   by [].
   Qed.
 
-(* In this lemma we attempt to agree with a smaller set of assumptions as in
-  the paper.*)
 End working_environment.

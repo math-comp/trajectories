@@ -93,7 +93,9 @@ Notation right_pts := (right_pts (Num.RealField.sort R) edge).
 Notation Bcell := (Bcell (Num.RealField.sort R) edge).
 Notation cell_center :=
   (cell_center (Num.RealField.sort R) +%R (fun x y => x / y) 1%:R edge).
-
+Notation left_limit := (left_limit (Num.RealField.sort R) 1 edge).
+Notation right_limit := (right_limit (Num.RealField.sort R) 1 edge).
+  
 Notation closing_cells :=
   (generic_trajectories.closing_cells (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
     *%R (fun x y => x / y) edge left_pt right_pt).
@@ -879,7 +881,7 @@ have safe_main : {in events_to_edges [:: ev] &
   move=> /orP[] /andP[] /eqP + /andP[] puh /andP[] pal pnin pong.
     rewrite /left_limit; have [_ _ ->] :=
       close_cell_preserve_3sides (point ev) (start_open_cell bottom top).
-    rewrite -[p_x (last _ _)]/(left_limit (start_open_cell bottom top))=> xq.
+    rewrite -[p_x (head _ _)]/(left_limit (start_open_cell bottom top))=> xq.
     have := inside_box_left_ptsP startok (allP inbox_es _ (map_f _ evin)).
     rewrite -xq ltNge=> /negP; case.
     move: pong=> /andP[] _ /andP[] + _.
@@ -913,7 +915,7 @@ have e_viz_cl : {in [:: ev] &
   move=> /orP[] /andP[] /eqP + /andP[] puh /andP[] pal pnin.
     rewrite /left_limit; have [_ _ ->] :=
       close_cell_preserve_3sides (point ev) (start_open_cell bottom top).
-    rewrite -[p_x (last _ _)]/(left_limit (start_open_cell bottom top))=> xq.
+    rewrite -[p_x (head _ _)]/(left_limit (start_open_cell bottom top))=> xq.
     apply/eqP=> abs.
     have := inside_box_left_ptsP startok (allP inbox_es _ (map_f _ evin)).
     by rewrite -abs xq ltxx.

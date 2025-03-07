@@ -98,6 +98,8 @@ Notation inside_box := (inside_box bottom top).
 Notation open_cell_side_limit_ok := (@open_cell_side_limit_ok R).
 Notation seq_low_high_shift := (@seq_low_high_shift R).
 Notation cover_left_of := (@cover_left_of _ bottom top).
+Notation left_limit := (left_limit (Num.RealField.sort R) 1 edge).
+Notation right_limit := (right_limit (Num.RealField.sort R) 1 edge).
 
 Section opening_cells.
 

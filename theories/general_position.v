@@ -93,7 +93,9 @@ Notation right_pts := (right_pts (Num.RealField.sort R) edge).
 Notation Bcell := (Bcell (Num.RealField.sort R) edge).
 Notation cell_center :=
   (cell_center (Num.RealField.sort R) +%R (fun x y => x / y) 1%:R edge).
-
+Notation left_limit := (left_limit (Num.RealField.sort R) 1 edge).
+Notation right_limit := (right_limit (Num.RealField.sort R) 1 edge).
+  
 Notation closing_cells :=
   (generic_trajectories.closing_cells (Num.RealField.sort R) eq_op <=%R +%R (fun x y => x - y)
     *%R (fun x y => x / y) edge left_pt right_pt).
