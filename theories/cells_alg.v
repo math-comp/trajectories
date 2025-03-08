@@ -2440,42 +2440,43 @@ Lemma update_open_cellE1 c c1 :
       c1 = set_left_pts c' l.
 Proof.
 move=> vle vhe cok xcond sl pal puh.
-rewrite /update_open_cell/generic_trajectories.update_open_cell.
+rewrite /update_open_cell.
 case ogq : (outgoing e) => [ | fog ogs] //=.
 rewrite -/(opening_cells_aux _ _ _ _).
 case oca_eq : (opening_cells_aux _ _ _ _) => [ [// | fno nos] lno] /=.
-rewrite inE => /orP[/eqP -> | ].
-  exists fno; first by rewrite inE eqxx.
-  right; exists (point e :: behead (left_pts c)).
-    case lptsq : (left_pts c) sl => [ // | p1 [ // | p2 lpts]] _ /=.
-    move: cok; rewrite /open_cell_side_limit_ok=> /andP[] _ /andP[] allx.
-    move=> /andP[] _ /andP[] _; rewrite lptsq /=.
-    have oute2 : {in (fog :: ogs),
-        forall g, left_pt g == point e}.
-      by rewrite -ogq; exact oute.
-    have oute3 : {in sort edge_below (fog :: ogs),
-        forall g, left_pt g == point e}.
-      by move=> g; rewrite mem_sort; apply: oute2.
-    have := opening_cells_side_limit vle vhe (underWC pal) puh oute2.
-    rewrite /opening_cells oca_eq=> /allP /(_ fno).
-    rewrite inE eqxx=> /(_ isT)=> /andP[] _ /andP[] _ /andP[] _ /andP[] _.
-    have := opening_cells_first_left_pts (high c) vle _ pal.
-    by rewrite ogq oca_eq => /(_ isT) /= -> /=.
+rewrite inE => /orP[/eqP -> | ]; last first.
+  move=> c1in; exists c1; first by rewrite inE c1in orbT.
+  by left.
+exists fno; first by rewrite inE eqxx.
+have oute2 : {in (fog :: ogs), forall g, left_pt g == point e}.
+  by rewrite -ogq; exact oute.
+have oute3 : {in sort edge_below (fog :: ogs),
+          forall g, left_pt g == point e}.
+  by move=> g; rewrite mem_sort; apply: oute2.
+have := opening_cells_first_left_pts (high c) vle _ pal.
+
+right; exists (point e :: behead (left_pts c)).
+  case lptsq : (left_pts c) sl => [ // | p1 [ // | p2 lpts]] _ /=.
+  move: cok; rewrite /open_cell_side_limit_ok=> /andP[] _ /andP[] allx.
+  move=> /andP[] _ /andP[] _; rewrite lptsq /=.
+  have := opening_cells_side_limit vle vhe (underWC pal) puh oute2.
+  rewrite /opening_cells oca_eq=> /allP /(_ fno).
+  rewrite inE eqxx=> /(_ isT)=> /andP[] _ /andP[] _ /andP[] _ /andP[] _.
+  have := opening_cells_first_left_pts (high c) vle _ pal.
+  by rewrite ogq oca_eq => /(_ isT) /= -> /=.
   split; last by [].
-    have oute3 := oute'.
-    rewrite ogq in oute3.
-    Show.
-    have [_ /= ] := adjacent_opening_aux vle vhe oute3 oca_eq => ->.
-    rewrite /=.
-    move=> /on_edge_same_point /[apply] /=.
-    rewrite xcond /left_limit lptsq /=.
-    move: allx; rewrite /left_limit lptsq=> /allP /(_ (last p2 lpts)).
-      rewrite inE mem_last orbT=> /(_ isT) /eqP /[dup] xq -> /(_ erefl) yq.
-    (* rewrite xcond /left_limit lptsq /= => /(_ erefl) ->. *)
-    by apply/eqP; rewrite pt_eqE xq yq !eqxx.
-  by [].
-move=> c1in; exists c1; first by rewrite inE c1in orbT.
-by left.
+have [_ /= low_fno_q] := adjacent_opening_aux vle vhe oute3 oca_eq.
+have := opening_cells_first_left_pts (high c) vle _ pal.
+rewrite ogq oca_eq => /(_ isT) /= /[dup] A -> /=.
+move: (cok)=> /andP[] _ /andP[] allx /andP[] _ /andP[] _ /[dup] lon.
+case lptsq : left_pts sl => [ | a [ | b l]] //= _.
+have lstin : last dummy_pt (left_pts c) \in (left_pts c).
+  by rewrite lptsq /= inE mem_last orbT.
+move: (eqP (allP allx _ lstin)) xcond => <- samex.
+move=> /on_pvert.
+have <- := same_pvert_y (proj2 (andP lon)) (esym samex).
+rewrite samex lptsq /= => ->.
+by apply/eqP; rewrite pt_eqE !eqxx.
 Qed.
 
 Lemma update_open_cellE2 c :
@@ -2627,7 +2628,7 @@ case: ifP => [ebelow_st {ebelow} | eonlsthe].
     rewrite mem_cat=> /orP[].
       move=>/helper1 [c1' c1'in]=>- [-> | ].
         by apply: helper3; rewrite !mem_cat ?mem_rcons ?c1'in ?inE ?eqxx ?orbT.
-      move=>[l lq ->] q.
+      move=>[l lq [_ ->]] q.
       suff -> : inside_open' q (set_left_pts c1' l) = inside_open' q c1'.
         by apply: (helper3 c1' lstc _ _ q);
             rewrite !mem_cat ?mem_rcons ?c1'in ?inE ?eqxx ?orbT.
@@ -2652,7 +2653,7 @@ case: ifP => [ebelow_st {ebelow} | eonlsthe].
     by apply: disjoint_open_closed;
        rewrite ?mem_cat ?mem_rcons ?inE ?c1f ?eqxx ?c2in ?orbT.
   move=> /orP[/helper1 [c1' c1no'] |].
-    move=> [-> | [l lq -> q] ].
+    move=> [-> | [l lq [_ ->] q] ].
       by apply: helper3; rewrite !(mem_rcons, mem_cat, inE) ?c1no' ?c2in ?orbT.
     suff -> : inside_open' q (set_left_pts c1' l) = inside_open' q c1'.
       by apply: helper3;

@@ -26,6 +26,8 @@ Notation Bpt := (Bpt (Num.RealField.sort R)).
 Notation edge := (edge R).
 Notation left_pt := (@left_pt R).
 Notation right_pt := (@right_pt R).
+Notation left_limit := (left_limit (Num.RealField.sort R) 1 edge).
+Notation right_limit := (right_limit (Num.RealField.sort R) 1 edge).
 Notation event := (event (Num.RealField.sort R) edge).
 Notation outgoing := (outgoing (Num.RealField.sort R) edge).
 Notation point := (point (Num.RealField.sort R) edge).
@@ -442,7 +444,7 @@ move=> [[oc [pcc A]] | [pcc A]] /[dup] pong /andP[] _ vpg pnright.
     rewrite /strict_inside_closed.
     by rewrite (strict_nonAunder vlh) hcq pong.
   have vll : valid_edge (low c) p.
-    move: cok=> /andP[] slpt /andP[] allxl /andP[] _ /andP[] _ /andP[] lon.
+    move: (cok)=> /andP[] slpt /andP[] allxl /andP[] _ /andP[] _ /andP[] lon.
     move=> /andP[] srpt /andP[] allxr /andP[] _ /andP[] _ lon'.
     have lplin : last dummy_pt (left_pts c) \in left_pts c.
       by case: left_pts slpt => [ | a tl] //= _; rewrite mem_last.
@@ -454,6 +456,7 @@ move=> [[oc [pcc A]] | [pcc A]] /[dup] pong /andP[] _ vpg pnright.
       by move: lon=> /andP[] _ /andP[].
     have right_cond : p_x p <= p_x (right_pt (low c)).
       apply/(le_trans (proj2 (andP pcP))).
+      rewrite -(closed_cell_side_limit_ok_last cok).
       by move: lon' => /andP[] _ /andP[].
     by rewrite /valid_edge left_cond right_cond.
   rewrite (under_onVstrict vlh) hcq pong /= pcP andbT.
@@ -490,7 +493,7 @@ have vlh : valid_edge (high c) p by rewrite hcq; move: pong => /andP[].
   (* TODO: there should about lemma about inside_closed' and valid high and low
     edges of the cell. *)
 have vll : valid_edge (low c) p.
-  move: cok=> /andP[] slpt /andP[] allxl /andP[] _ /andP[] _ /andP[] lon.
+  move: (cok)=> /andP[] slpt /andP[] allxl /andP[] _ /andP[] _ /andP[] lon.
   move=> /andP[] srpt /andP[] allxr /andP[] _ /andP[] _ lon'.
   have lplin : last dummy_pt (left_pts c) \in left_pts c.
     by case: left_pts slpt => [ | a tl] //= _; rewrite mem_last.
@@ -502,6 +505,7 @@ have vll : valid_edge (low c) p.
     by move: lon=> /andP[] _ /andP[].
   have right_cond : p_x p <= p_x (right_pt (low c)).
     apply/(le_trans (proj2 (andP pcP))).
+    rewrite -(closed_cell_side_limit_ok_last cok).
     by move: lon' => /andP[] _ /andP[].
   by rewrite /valid_edge left_cond right_cond.
 split; last first.
@@ -1014,7 +1018,8 @@ case evsq: evs evsn0 => [ | ev future_events] // _.
     case: ifP=> cmp.
       have vtrb : valid_edge top (right_pt bottom).
         have lla: p_x (left_pt top) <= left_limit a <= p_x (right_pt bottom).
-          move: aok; rewrite aeq /open_cell_side_limit_ok /left_limit /=.
+          move: (aok); rewrite /open_cell_side_limit_ok.
+          rewrite -(open_cell_side_limit_ok_last aok) /= aeq.
           move=> /andP[] + /andP[] + /andP[] _ /andP[] + +.
           case: (lp) => [ | x tl] // _ /= /andP[] /eqP xq _.
           move=> /andP[] _ /andP[] + _ /andP[] _ /andP[] _ +; rewrite xq tq bq.
@@ -1041,7 +1046,8 @@ case evsq: evs evsn0 => [ | ev future_events] // _.
     move: cmp=> /negbT; rewrite -leNgt => /[dup] cmp -> /=.
     have vbrt : valid_edge bottom (right_pt top).
       have lla : p_x (left_pt bottom) <= left_limit a <= p_x (right_pt top).
-        move: aok; rewrite aeq /open_cell_side_limit_ok /left_limit /=.
+        move: (aok); rewrite /open_cell_side_limit_ok.
+        rewrite -(open_cell_side_limit_ok_last aok) /= aeq.
         move=> /andP[] + /andP[] + /andP[] _ /andP[] + +.
         case: (lp) => [ | x tl] // _ /= /andP[] /eqP xq _.
         move=> /andP[] _ /andP[] _ + /andP[] _ /andP[] + _; rewrite xq tq bq.
@@ -1054,7 +1060,7 @@ case evsq: evs evsn0 => [ | ev future_events] // _.
       Num.min (p_x (right_pt bottom)) (p_x (right_pt top)).
     rewrite /right_limit a'eq bq tq.
     by move: right_configs=> /orP[] /andP[] + /eqP ->;
-      rewrite last_no_dup_seq /=; case: ltP.
+      rewrite head_no_dup_seq /=; case: ltP.
   have disa' : {in cl, forall c, c_disjoint c a'}.
     move=> c cin p; have := Main; do 9 (move => [] _); move=> [] + _.
     move=> /(_ _ _ ain cin p).
@@ -1090,7 +1096,7 @@ case evsq: evs evsn0 => [ | ev future_events] // _.
   have rxq : rx = right_limit a'.
     rewrite /right_limit a'eq /rx /=; move: right_configs.
     rewrite tq bq.
-    move=> /orP[] /andP[] xcond /eqP ->; rewrite last_no_dup_seq /=.
+    move=> /orP[] /andP[] xcond /eqP ->; rewrite head_no_dup_seq /=.
       by case: ltP xcond.
     by case: leP xcond.
   have vbt' : p_x (right_pt bottom) < p_x (right_pt top) ->

@@ -25,6 +25,8 @@ Notation Bpt := (Bpt (Num.RealField.sort R)).
 Notation edge := (edge R).
 Notation left_pt := (@left_pt R).
 Notation right_pt := (@right_pt R).
+Notation left_limit := (left_limit (Num.RealField.sort R) 1 edge).
+Notation right_limit := (right_limit (Num.RealField.sort R) 1 edge).
 Notation event := (event (Num.RealField.sort R) edge).
 Notation outgoing := (outgoing (Num.RealField.sort R) edge).
 Notation point := (point (Num.RealField.sort R) edge).
@@ -232,12 +234,11 @@ have ph : point ev = head dummy_pt (left_pts lsto).
   by apply/eqP; rewrite pt_eqE xs ys !eqxx.
 have puh' : p_y (point ev) < pvert_y (point ev) he.
   by rewrite -(strict_under_pvert_y vhe).
-
 have btm_lsto : lexPt (bottom_left_corner lsto) (point ev).
   rewrite /bottom_left_corner.
   apply: lexePt_lexPt_trans lex1.
   (* TODO: check for duplication *)
-  move: allx; rewrite /left_limit=> allx.
+  move: allx; rewrite -(open_cell_side_limit_ok_last lstok) => allx.
   case: left_pts has1 allx srt => [ | a [ | b [ | c tl]]] //= _.
       by rewrite lexePt_refl.
     rewrite /lexePt.
@@ -253,8 +254,7 @@ case ogq : outgoing => [ | fog ogs].
                             (pvert_y (point ev) he) :: left_pts lsto)
                 (right_pts lsto) (low lsto) he).
   have lln : left_limit lno1 = left_limit lsto.
-    rewrite /left_limit /lno1.
-    by case: left_pts lptsn0 allx=> [ | a tl].
+     exact at_ll.
   have btm_lno_eq : lexePt (bottom_left_corner lno1) (point ev).
     apply/lexPtW; move: btm_lsto.
     rewrite /bottom_left_corner /lno1 /=.
@@ -1063,8 +1063,9 @@ have llc'lt : left_limit c' < p_x (point ev).
   have : bottom_left_corner c' = point ev.
     have evonc' : point ev === low c' by rewrite -rlc'_ev right_on_edge.
     have bonc' : bottom_left_corner c' === low c'.
-    have := allP (sides_ok comi) _ c'in3.
-    by move=> /andP[] _ /andP[] _ /andP[] _ /andP[] _.
+      have := allP (sides_ok comi) _ c'in3.
+      by move=> /andP[] _ /andP[] _ /andP[] _ /andP[] _.
+    rewrite -(open_cell_side_limit_ok_last c'ok) in lc'x.
     have same_y := on_edge_same_point bonc' evonc' lc'x.
     by apply/eqP; rewrite pt_eqE -lc'x -same_y !eqxx.
   have := bottom_left_opens d_inv c'in3 evin=> /[swap] ->.
@@ -1258,15 +1259,8 @@ apply/(uniqP dummy_pt).
         have [_ -> ->] := close_cell_preserve_3sides (point ev)
             (nth dummy_cell (rcons cc' lcc) i).
         have := allP (sides_ok comi) _ (nth_in _ i_s).
-        move=> /andP[] lf_size /andP[] xs
-        /andP[] _ /andP[] hdon _.
-        case: left_pts lf_size xs hdon => [ | a tl] // _ xs hdon.
-        have ain : a \in (a :: tl) by rewrite inE eqxx.
-        have lstin : last a tl \in (a :: tl) by rewrite mem_last.
-        have /eqP ax := allP xs _ ain.
-        have /eqP lx := allP xs _ lstin.
-        rewrite /= lx -ax.
-        by move: hdon; rewrite /= => /andP[] _ /andP[] it _.
+        by move=> /[dup] iok /andP[] lf_size /andP[] xs
+        /andP[] _ /andP[] /andP[] _ /andP[] + _ _.
       apply: (le_trans (proj2 (andP C))).
       rewrite (nth_map dummy_cell); last by rewrite size_rcons.
       rewrite right_limit_close_cell //; last first.
@@ -1287,8 +1281,11 @@ apply/(uniqP dummy_pt).
         rewrite /left_limit.
         have [-> _ ->] := close_cell_preserve_3sides (point ev)
             (nth dummy_cell (rcons cc' lcc) j).
-        have := allP (sides_ok comi) _ (nth_in _ js).
-        move=> /andP[] lf_size /andP[] xs
+        rewrite -/(left_limit (nth _ _ _)).
+        have jok : open_cell_side_limit_ok (nth dummy_cell (rcons cc' lcc) j).
+          by apply: allP (sides_ok comi) _ (nth_in _ js).
+        rewrite -(open_cell_side_limit_ok_last jok).
+        move: jok => /andP[] lf_size /andP[] xs
         /andP[] _ /andP[] hdon lston.
         by move: lston=> /andP[] _ /andP[].
       apply: (le_trans (proj2 (andP B))).
@@ -1559,6 +1556,8 @@ have pxh : p_x (head dummy_pt (right_pts lstc)) = right_limit lstc.
   by case: right_pts sz allx => [ | a tl] //= _ /andP[] /eqP -> _.
 rewrite top_lstc; split.
   by case: right_pts sz => [ | ? ?] //= _; rewrite inE eqxx.
+have lstc_ok := cl_side d_inv lstcin.
+rewrite -(closed_cell_side_limit_ok_last lstc_ok) in pxh.
 have -> := under_edge_lower_y pxh lon.
 rewrite -ltNge.
 case : right_pts sz srt => [ | a [ | b tl]] //= _.
@@ -1832,16 +1831,18 @@ case cold : ((c \in (fop ++ fc')) || (c \in lc)); last first.
   by rewrite orbF andbT.
 move=> _ pin.
 have cino : c \in fop ++ lsto :: lop.
-    by rewrite ocd -cat_rcons mem_cat (mem_cat _ _ lc) orbCA cold orbT.
-  have [vlc vhc] : valid_cell c (point ev).
-    by apply/andP/(allP sval).
-  have xle : p_x p <= p_x (point ev).
-    have := bottom_left_opens d_inv cino evin.
-    rewrite /lexPt -bottom_left_x.
-    by move: pin => /andP[] /eqP <- _ => /orP[/ltW | /andP[] /eqP -> _].
-  have pev : p = point ev.
-    by apply: (pre_pev xle gin).
-  rewrite pev in pin.
+  by rewrite ocd -cat_rcons mem_cat (mem_cat _ _ lc) orbCA cold orbT.
+have [vlc vhc] : valid_cell c (point ev).
+  by apply/andP/(allP sval).
+have cok : open_cell_side_limit_ok c.
+  by apply: (allP sides_ok').
+have xle : p_x p <= p_x (point ev).
+  have := bottom_left_opens d_inv cino evin.
+  rewrite /lexPt -(bottom_left_x cok).
+  by move: pin => /andP[] /eqP <- _ => /orP[/ltW | /andP[] /eqP -> _].
+have pev : p = point ev.
+  by apply: (pre_pev xle gin).
+rewrite pev in pin.
 by have := pnot_old_eq startcin pin; rewrite cold.
 Qed.
 
@@ -2115,7 +2116,7 @@ move=> /orP [cold | cnew].
     by apply/andP/(allP sval).
   have xle : p_x p <= p_x (point ev).
     have := bottom_left_opens d_inv cino evin.
-    rewrite /lexPt -bottom_left_x.
+    rewrite /lexPt -(bottom_left_x cok).
     by move: pin => /andP[] /eqP <- _ => /orP[/ltW | /andP[] /eqP -> _].
   have pev : p = point ev.
     by apply: (pre_pev xle gin).
@@ -2186,7 +2187,7 @@ have px' : p_x p = p_x (point ev).
   move: pin=> /andP[] /eqP -> _.
   move: cnos; rewrite nosq inE => /orP[/eqP cfno | cnos'].
     rewrite cfno at_ll /left_limit left_pts_set.
-    by case: left_pts (has_snd_lst comng) => [ | ? [ | ? ?]].
+    exact: at_ll.
   have := opening_cells_left oute vlo vhe=> -> //.
   by rewrite /opening_cells oca_eq mem_rcons !inE cnos' !orbT.
 move: cnew; rewrite mem_rcons inE => /orP[/eqP clno |].
@@ -2359,7 +2360,7 @@ have px' : p_x p = p_x (point ev).
   move: pin=> /andP[] /eqP -> _.
   move: cnos; rewrite nosq inE => /orP[/eqP cfno | cnos'].
     rewrite cfno at_ll /left_limit left_pts_set.
-    by case: left_pts (has_snd_lst comng) => [ | ? [ | ? ?]].
+    exact: at_ll.
   have := opening_cells_left oute vlo vhe=> -> //.
   by rewrite /opening_cells oca_eq mem_rcons !inE cnos' !orbT.
 move: cnew; rewrite mem_rcons inE => /orP[/eqP clno |].
