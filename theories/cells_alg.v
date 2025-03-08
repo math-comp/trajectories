@@ -5392,7 +5392,7 @@ Definition main_process bottom top evs :=
 
 Lemma complete_process_eq bottom top ev evs :
   complete_process  R eq_op <=%R +%R (fun x y => x - y) *%R (fun x y => x / y) 1 edge
-  (@unsafe_Bedge _) left_pt right_pt (ev :: evs) bottom top =
+  (@unsafe_Bedge _) left_pt right_pt bottom top (ev :: evs) =
   match scan evs (initial_state bottom top (ev :: evs)) with
    (a, b) => [seq complete_last_open c | c <- a] ++ b
   end.

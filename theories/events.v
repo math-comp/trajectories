@@ -121,6 +121,34 @@ Fixpoint edges_to_events (s : seq edge) : seq event :=
       (add_event (right_pt e) e true (edges_to_events s'))
   end.
 
+Lemma add_eventE p g b s :
+  add_event p g b s =
+  generic_trajectories.add_event
+    (Num.RealField.sort R) eq_op <=%R edge p g b s.
+Proof.
+elim: s => [ | g' tl Ih] //=.
+set b1 := (p == _).
+rewrite -[pt_eqb _ _ p (generic_trajectories.point R edge g')]/b1.
+case: ifP; first by [].
+move=> b1F.
+rewrite R_ltb_lt.
+set b2 := (_ < _).
+case: ifP; first by [].
+move=> b2F.
+rewrite R_ltb_lt.
+case: ifP; first by [].
+by rewrite Ih.
+Qed.
+
+Lemma edges_to_eventsE (s : seq edge) :
+  edges_to_events s = 
+  generic_trajectories.edges_to_events
+   (Num.RealField.sort R) eq_op <=%R edge left_pt right_pt s.
+Proof.
+elim: s => [ | g tl Ih] //=.
+by rewrite !add_eventE Ih.
+Qed.
+
 Section proof_environment.
 Variable bottom top : edge.
 

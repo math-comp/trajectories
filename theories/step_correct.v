@@ -152,6 +152,11 @@ Notation complete_process :=
   (fun x y => x - y) *%R (fun x y => x / y)
   1 edge (@unsafe_Bedge R) left_pt right_pt).
 
+Notation edges_to_cells :=
+  (edges_to_cells (Num.RealField.sort R) eq_op <=%R +%R
+  (fun x y => x - y) *%R (fun x y => x / y)
+  1 edge (@unsafe_Bedge R) left_pt right_pt).
+
 Notation rightmost_points :=
   (rightmost_points (Num.RealField.sort R) eq_op <=%R +%R
   (fun x y => x - y) *%R (fun x y => x / y) edge left_pt right_pt).
@@ -159,6 +164,10 @@ Notation rightmost_points :=
 Notation check_bounding_box :=
   (check_bounding_box (Num.RealField.sort R) eq_op <=%R +%R
   (fun x y => x - y) *%R (fun x y => x / y) 1 edge left_pt right_pt).
+
+Notation edges_to_events := 
+  (generic_trajectories.edges_to_events (Num.RealField.sort R)
+  eq_op <=%R edge left_pt right_pt).
 
  (* End of notation prefix. *)
 
@@ -949,7 +958,7 @@ Qed.
 (* This lemma uses assumptions of minimal strength, but the amount of assumptions
  is quite verbose. *)
 Lemma complete_safe (bottom top : edge) s 
-  (closed open : seq cell) (evs : seq event) :
+  (closed : seq cell) (evs : seq event) :
   evs != [::] ->
   bottom <| top ->
   open_cell_side_limit_ok (start_open_cell bottom top) ->
@@ -963,7 +972,7 @@ Lemma complete_safe (bottom top : edge) s
   close_edges_from_events evs ->
   {in s & evs, forall g e, non_inner g (point e)} ->
   {in evs, forall e, uniq (outgoing e)} ->
-  complete_process evs bottom top = closed ->
+  complete_process bottom top evs = closed ->
   {in closed, forall c,
     strict_inside_closed (cell_center c) c /\
     low c <| high c /\
@@ -1246,5 +1255,174 @@ case evsq: evs evsn0 => [ | ev future_events] // _.
   do 6 (split; first by []).
   by [].
   Qed.
+
+Definition well_formed_bounding_box (bottom top : edge) :=
+    check_bounding_box bottom top.
+
+Definition unsafe (evs : seq event) (p : pt) :=
+  (exists2 e, e \in evs & p = point e) \/
+    (exists2 g, g \in events_to_edges evs & p === g).
+
+Definition cell_safe_part (c : cell) (p : pt) :=
+  strict_inside_closed p c ||
+  (in_safe_side_left p c || in_safe_side_right p c).
+
+Lemma second_phase_safety (bottom top : edge)
+  (evs : seq event) :
+  well_formed_bounding_box bottom top ->
+  {in bottom :: top ::
+       events_to_edges evs &, forall e1 e2, inter_at_ext e1 e2} ->
+  all (inside_box bottom top) [seq point e | e <- evs] ->
+  sorted (@lexPtEv _) evs ->
+  {in evs, forall ev, out_left_event ev} ->
+  close_edges_from_events evs ->
+  {in events_to_edges evs & evs, forall g e, non_inner g (point e)} ->
+  {in evs, forall e, uniq (outgoing e)} ->
+  {in complete_process bottom top evs, forall c,
+    strict_inside_closed (cell_center c) c /\
+    closed_cell_side_limit_ok c /\
+    forall p, cell_safe_part c p -> ~ unsafe evs p}.
+Proof.
+rewrite /well_formed_bounding_box.
+move=> wfbb noc' inbox_es lexev out_evs cle non_in uniq_out.
+move: (wfbb); rewrite /check_bounding_box => /andP[] /andP[] box_wf boxok inc.
+move: box_wf => /andP[] box_wf box_lr.
+have btdif : bottom != top.
+  apply/eqP=> bt.
+  move: inc=> /andP[] /andP[] /underWC + + _.
+  set p0 := cell_center _.
+  by rewrite -[low _]/bottom -[high _]/top bt => /[swap] ->.
+have [evs0 | evsn0] := eqVneq evs [::].
+  rewrite evs0 /= wfbb=> c; rewrite inE=> /eqP -> {c}.
+  set c := Bcell _ _ _ _.
+  have cq : c = complete_last_open (start_open_cell bottom top) by [].
+  move: (wfbb); rewrite /check_bounding_box => /andP[] /andP[] _.
+  split; [ | split;[by apply: unbare_closed_cell_ok | ]].
+    rewrite /strict_inside_closed.  
+    rewrite /generic_trajectories.strict_inside_closed !R_ltb_lt in inc.
+    by move: inc => /andP[] /andP[] -> -> /andP[] -> ->.
+  by move=> p psafe [[e //] | [g /flatten_mapP[x //] ]].
+remember (complete_process bottom top evs) as closed eqn:closedq.
+move=> c cin.
+have startok : open_cell_side_limit_ok (start_open_cell bottom top).
+  move: boxok=> /unbare_closed_cell_ok; rewrite /open_cell_side_limit_ok.
+  move=> /andP[] -> /andP[] + /andP[] + /andP[] + /andP[] + _.
+  rewrite /left_limit /complete_last_open.
+  by case: start_open_cell => l1 l2 le he /= -> -> -> ->.
+have ext_inside : {in events_to_edges evs,
+  forall g, inside_box bottom top (left_pt g) &&
+    inside_box bottom top (right_pt g)}.
+  move=> g /flatten_mapP [e ein gin].
+  have /eqP -> := out_evs _ ein _ gin.
+  rewrite (allP inbox_es _ (map_f _ ein)) /=.
+  have [e' e'in rgq] := closed_edges_from_eventsW cle ein gin.
+  by rewrite rgq; apply/(allP inbox_es)/map_f.
+have := complete_safe evsn0 box_wf startok noc' ext_inside inbox_es lexev
+  (@subset_id _ _) out_evs cle non_in uniq_out (esym closedq) cin.
+move=> [ccin [cwf [lchcdif [clr [cok [insideP sideP]]]]]].
+do 2 (split; first by []).
+move=> p /orP[p_inside | p_safe_side].
+  have [p_no_edge p_no_event] := insideP p p_inside.
+  move=> [[/= e ein pone] | [/= g gin pong]].
+    by have := p_no_event _ ein; rewrite pone eqxx.
+  by have := p_no_edge g gin; rewrite pong.
+have [p_no_edge p_no_event] := sideP _ p_safe_side.
+move=> [[/= e ein pone] | [/= g gin pong]].
+  by have := p_no_event _ ein; rewrite pone eqxx.
+by have := p_no_edge g gin; rewrite pong.
+Qed.
+
+Lemma edges_to_events_uniq evs :
+  uniq (events_to_edges evs) ->
+  {in evs, forall e, uniq (outgoing e)}.
+Proof.
+elim: evs => [ | e evs Ih].
+  by [].  
+rewrite events_to_edges_cons.
+move=> uniq_all.
+have uniq1 : uniq (outgoing e).
+  apply: subseq_uniq uniq_all.
+  by apply: prefix_subseq.
+move=> e1; rewrite inE => /orP[/eqP -> |]; first by [].
+apply: Ih.
+apply: subseq_uniq uniq_all.
+by apply: suffix_subseq.
+Qed.
+
+Lemma two_phase_safety bottom top (edges : seq edge) :
+  well_formed_bounding_box bottom top -> uniq edges ->
+  {in bottom :: top :: edges &, forall e1 e2, inter_at_ext e1 e2} ->
+  {in edges, forall g, inside_box bottom top (left_pt g) &&
+         inside_box bottom top (right_pt g)} ->
+  {in edges_to_cells bottom top edges, forall c,
+    strict_inside_closed (cell_center c) c /\
+    closed_cell_side_limit_ok c /\
+    forall p, cell_safe_part c p -> {in edges, forall g, ~ p === g}}.
+Proof.
+move=> wfbb ung noc inside c.
+rewrite /edges_to_cells.
+set evs := edges_to_events edges.
+move=> cin.
+have perm_evs : perm_eq (events_to_edges evs) edges.
+  rewrite perm_sym.
+  have := edges_to_events_no_loss edges.
+  by rewrite edges_to_eventsE.
+have noc' : {in [:: bottom, top & events_to_edges evs] &,
+  forall e1 e2, inter_at_ext e1 e2}.
+  move=> g1 g2; rewrite !inE.
+  rewrite !(perm_mem perm_evs)=> g1in g2in.
+  by apply: noc; rewrite !inE.
+have leftin : {subset [seq left_pt g | g <- edges] <=
+                 [seq left_pt g | g <- edges] ++ [seq right_pt g | g <- edges]}.
+  by move=> p pin; rewrite mem_cat pin.
+have rightin : {subset [seq right_pt g | g <- edges] <=
+                 [seq left_pt g | g <- edges] ++ [seq right_pt g | g <- edges]}.
+  by move=> p pin; rewrite mem_cat pin orbT.
+have extremities_in := edges_to_events_subset leftin rightin.
+have inbox_es : all (inside_box bottom top) [seq point e | e <- evs].
+  move: extremities_in; rewrite edges_to_eventsE -/evs=> extremities_in.
+  apply/allP=> e /extremities_in; rewrite mem_cat.
+  by move=> /orP[] /mapP[g /inside /andP[] lgin rgin ->].
+have lexev : sorted (@lexPtEv _) evs.
+  rewrite sorted_lexPtEv_lexPt.
+  rewrite /evs -edges_to_eventsE.
+  by apply: sorted_edges_to_events.
+have out_es : {in evs, forall ev, out_left_event ev}.
+  rewrite /evs -edges_to_eventsE.
+  by apply: out_left_edges_to_events.
+have cle : close_edges_from_events evs.
+  rewrite /evs -edges_to_eventsE.
+  by apply: (edges_to_events_wf bottom top).
+have nin : {in events_to_edges evs & evs, forall g e, non_inner g (point e)}.
+  move=> g e.
+  rewrite (perm_mem perm_evs)=> gin ein pong.
+  have pinext : point e \in [seq left_pt g | g <- edges] ++
+                            [seq right_pt g | g <- edges].
+    by apply/extremities_in/map_f; rewrite edges_to_eventsE.
+  have [g' g'in pextg'] : exists2 g', g' \in edges &
+            point e = left_pt g' \/ point e = right_pt g'.
+    move: pinext; rewrite mem_cat=> /orP[] /mapP[g' g'in pq]; exists g'=> //.
+      by left.
+    by right.
+  have pong' : point e === g'.
+    by move: pextg'=> [] ->; rewrite ?left_on_edge ?right_on_edge.
+  have gin2 : g \in [:: bottom, top & edges].
+    by rewrite !inE gin !orbT.
+  have g'in2 : g' \in [:: bottom, top & edges].
+    by rewrite !inE g'in !orbT.
+  have [-> | /(_ _ pong pong')] := noc g g' gin2 g'in2; first by [].
+  by rewrite !inE=> /orP[] /eqP; [left | right].
+have uniq_out : {in evs, forall e, uniq (outgoing e)}.
+  apply: edges_to_events_uniq.
+  by rewrite (perm_uniq perm_evs).
+have := second_phase_safety wfbb noc' inbox_es lexev out_es cle nin uniq_out cin.
+move=> [ccin [cok csafe]].
+split; first by [].
+split; first by [].
+move=> p psafe g gin pong.
+move: (csafe p psafe)=> [].
+right; exists g; last by [].
+by rewrite (perm_mem perm_evs).
+Qed.
 
 End working_environment.

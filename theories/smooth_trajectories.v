@@ -24,9 +24,9 @@ Notation point := (point Q edge).
 Notation outgoing := (outgoing Q edge).
 
 
-Definition scan :=
+Definition scan evs bottom top :=
   complete_process Q Qeq_bool Qle_bool
-    Qplus Qminus Qmult Qdiv 0 edge Bedge left_pt right_pt.
+    Qplus Qminus Qmult Qdiv 0 edge Bedge left_pt right_pt bottom top evs.
 
 Definition manhattan_distance (p1x p1y p2x p2y : R) :=
   Qabs (p2x - p1x) + Qabs (p2y - p1y).

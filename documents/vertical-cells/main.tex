@@ -201,7 +201,7 @@ determinant computes twice the {\em signed} area of the triangle {\tt
   lrp}.  The function {\tt area} computes this determinant.
 Because it is a signed area, the value is positive if {\tt p}
 is above and negative if {\tt p} is below.  We use the notations
-{\tt \(p\) <<= \(g\)} {\tt \(p\) <<< \(g\)} to express that a point
+{\tt \(p\) <{}<{}= \(g\)} {\tt \(p\) <{}<{}< \(g\)} to express that a point
 \(p\) is in the half plane below an edge \(g\) or strictly below an
 edge, respectively.
 
@@ -229,7 +229,8 @@ the projection happens, two points with the same second coordinate are
 projected to the same point, and the input point and its projection
 are vertically aligned.
 
-We define a relation between edges, noted {\tt <|} which expresses
+We define a relation between edges, noted {\tt <|} and called
+{\tt edge\_below} which expresses
 that the first edge is below the second one.  Edge \(g_1\) is below Edge
 \(g_2\) if both extremities of \(g_1\) are in the half plane below
 \(g_2\) of if both extremities of \(g_2\) are in the half plane above
@@ -275,7 +276,7 @@ there is never an ambiguity as to whether some cell is open or closed.
 \section{The scan state}
 
 The sweeping part of the algorithm is essentially a tail recursive
-algorithm, consuming a sorted sequence events and
+algorithm, consuming a sorted sequence of events and
 maintaining a datastructure which we call the {\tt scan\_state}.  This
 structure contains a representation of the closed cells constructed so
 far, a representation of all the open cells in contact with the
@@ -297,20 +298,19 @@ to modify the last generated closed cell in some case.
 To organize the sweeping process, we work in two phases.
 \begin{enumerate}
 \item  We first
-create a sorted sequence of events.  Processing this sequence of
-events actually implements the sweeping movement from left to right.
-\item Process each event in turn, removing it from the sequence of
-  events, and modifying only the scan state.
+create a sorted sequence of events.
+\item Processing this sequence of
+  events actually implements the sweeping movement from left to right.
+  For each event, it is removed from the sequence and the scan state
+  is modified accordingly.
 \end{enumerate}
 
 An event is the pair of a point and a sequence of edges, with the
 intended data-invariant
 that all edges in the sequence have that point as their left
-extremities.  In contrast with what was done for edges, we chose not
-to encode this intended invariant in the data structure, so that it
-would be possible to build events where the sequence of edges do not
-satisfy this property.  This never happens in the algorithm, and there
-is a formal proof of this fact.
+extremity.  In contrast with what was done for edges, we chose not
+to encode this intended invariant in the data structure, but
+events constructed in the algorithm are guaranteed to respect it.
 
 To create the sequence of events,
 We use a bespoke insertion-sort algorithm, where the insertion
@@ -320,39 +320,38 @@ event, we do not produce a sorted sequence of edges.  Such a sorting
 operation of the outgoing sequence of edges is performed later in the
 algorithm.
 
-When processing each event four cases are treated differently:
+When processing each event for the second phase,
+four cases are treated differently:
 \begin{itemize}
-\item If the considered event is further right than the last processed event
+\item If the considered event is further right than the last processed event,
 \item If the considered event is on the same vertical line, but above the
-high edge of the last created open cell
+high edge of the last created open cell,
 \item If the considered event is on the same vertical line, but below the
-high edge of the last created open cell
-\item If the considered event is on the high edge of the last created open cell
+high edge of the last created open cell,
+\item If the considered event is on the same vertical line and on the
+  high edge of the last created open cell.
 \end{itemize}
 
 To obtain the initial scan state, we need to have already one closed
 cell, which is only constructed after the first event is processed.
 This first closed cell has the left side of the bounding box as left
 side, and its right side contains exactly three points: the first
-event, its projection on high boundary of the bounding-box, and its
+event, its projection on the high boundary of the bounding-box, and its
 projection on the low boundary of the bounding-box.  The first
 sequence of open cells is obtained by constructing new open cells
-using the sorted sequence of outgoing edges from the first event.  If
-the sequence of events is directly the one obtained after sorting a
-set of edges, then the first event will have outgoing edges, but the
-sweeping algorithm is also designed to accept events that have no
-incoming and no outgoing edges.  When the first event has at least
+using the sorted sequence of outgoing edges from the first event.
+When the first event has at least
 one outgoing edge, the initial last open cell is a cell whose low edge
 is the highest outgoing edge and whose high edge is the bounding box
 high boundary, with only two points in the left point sequence: the
-projection of the event on the high boundary and the event itself.
+projection of the event on the high boundary and the event itself (see Figure~\ref{figure:initial}).
 When the first event has no outgoing edge, the initial last open cell
 has the bounding box low boundary as low edge and the bounding box
 high boundary as high edge, its sequence of left points contains the
 event and the two projections on the boundaries.
 \begin{figure}
 \includegraphics[trim={0 23cm 0 0}, clip,scale=0.5]{initial_state.pdf}
-\caption{Two possible configurations for the initial scan state}
+\caption{\label{figure:initial}Two possible configurations for the initial scan state}
 \end{figure}
 
 \subsection{Work performed in the first case}
@@ -379,16 +378,13 @@ sequence of cells given as input is the concatenation of the prefix,
 the contact cells, and the suffix, and that the two edges given as
 output are indeed boundary edges of the first and last contact cells.
 
-All contact cells are transformed into closed cell, by adding a
+All contact cells are transformed into closed cells, by adding a
 right-side.  When there is more that one contact cell, the first one
 has as low edge an edge that is not in contact with the current event
 and as high edge an edge whose right point is the current event.
 Similarly, the last contact cell has as high edge an edge that is not
 in contact with the current event as low edge an edge whose right
-point is the current event.  So, when there is more than one contact
-cell, the first and the last are created with a sequence of right
-points containing two points: the current event and the projection of
-that event on another edge to which it does not belong.
+point is the current event.
 
 When there is only one contact cell, this is because the processed
 event is below that cell's high edge and above that cell's low edge.
@@ -416,29 +412,29 @@ cell, and this even cannot be the right extremity of
 an active edge, because there is no edge between the low and the high
 edge of the last open cell.  For this reason, it is not necessary to
 re-run the {\tt open\_cells\_decomposition} function, as it would
-simply return the last open cell as the last contact cell, and no
-other contact cell.  Closing this contact cell to produce a new closed
+simply return the last open cell as the only contact cell.
+Closing this contact cell to produce a new closed
 cell is not suitable, because it would create an empty closed cell
-(one where the first coordinate would be the same on both lateral
-sides).
+(one where the lateral sides would be on the same vertical line).
 
 No new closed cell is created, but the last closed cell needs to be
-updated because the current event is an extra unsafe point that needs
-to be added to its sequence of right points.  This requirement
-explains why the scan state has a specific field for the last closed cell.
+updated to the current event as an extra unsafe point on the right side.
+This requirement explains why the scan state has a specific field for
+the last closed cell.
 
 New open cells need to be created.  If the current event has no
 outgoing edges, then it is enough to update the last open cell by adding
 the current event among its unsafe points on the left side.  If the
 current event has outgoing edges, new open cells are created as in the
-first two cases, but the sequence of unsafe points that were present
-in the last open cell needs to be included in the sequence of left
+first two cases, but the sequence of unsafe points on the left of
+the last open cell needs to be included in the sequence of left
 points of the first newly created open cell.
 \begin{figure}
 \begin{center}
 \includegraphics[trim={0 0 0 0}, clip,scale=0.5]{third_case.pdf}
 \end{center}
-\caption{Processing a degenerate case: the processed event appears on
+\caption{Processing a degenerate case (third case):
+  the processed event appears on
   the last open cell left boundary and on the last closed cell right
   boundary.  The unsafe points that were previously in the last open
   cell left point sequence need to be added to the first newly created
@@ -448,21 +444,19 @@ points of the first newly created open cell.
 
 \subsection{Work performed for the fourth case}
 In the fourth case, the processed event is on the high edge of the
-last open cell.  We know that the last open will be the first of
+last open cell.  We know that the last open cell will be the first of
 contact cells, and we need to compute the other contact cells, by
 calling {\tt open\_cells\_decomposition}, but this time with a sequence
 of cells that starts with the last open cell.
 
 When closing cells, the first contact cell does not need to be closed
-and can simply discarded, because all the unsafe points were already
-taken into account by existing closed cells, and the current event was
-already a member of the right point sequence for the last closed cell
-(because it is equal to the projection on the last closed cell high
-edge of the previous event).
+and can simply discarded, because its left side is on same vertical line as
+its right side, and all the unsafe points were already
+taken into account by existing closed cells.
 
 When creating new open cells, special attention is required for the
 case where the event has no outgoing edges.  In this case, the last
-open cell needs to be replace with an open cell that has as low edge
+open cell needs to be replaced with an open cell that has as low edge
 the same low edge as the the last open cell, as high edge the high
 edge of the last contact cell
 (as computed by {\tt open\_cells\_decomposition}) and as sequence of
@@ -477,8 +471,10 @@ closed cell is distinct from the obstacles and the events given as
 input.  We already defined the safe part of closed cells in the
 section about cells.
 
-In a similar manner, we can describe unsafe locations as points lying
-on an obstacle, as described by the function {\tt point\_on\_edge}.
+In a similar manner, we can describe unsafe locations as the union
+of points lying
+on an obstacle, as described by the function {\tt point\_on\_edge} and
+the set of orphaned events.
 
 We prove that the intersection between unsafe locations and the union
 of all safe parts of the resulting closed cells is empty.
@@ -488,25 +484,31 @@ collection of assumptions.
 \begin{itemize}
 \item The type of numbers provided to describe the point coordinates,
   the edges, alignment of points, and so on, with its operation and
-  comparison predicates form an ordered field structure.
+  comparison predicates forms an ordered field structure.  It means, the
+  algorithm only uses addition, multiplication, and their inverses.
 \item The only allowed intersections between obstacles are at their
   extremities.
 \item The sequence of obstacles does not contain any duplications.
-\item all obstacle extremities are inside the
-bounding box.
+\item There is a bounding box, given by a bottom and a top edge and two
+  lateral sides, which contains all events.  In particular, this bounding box
+  has distinct lateral sides and bottom and top edges (the bottom edge being
+  below the top edge).
 \end{itemize}
 When propagating this specification to the two phases, it turns out we
 need the following specification for the sorting phase.
 \begin{enumerate}
 \item The union of all outgoing edges of all events in the sorted
   sequence of events contains the initial obstacles.
-\item For a given event, all outgoing edges have the same left
+\item For evey event, all outgoing edges have the same left
   extremity, located at this event.
-\item The sequence of events is strictly sorted alphabetically.
+\item For evey event, The sequence of outgoing edges has no duplication.
+\item The sequence of events is strictly sorted lexicographically.
 \item No event in the sequence appears in the middle of one of the
   obstacles.
 \item The right extremity of every outgoing edge is also located at an
   event existing in the sequence of events.
+\item There are no intersection between pairs of edges except at their
+  extremities.
 \item All events are inside the bounding box.
 \end{enumerate}
 With respect to the safety property, this means that we can consider
@@ -515,13 +517,9 @@ as long as these properties are respected.  In particular,
 We plan to add isolated events for points that are not in contact with
 any obstacles.
 
-If the sequence of events is produced from an initial sequence of
-obstacles, then events are always extremities of obstacles.  However,
-the second part of the program, which processes the sequence of events
-does not make the assumption that events are always on edges.  It can
-actually process events that describe isolated points that do not
-belong to any obstacle (neither extremities nor points in the middle
-of the segment).  When specifying the safety
+The second part of the program, which processes the sequence of events
+does not make the assumption that events are always edge extremities.
+When specifying the safety
 property for the results of the algorithm, we simply need to make sure
 that these orphaned events are excluded from the safe subset of the
 configuration space.
@@ -529,18 +527,19 @@ configuration space.
 A property that does not appear immediately as a safety property is
 that the middle of every cell is strictly included in the cell.  This
 property is useful for users of this algorithm who wish to use a cell
-as turning space to move from one door of the cell to another door of
+as maneuvering space to move from one door of the cell to another door of
 the same cell, when both doors are on the same side.  This property is
 the main reason for having a specific treatment for degenerate cases.
 This specific treatment actually guarantees that every closed cell has
-a left-hand side with an x-coordinate that is lower than the
-x-coordinate of the right-hand side.
+a left-hand side that is further to the left than the
+right-hand side.
 
 To make sure that every cell contains at least a safe point, we
 actually need the property that every event has a list of outgoing
 edges without duplications.  Our code to generate the sequence of
-events does not include steps to guarantee this, but if the input
-list of obstacles has no duplications, the code does not duplicate them.
+events does not include steps to guarantee this, but we guarantee
+that it operates correctly if the input
+list of obstacles has no duplications.
 
 \section{Proving the safety property}
 \subsection{Mirroring contexts}

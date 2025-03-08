@@ -488,7 +488,7 @@ Definition check_bounding_box (bottom top : edge) :=
   bare_closed_cell_side_limit_ok cc &&
   strict_inside_closed (cell_center cc) cc.
          
-Definition complete_process (events : seq event) (bottom top : edge) : seq cell :=
+Definition complete_process (bottom top : edge) (events : seq event) : seq cell :=
   match events with
   | [::] => 
     if check_bounding_box bottom top then
@@ -505,7 +505,7 @@ Definition complete_process (events : seq event) (bottom top : edge) : seq cell 
 
 (* This is the main function of vertical cell decomposition. *)
 Definition edges_to_cells bottom top edges :=
-  complete_process (edges_to_events edges) bottom top.
+  complete_process bottom top (edges_to_events edges).
 
 (* SECOND PART : computing a path in the cell graph *)
 (* To compute a path that has reasonable optimzation, we compute a shortest *)
