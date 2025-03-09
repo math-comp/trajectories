@@ -1352,8 +1352,7 @@ Qed.
 Lemma two_phase_safety bottom top (edges : seq edge) :
   well_formed_bounding_box bottom top -> uniq edges ->
   {in bottom :: top :: edges &, forall e1 e2, inter_at_ext e1 e2} ->
-  {in edges, forall g, inside_box bottom top (left_pt g) &&
-         inside_box bottom top (right_pt g)} ->
+  {in edges, forall g p, p === g -> inside_box bottom top p} ->
   {in edges_to_cells bottom top edges, forall c,
     strict_inside_closed (cell_center c) c /\
     closed_cell_side_limit_ok c /\
@@ -1382,7 +1381,9 @@ have extremities_in := edges_to_events_subset leftin rightin.
 have inbox_es : all (inside_box bottom top) [seq point e | e <- evs].
   move: extremities_in; rewrite edges_to_eventsE -/evs=> extremities_in.
   apply/allP=> e /extremities_in; rewrite mem_cat.
-  by move=> /orP[] /mapP[g /inside /andP[] lgin rgin ->].
+  move=> /orP[] /mapP[g gin eg]; apply: (inside _ gin); rewrite eg.
+    by apply: left_on_edge.
+  by apply: right_on_edge.
 have lexev : sorted (@lexPtEv _) evs.
   rewrite sorted_lexPtEv_lexPt.
   rewrite /evs -edges_to_eventsE.
