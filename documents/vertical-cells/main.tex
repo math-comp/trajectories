@@ -252,7 +252,8 @@ The safe part of a cell is defined as the union of its strict interior
 the right-side, strictly above the low edge, and strictly below the
 high edge) and its doors (points on each of the sides that are
 strictly abouve the low edge and strictly below the high edge and
-different from the side points).
+different from the side points).  In what follows, the safe part of of cell
+is described by a predicate named {\tt safe\_part}.
 
 \begin{figure}
 \includegraphics[trim={0 18cm 0 4cm}, clip,scale=0.5]{one_closed_cell.pdf}
@@ -463,18 +464,18 @@ edge of the last contact cell
 last points the sequence of left points from the last open cell where
 the projection on the high edge has been added.
 
-\subsection{Specifying the behavior}
-This paper describes a proof of safety, there are desirable properties
-that will not be subject to a formal proof.  The safety property will
+\subsection{Specifying the safety property}
+The safety property will
 be expressed in the following manner: any point in the safe part of a
 closed cell is distinct from the obstacles and the events given as
 input.  We already defined the safe part of closed cells in the
 section about cells.
 
 In a similar manner, we can describe unsafe locations as the union
-of points lying
-on an obstacle, as described by the function {\tt point\_on\_edge} and
-the set of orphaned events.
+of points lying on an obstacle, as described by the function
+{\tt point\_on\_edge} and the set of orphaned events.  In practice,
+we can define a predicate {\tt unsafe} that takes as input a sequence
+of events and a point to describe this space.
 
 We prove that the intersection between unsafe locations and the union
 of all safe parts of the resulting closed cells is empty.
@@ -501,7 +502,7 @@ need the following specification for the sorting phase.
   sequence of events contains the initial obstacles.
 \item For evey event, all outgoing edges have the same left
   extremity, located at this event.
-\item For evey event, The sequence of outgoing edges has no duplication.
+\item For every event, The sequence of outgoing edges has no duplication.
 \item The sequence of events is strictly sorted lexicographically.
 \item No event in the sequence appears in the middle of one of the
   obstacles.
@@ -511,12 +512,6 @@ need the following specification for the sorting phase.
   extremities.
 \item All events are inside the bounding box.
 \end{enumerate}
-With respect to the safety property, this means that we can consider
-variants of the algorithm where more events are added in the sequence,
-as long as these properties are respected.  In particular,
-We plan to add isolated events for points that are not in contact with
-any obstacles.
-
 The second part of the program, which processes the sequence of events
 does not make the assumption that events are always edge extremities.
 When specifying the safety
@@ -539,15 +534,73 @@ actually need the property that every event has a list of outgoing
 edges without duplications.  Our code to generate the sequence of
 events does not include steps to guarantee this, but we guarantee
 that it operates correctly if the input
-list of obstacles has no duplications.
+list of obstacles has no duplications
+
+Finally, the statement we prove for the second phase is the following one,
+as written in the input language of the Rocq prover (by taste, we prefer
+to avoid special characters).  In this statement, the function
+{\tt complete\_process} represents the algorithm that process the sequence of
+events: it combines together the operation of constructing the first cells
+from the first event, and processing the last open cell to create the rightmost
+close cell.  The function {\tt events\_to\_edges} collects all the edges
+from a sequence of events.
+\begin{verbatim}
+Lemma second_phase_safety (bottom top : edge) (evs : seq event) :
+  well_formed_bounding_box bottom top ->
+  {in bottom :: top ::
+       events_to_edges evs &, forall e1 e2, inter_at_ext e1 e2} ->
+  all (inside_box bottom top) [seq point e | e <- evs] ->
+  sorted (@lexPtEv _) evs ->
+  {in evs, forall ev, out_left_event ev} ->
+  close_edges_from_events evs ->
+  {in events_to_edges evs & evs, forall g e, non_inner g (point e)} ->
+  {in evs, forall e, uniq (outgoing e)} ->
+  {in complete_process bottom top evs, forall c,
+    strict_inside_closed (cell_center c) c /\
+    closed_cell_side_limit_ok c /\
+    forall p, cell_safe_part c p -> ~ unsafe evs p}.
+\end{verbatim}
+This statement has 8 prerequisites, mostly expressed as properties of the
+sequence of events.
+
+A more compact statement can be used if we consider the combination of the
+two phases, because the first phase guarantees the prerequisites on 
+sequence of events.  The combination of the two phases is called
+{\tt edges\_to\_cells} in this statement.
+While the concision of this statement is pleasant, it
+misses some of the power of the second phase.
+\begin{verbatim}
+Lemma two_phase_safety bottom top (edges : seq edge) :
+  well_formed_bounding_box bottom top -> uniq edges ->
+  {in bottom :: top :: edges &, forall e1 e2, inter_at_ext e1 e2} ->
+  {in edges, forall g p, p === g -> inside_box bottom top p} ->
+  {in edges_to_cells bottom top edges, forall c,
+    strict_inside_closed (cell_center c) c /\
+    closed_cell_side_limit_ok c /\
+    forall p, cell_safe_part c p -> {in edges, forall g, ~ p === g}}.
+\end{verbatim}
+This lemma only has 4 prerequisites: the bounding box given by the
+bottom and top edge must define a workable area of the plane, the sequence
+of input edges must have no duplications, all considered edges must have
+no duplications, and all edges must be inside the bounding box.  With these
+four prerequisites, the algorithms of the first phase are able to produce
+a sequence events satisfying the eight prerequisites of the second phase.
+
+As a result, the algorithm produces a sequence of cells that satisfy four
+properties: each contains at least one point, they are well formed (the 
+sequence of points on the side are vetical and ordered, the extremities of
+these sequences are on the low and high edges of the cell) and any point
+in the safe part of the cell is guaranteed to not be on any of the edges
+given as input.
 
 \section{Proving the safety property}
 \subsection{Mirroring contexts}
-The infra-structure of definitions provided by the Mathematical
-Components library is not fully compatible with the extraction
-process.  To obtain code that is amenable for extraction, we write a
+The infrastructure of definitions provided by the {\sc Mathematical
+Components} library is not fully compatible with the extraction
+process provided by the Rocq prover \cite{extraction}.
+To obtain code that is amenable for extraction, we write a
 first file called {\tt generic\_trajectories}, that does not rely on
-any of the mathematical structures present in math comp, but is
+any of the mathematical structures of the library, but is
 parameterized by a given type supposed to represent numbers, with 4
 operations (addition, subtraction, multiplication, division) and two
 comparisons.  Also, this algorithm relies on a degraded type of edges,
@@ -555,36 +608,48 @@ where the condition that the first point is on the left of the second
 point is absent from the data-structure.
 
 The generic algorithm is used in all the proof files.  In each of
-these proof files, we open a section where the type of numbers is
-actually provided by a structure of type {\tt realFieldType}.  It
-should be noted that all the proofs performed about this algorithm
-only rely on the fact that the type of numbers forms a field, so that
-any implementation of rational numbers is for making all the
-computations.
+these proof files, we actually instantiate the type of numbers with
+a mathematical structure from the {\sc Mathematical Components} library.
+Following the library's idiom, we do not choose a specific field structure,
+we assume we are using one that exists.  So the proofs we make are assuming
+that the user of the code also respects that part of the specification and
+actually instantiates the software with a number structure that respects the
+properties specified by the real field structure.
+
+We do provide a running implementation by instantiating the
+type of numbers with rational numbers, implemented as pair of a numerator
+(an integer) and a denominator (a positive integer).
 
 Every function imported from {\tt generic\_trajectories} is a function
 with at least 7 arguments.  To make the whole setup comfortable, a
 header of notation definition is provided to instantiate the function
-to the type and operations provided by the field structure.
-
+to the type and operations provided by the field structure.  This header of
+notations needs to be repeated in each working file, because the field
+structure named {\tt R} in each file is a conceptually a different structure
+for each file.   However, theorems proved in one file can be re-used in another
+simply because they are generalized at the end of each section and can be
+re-instantiated at each usage.
 
 \subsection{Main organization of the proof}
 The first part of the algorithm consists in preparing the list of
 events, processing these events in the order given by the list
 simulates the intuitive behavior of moving a vertical line
 progressively from the left-hand side of the box to the right-hand
-side.
+side.  Proving that this sorting algorithm guarantees the properties
+shown as premises to Lemma~{\tt second\_phase\_safety} is comparatively easy.
+An extra property that is important is that the edges present in resulting
+list of events are the input edges.
 
-The algorithm maintains a sequence of open cells between two events,
-the topological properties of these cells are preserved as one moves
-from one event to the next: the low and high edges of the cell are the
-same, the neighbor cells on the other side of these edges are the
-same, etc.  Only when an event occurs does the structure of the list
-of open cells change.  Some cells that were present in the list of
-open cells are removed from that list, and after some modification,
-they are added to the list of closed cells, new cells are created
-where the low or high edge, or both, are taken from the outgoing edges
-of the currently processed event.
+The sequence of open cells evolves as the events are processed: the cells
+that are in contact with the processed event are removed, and new cells
+are created whose left side contains the point of the processed event.  A
+first part of the proof is to show that some topological invariants are
+preserved for this sequence.  In particular, the open cells respect the
+order on the vertical line: each cell's high edge is equal to the low edge
+of its following neighbor, the high edge is above the low edge, and the
+sequence of open cells covers the entire interval of the vertical line between
+the bottom edge and the top edge.  Some of the properties also relate
+
 
 This feels like reasoning by homotopy.  Depending on the position of
 the sweeping line, the intersections between these lines and the low
@@ -606,8 +671,9 @@ cannot be used directly out of the box.
 
 In the proof, we established five levels of invariants:
 \begin{enumerate}
-\item In the first level, we state properties that concern only the
-sequence placement of low and high edges for the open cells,
+\item In the first level, we state properties that concern the
+sequence of cells and the relations between their edges and the remaining
+events.
 \item In the second level, we add the cache consistency properties of
   the scan state, the expected properties of the sequence of events,
   and the consistency between the open cells and the future events,
