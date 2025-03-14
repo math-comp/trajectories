@@ -632,51 +632,42 @@ re-instantiated at each usage.
 
 \subsection{Main organization of the proof}
 The first part of the algorithm consists in preparing the list of
-events, processing these events in the order given by the list
+events so that processing these events in the order given by the list
 simulates the intuitive behavior of moving a vertical line
-progressively from the left-hand side of the box to the right-hand
+from the left-hand side of the box to the right-hand
 side.  Proving that this sorting algorithm guarantees the properties
-shown as premises to Lemma~{\tt second\_phase\_safety} is comparatively easy.
-An extra property that is important is that the edges present in resulting
+required by Lemma~{\tt second\_phase\_safety} is comparatively easy.
+However, this lemma only expresses safety with respect to the obstacles and
+points found in the list of events.  Therefore, an extra property that is
+important is that the edges present in resulting
 list of events are the input edges.
 
-The sequence of open cells evolves as the events are processed: the cells
-that are in contact with the processed event are removed, and new cells
-are created whose left side contains the point of the processed event.  A
-first part of the proof is to show that some topological invariants are
-preserved for this sequence.  In particular, the open cells respect the
-order on the vertical line: each cell's high edge is equal to the low edge
-of its following neighbor, the high edge is above the low edge, and the
-sequence of open cells covers the entire interval of the vertical line between
-the bottom edge and the top edge.  Some of the properties also relate
-
-
-This feels like reasoning by homotopy.  Depending on the position of
-the sweeping line, the intersections between these lines and the low
-and high edges of each open cell are at different heights, but these
-points are always ordered on this line in the same manner.  In other
-words, the topological structure of the sequence of cells evolves
-continuously as the sweeping line moves from one event to the other.
-This relies on a strong invariant concerning the sequence of events:
-any change of topology (for example the end of an active edge) must be
-recorded in the sequence of events.  This is reflected by two
-predicates {\tt close\_alive\_edges} and {\tt close\_edges\_from\_events}.
-
-In our work, we rely quite a lot on a relation between edges, named
-{\em edge\_below} and noted by the infix symbol {\tt <|}.  It turns
-out that this relation is reflexive, not transitive, and not
-antisymmetric, so many of the tools we
-would like to inherit from the ambient formal mathematics library
-cannot be used directly out of the box.
-
-In the proof, we established five levels of invariants:
+We will now concentrate on the second phase.
+We established five levels of invariants:
 \begin{enumerate}
 \item In the first level, we state properties that concern the
-sequence of cells and the relations between their edges and the remaining
+sequence of open cells and the relations between their edges and the remaining
 events.
-\item In the second level, we add the cache consistency properties of
-  the scan state, the expected properties of the sequence of events,
-  and the consistency between the open cells and the future events,
+\item In the second level, we add properties that fall in three categories
+  \begin{enumerate}
+    \item the cache consistency properties of
+  the scan state: the scan state contains a last open cell, a last high edge,
+  and a last {\tt x} coordinate.  It is assumed that the last high edge
+  is the high edge of the last open cell, and that the last {\tt x} coordinate
+  is the position of the left side of the last open cell.
+\item the expected properties of the remaining sequence of events: these
+  events are ordered lexicographically, all the right extremities of their
+  edges are also covered by events in the sequence, the field {\tt outgoing}
+  of each event is a list that only contains edges whose left-hand extremity
+  is on this event, and this list has no duplicates.
+\item There is no intersection between the high edges of all open cells
+  and the outgoing of events in the sequence of events.
+\item the bottom left corner of the last open cell is lexicographically
+  smaller than any event in the sequence.
+\item If the sequence of events is not empty, the next event is
+  lexicographically larger than the left extremity of all edges of
+  open cells, and lexicographically smaller than the right extremity.
+\end{enumerate}
 \item In the third level, we add properties that are specific to the
   last created cell,
 \item In the third level, we add mainly the properties that concern
@@ -685,13 +676,61 @@ events.
   available in this invariant is to contribute to the proof that
   all closed cells are disjoint and non-empty.
 \item In the fourth level, we add mainly the properties that concern
-  processed edges and their coverage by existing closed and open
-  cells.
-\item In the fiftth level, we add mainly the properties that concern
-  the points recorded in cell sides.  The point is to show that cell
-  sides enumerate the points that are unsafe on the vertical
+  edges that were outgoing from events that have already been processed.
+  In particular, we concentrate on properties that are useful to show that
+  all these edges are covered by the top side of existing closed cells and
+  existing open cells.
+\item In the fifth level, we add mainly the properties that concern
+  the points recorded in cell sides.  The aim is to show that cell
+  sides enumerate the points that are unsafe on the lateral
   sides of cells.
 \end{enumerate}
+
+At each event, the sequence of closed cells evolves.  In the general
+case, new closed cells are created from the open cells in contact, and we
+need to prove that the invariant properties satisfied by the open cells
+are sufficient to guarantee that the created closed cells are well formed.
+
+In our work, we rely quite a lot on a relation between edges, named
+{\tt edge\_below} and noted by the infix symbol {\tt <|}.  It turns
+out that this relation is reflexive, not transitive, and not
+antisymmetric.  We spent quite some time trying to show that it is transitive
+on some well chosen subsets, but this turned out to be improductive.  For
+this reason, it is not very useful (although it is true) to show that the
+sequence of edges is sorted for the {\tt edge\_below} relation ({\tt <}).  We
+finally chose to express that this sequence of edges
+satisfies a stronger invariant: an edge \(g_1\) that appears before an edge
+\(g_2\) in this sequence is below.
+
+All open cells meet the current position of the vertical edge.  As a
+consequence, it is useful to have a collection of lemmas establishing
+correspondences between edges below one another and the second coordinate
+of the projection of a point on these edges.  This is quite natural to
+express but one must be careful to only consider points that are in
+the intersection of vertical cylinders above the two edges.
+
+An edge \(g\) is covered by the sequence of closed cells if there exists a
+sequence of cells \(s\) with the following properties:
+\begin{itemize}
+\item all edges in \(s\) have \(g\) as their high edge,
+\item each cell's right side is on the same vertical as the next cell's
+  left side,
+\item the first cell's left side is aligned with the edge's left side,
+\item the last cell's right side is aligned with the edges right side.
+\end{itemize}
+Some edges are only partially covered by the closed cells, but in that
+case their right side is covered by an open cell.  In that case, there
+is a sequence \(s\) and an open cell \(c_o\) such that:
+\begin{itemize}
+\item all edges in \(s \cup \{c_o\}\) have \(g\) as their high edge,
+\item for the sequence \(s.c_o\) each cell's right side is on
+  the same vertical as the next cell's left side,
+\item the left side of the first cell in \(s\)
+  is aligned with the edge's left side,
+
+\end{itemize}
+
+
 In the end, the safety property for the space inside a given cell was
 guaranteed by the main argument that if edges are covered by the high
 edges of all closed cells, and all closed cells are disjoint, then
