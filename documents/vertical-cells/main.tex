@@ -921,10 +921,10 @@ the same vertical).
 
 \section{Conclusion}
 In our development, the code of the algorithms is in a
-file named {\tt generic\_trajectories.v}.  This files does not only contain
+file named {\tt generic\_trajectories.v}.  This file does not only contain
 the vertical cell decomposition algorithm, but also some more code to compute
 trajectories based on the cells that are obtained, with the aim of building
-a piece of software used in reachout activities.
+a piece of software used in outreach activities.
 
 The part that is concerned with only computing the vertical cell decomposition
 culminates with Function {\tt edges\_to\_cells}, defined at line 507.
@@ -936,7 +936,7 @@ There are almost 15000 lines of proof.  The supplementary material also
 contains a demonstration tool, where users can give obstacles one by one
 and see the decomposition in vertical cells being computed after each
 interaction.  The demonstration tool also computes trajectories, but the
-algorithm to compute these trajectories is outside the scope of the paper.
+algorithm to compute these trajectories is outside the scope of this paper.
 
 It is often advocated that one should have a complete proof
 infrastructure before starting a formal proof.  This is not the
@@ -947,13 +947,13 @@ constructions, and we started to prove simple invariants about this
 algorithm, as this was also understood as an opportunity for the junior
 member of the development team to train on formal verification.
 
-During the same period, we had discussions and reflexions on the way to
-state and verify a reasonable safety specification.  Thus we came up with the
+During the same period, we had discussions and reflections on the way to
+state and verify a reasonable safety specification.  Thus, we came up with the
 crucial invariant that two distinct cells had disjoint owned parts.  We then
 started proving that invariant under the strong assumption that there
 were no degenerate cases (events are never vertically aligned).
 
-This proof was done in a progressive manner: everytime we came
+This proof was done in a progressive manner: every time we came
 across the need for a property that seemed reasonable, we would add it to
 a large collection of invariants as an assumption and finish the needing proof.
 Later, we would attempt to prove all the invariants, thus requiring possibly
@@ -974,11 +974,11 @@ case required lengthy proofs, which we chose to store in separate files:
 safety statement is in file {\tt step\_correct.v}.
 
 In the end, there were so many invariant properties that we decided to group
-them into packages, which are the several level of invariants presented
+them into packages, which are the several levels of invariants presented
 in this paper.  In this process, some redundancies between invariants were
 detected and removed (often relying on a small lemma to show that a redundant
-lemma is an easy consequences of other invariants).  We do not use the same
-packages for the proof in the general position (with no vertical alignement
+lemma is an easy consequence of other invariants).  We do not use the same
+packages for the proof in the general position (with no vertical alignment
 between events) and for the strong proof.
 
 The resulting proof is still very large and difficult to share between several
@@ -996,7 +996,7 @@ box, when possible.  To work properly, this larger application relies
 on a few more properties that we have not included in our specification yet.
 Here are two examples of such properties:
 \begin{itemize}
-\item the set of created cells should cover the whole interior of the
+\item The set of created cells should cover the whole interior of the
   bounding box
 \item When there exists a safe passage between two adjacent cells, these
   cells actually have a door in common.
