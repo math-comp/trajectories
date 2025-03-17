@@ -60,36 +60,36 @@ property, and the organization of the formal proof.
 
 \section{Introduction}
 The formal verification of algorithms is often presented as a solution
-to avoid programmation errors.  It is particularly suited to domains
+to avoid programming errors.  It is particularly suited to domains
 where it is practical to give a mathematical description of the
 problem and expected behaviors and where the cost of errors is
 prohibitive.
 
 In recent years, there has been much progress in the design and
 acceptance of autonomous vehicles.
-In the long run, we wish to describe formally 
+In the long run, we wish to formally describe
 software that plans trajectories
 for complex objects.  One of the first case studies that comes to mind
 is concerned with proving that a program producing trajectories for a
-point in a bi-dimensional scene is safe.  We designed such a program,
+point in a bidimensional scene is safe.  We designed such a program,
 and its first component is concerned with reading the description of
 the scene and constructing a decomposition into cells, where each cell
 helps describing where it is safe to evolve.
 
 We chose to study an algorithm described in the book {\em Robot Motion
-  Planning} by J.-C. Latombe under the name ``vertical cell
+ Planning} by J.-C. Latombe under the name ``vertical cell
 decomposition''.  In that book's presentation, the obstacles are
 described as polygons, but we chose to simplify the problem by
-considering only obstacles described using straight line segments.
+considering only obstacles described using straight-line segments.
 Our algorithm is a simple generalization, since any polygon can be
-decomposed in a collection of edges corresponding to the polygon's
+decomposed into a collection of edges corresponding to the polygon's
 boundary.
 
-This algorithm is sweeping line algorithm.  It can be described
+This algorithm is a sweeping line algorithm.  It can be described
 intuitively as the process of moving a line from left to right over
 the scene, stopping each time an event is encountered.
 Events occur when the extremities of obstacles are encountered.
-Several obstacles may be concerned by a single event: Several
+Several obstacles may be concerned by a single event: several
 obstacles that were present on the left side the sweeping line may be
 finishing at this event, and several obstacles may be starting at this
 event.
@@ -99,7 +99,7 @@ Some of the new cells are {\em open}.  They are in a temporary state,
 where only the left-hand side is known, actually this side is aligned
 with the sweeping line.  The other new cells are {\em closed}.  These
 cells are obtained by collecting all the cells that are in contact
-with the processed event and giving them a right side, again aligned
+with the processed event and giving them a right side, again aligned with
 the current location of the sweeping line.
 
 The lateral sides of each cell are vertical, because the sweeping line
@@ -110,7 +110,7 @@ obstacle.  The algorithm is designed in such a way that the unsafe
 points on each lateral side are given with each closed cell.
 
 For the use case that we have in mind, it is also important that cells
-are non empty.  To guarantee this property, we had to design specific
+are non-empty.  To guarantee this property, we had to design specific
 tests and corrective actions when two successive events are vertically
 aligned.  So instead of processing events from left to right, which is
 not precise enough, we process events in lexical order: from left to
@@ -136,9 +136,9 @@ An extra property that we prove is that the center of each cell is an
 element of the cell interior.
 
 All these properties have been formally formally verified using the
-rocq prover and the {\sc Mathematical Components} library.
+Rocq prover and the {\sc Mathematical Components} library.
 
-There is an extra property for which the proof has not be done yet:
+There is an extra property for which the proof has not been done yet:
 the union of all owned parts covers the inside of the bounding box.  Lacking
 this property does not endanger the safety property, but a trivial algorithm
 that returns an empty sequence of cells would satisfy the safety property.
@@ -154,12 +154,12 @@ added to the algorithm and the use case resting on it, as discussed in the
 last part of this paper.
 
 \section{The data components}
-In this section, we describe the design choices for the various kind
+In this section, we describe the design choices for the various kinds
 of data we manipulate in the algorithm.  The way we handle obstacles
 deserves special attention.
 \subsection{points and edges}
 
-For the proofs, ww assume that we work with a type {\tt R} of numbers
+For the proofs, we assume that we work with a type {\tt R} of numbers
 with the structure of a real field, as understood by the
 {\sc Mathematical Components} library.  Among other operations, this
 mathematical structure provides a boolean test for equality between
@@ -174,7 +174,7 @@ are described as pairs of points.  These datatypes inherit the
 equality tests and the polymorphic functions for list membership of
 the {\sc Mathematical Components} library can again be used for these
 datatypes.  One peculiarity of our development
-is that we chose to describe the edges as pair of points with an extra
+is that we chose to describe the edges as pairs of points with an extra
 condition in our proofs: the first point has to have a first
 coordinate that is strictly smaller than the right coordinate of the
 second point.  This is an example of design where some data invariant
@@ -191,11 +191,11 @@ Record edge := Bedge {left_pt : pt; right_pt : pt;
     _ : left_pt.x < right_pt.x}.
 \end{verbatim}
 This definition does not give a name to the condition that the left
-point has a smaller first coordinate.  Such a name is given later in
+point has a smaller first coordinate. Such a name is given later in
 our development.
 
 The most important basic block used in the algorithm is the
-computation of whether a point {\tt p} is above or under an edge, or whether
+computation of whether a point {\tt p} is above or below an edge, or whether
 it is aligned with the two extremities of the edge.  To compute this
 condition, it is well known in computational geometry \cite{Knuth} that the
 following determinant can be used, where {\tt l} and {\tt r} are the
@@ -211,7 +211,7 @@ determinant computes twice the {\em signed} area of the triangle {\tt
 Because it is a signed area, the value is positive if {\tt p}
 is above and negative if {\tt p} is below.  We use the notations
 {\tt \(p\) <{}<{}= \(g\)} {\tt \(p\) <{}<{}< \(g\)} to express that a point
-\(p\) is in the half plane below an edge \(g\) or strictly below an
+\(p\) is in the half-plane below an edge \(g\) or strictly below an
 edge, respectively.
 
 Because the algorithm uses a vertical sweeping line, our proofs
@@ -227,7 +227,7 @@ returns 0 and {\tt valid\_edge} holds (the function is named
 When a point is valid for an edge, the vertical projection of that
 point on that edge exists.  It is computed by a function called
 {\tt vertical\_projection}.  Computing the vertical projection of a
-point on an oblique edge requires that one computes a division.  This
+point on an oblique edge requires that one computes a division. This
 is the one place in the whole algorithm where division is used.
 The function {\tt vertical\_projection} takes a point and an edge as
 arguments and returns an {\tt option} type:
@@ -242,7 +242,7 @@ We define a relation between edges, noted {\tt <|} and called
 {\tt edge\_below} which expresses
 that the first edge is below the second one.  Edge \(g_1\) is below Edge
 \(g_2\) if both extremities of \(g_1\) are in the half plane below
-\(g_2\) of if both extremities of \(g_2\) are in the half plane above
+\(g_2\) or if both extremities of \(g_2\) are in the half plane above
 \(g_1\).  During the operation of the algorithm, we use this relation
 to sort edges going out of a given event.  For edges that all have the
 same left extremity, the {\tt <|} relation is transitive, but in
@@ -251,14 +251,14 @@ general this relation is not transitive.
 Each cell has a high edge, a low edge, a left side, and a right side.  For
 the lateral sides, we record the ordered sequence of points that
 correspond  to events in contact with this cell.  These points are
-unsafe.  These two sequences of points are called the {\em left
-  points} and {\em right points} of the cell (record projections
+unsafe.  These two sequences of points are called the {\em left points} 
+and {\em right points} of the cell (record projections
 named {\tt left\_pts} and {\tt right\_pts} in the code).
 These sequences are
 ordered and contain no duplication, so that the open interval between two
 points in a sequence is a door, a safe passage to another cell.
 
-In a finished closed cells, the side point sequences are not empty,
+In the finished closed cells, the side point sequences are not empty,
 as they always contain the projections of some event on the low and high
 edge, which may be the same point.
 
@@ -267,7 +267,7 @@ right-hand side is empty, called {\em open cells}  but in the code
 there is never an ambiguity as to whether some cell is open or closed.
 
 The left points sequence of a cell is intended to contain
-points that are vertically aligned, the first point is on the high edge and
+points that are vertically aligned, the first point is on the high edge
 and the last point is on the low edge.  The same properties hold for the
 right points.  We defined a predicate named
 {\tt open\_cell\_side\_limit\_ok} to describe the properties of the
@@ -281,8 +281,8 @@ The safe part of a cell is defined as the union of its strict interior
 (points whose first coordinate is strictly between the left limit and the
 right limit, strictly above the low edge, and strictly below the
 high edge) and its doors (points on each of the sides that are
-strictly abouve the low edge and strictly below the high edge and
-different from the side points).  In what follows, the safe part of of cell
+strictly above the low edge and strictly below the high edge and
+different from the side points).  In what follows, the safe part of a cell
 is described by a predicate named {\tt safe\_part}.
 
 \begin{figure}
@@ -295,7 +295,7 @@ is described by a predicate named {\tt safe\_part}.
 
 The sweeping part of the algorithm is essentially a tail recursive
 algorithm, consuming a sorted sequence of events and
-maintaining a datastructure which we call the {\tt scan\_state}.  This
+maintaining a data structure which we call the {\tt scan\_state}.  This
 structure contains a representation of the closed cells constructed so
 far, a representation of all the open cells in contact with the
 current position of the sweeping line, and some cached information:
@@ -303,7 +303,7 @@ the first coordinate of the last processed event, the high edge of the
 last open cell.
 
 The open cells are arranged in a vertically sorted sequence,
-decomposed in three parts.  The middle part is a cell that is singled
+decomposed into three parts.  The middle part is a cell that is singled
 out because it is the highest of the last created cells (in this
 paper, we shall call this the {\em last open cell}.  The other two
 parts are the prefix of the vertical sorted sequence before the last
@@ -331,9 +331,9 @@ to encode this intended invariant in the data structure, but
 events constructed in the algorithm are guaranteed to respect it.
 
 To create the sequence of events,
-We use a bespoke insertion-sort algorithm, where the insertion
+we use a bespoke insertion-sort algorithm, where the insertion
 procedure is designed to create new events only when no event with the
-same point already exist in the sequence.  When adding edges to an
+same point already exists in the sequence.  When adding edges to an
 event, we do not produce a sorted sequence of edges.  Such a sorting
 operation of the outgoing sequence of edges is performed later in the
 algorithm.
@@ -352,15 +352,15 @@ high edge of the last created open cell,
 
 To obtain the initial scan state, we need to have already one closed
 cell, which is only constructed after the first event is processed.
-This first closed cell has the left side of the bounding box as left
+This first closed cell has the left side of the bounding box as its left
 side, and its right side contains exactly three points: the first
-event, its projection on the high boundary of the bounding-box, and its
-projection on the low boundary of the bounding-box.  The first
+event, its projection on the high boundary of the bounding box, and its
+projection on the low boundary of the bounding box.  The first
 sequence of open cells is obtained by constructing new open cells
 using the sorted sequence of outgoing edges from the first event.
 When the first event has at least
 one outgoing edge, the initial last open cell is a cell whose low edge
-is the highest outgoing edge and whose high edge is the bounding box
+is the highest outgoing edge and whose high edge is the bounding box's
 high boundary, with only two points in the left point sequence: the
 projection of the event on the high boundary and the event itself (see Figure~\ref{figure:initial}).
 When the first event has no outgoing edge, the initial last open cell
@@ -376,11 +376,11 @@ event and the two projections on the boundaries.
 When the next event to be processed is not vertically aligned with the
 previous one, we need to scan the current sequence of open cells to
 know which of these cells will be affected by the current event.
-These cell simply are the cells for which the current event is below
+These cells simply are the cells for which the current event is below
 the high edge and above the low edge.  We call these cells the {\em
   contact cells}.  These cells are a sub-sequence
 of the current sequence of open cells.  The function that computes
-this sequence actually returns several meaninful pieces of data:
+this sequence actually returns several meaningful pieces of data:
 \begin{enumerate}
 \item the prefix of unaffected cells,
 \item the sequence of contact cells without the last one,
@@ -389,7 +389,7 @@ this sequence actually returns several meaninful pieces of data:
 \item the low edge of the first contact cell,
 \item the high edge of the last contact cell
 \end{enumerate}
-The function that computes that decomposition is called
+The function that computes this decomposition is called
 {\tt open\_cells\_decomposition}.  It takes as input a point and a
 sequence of cells.  We proved that under some assumptions, the
 sequence of cells given as input is the concatenation of the prefix,
@@ -397,17 +397,17 @@ the contact cells, and the suffix, and that the two edges given as
 output are indeed boundary edges of the first and last contact cells.
 
 All contact cells are transformed into closed cells, by adding a
-right-side.  When there is more that one contact cell, the first one
-has as low edge an edge that is not in contact with the current event
-and as high edge an edge whose right point is the current event.
-Similarly, the last contact cell has as high edge an edge that is not
-in contact with the current event as low edge an edge whose right
+right-side.  When there is more than one contact cell, the first one
+has as its low edge an edge that is not in contact with the current event
+and as its high edge an edge whose right point is the current event.
+Similarly, the last contact cell has as its high edge an edge that is not
+in contact with the current event as its low edge an edge whose right
 point is the current event.
 
 When there is only one contact cell, this is because the processed
 event is below that cell's high edge and above that cell's low edge.
 The sequence of the right points for the new cell only contains three
-points, the event and its projections to the cells two edges.
+points, the event and its projections to the cell's two edges.
 
 All contact cells are removed from the list of open cells, but new
 open cells, whose left side contains the currently processed event are
@@ -426,7 +426,7 @@ resulting sequence of open cells.
 
 \subsection{Work performed for the third case}
 In the third case, the event is below the high edge of the last open
-cell, and this even cannot be the right extremity of
+cell, and this event cannot be the right extremity of
 an active edge, because there is no edge between the low and the high
 edge of the last open cell.  For this reason, it is not necessary to
 re-run the {\tt open\_cells\_decomposition} function, as it would
@@ -502,7 +502,7 @@ collection of assumptions.
 \begin{itemize}
 \item The type of numbers provided to describe the point coordinates,
   the edges, alignment of points, and so on, with its operation and
-  comparison predicates forms an ordered field structure.  It means, the
+  comparison predicates forms an ordered field structure.  It means that the
   algorithm only uses addition, multiplication, and their inverses.
 \item The only allowed intersections between obstacles are at their
   extremities.
@@ -517,15 +517,15 @@ need the following specification for the sorting phase.
 \begin{enumerate}
 \item The union of all outgoing edges of all events in the sorted
   sequence of events contains the initial obstacles.
-\item For evey event, all outgoing edges have the same left
+\item For every event, all outgoing edges have the same left
   extremity, located at this event.
-\item For every event, The sequence of outgoing edges has no duplication.
+\item For every event, the sequence of outgoing edges has no duplicates.
 \item The sequence of events is strictly sorted lexicographically.
 \item No event in the sequence appears in the middle of one of the
   obstacles.
 \item The right extremity of every outgoing edge is also located at an
   event existing in the sequence of events.
-\item There are no intersection between pairs of edges except at their
+\item There are no intersections between pairs of edges except at their
   extremities.
 \item All events are inside the bounding box.
 \end{enumerate}
@@ -539,7 +539,7 @@ configuration space.
 A property that does not appear immediately as a safety property is
 that the middle of every cell is strictly included in the cell.  This
 property is useful for users of this algorithm who wish to use a cell
-as maneuvering space to move from one door of the cell to another door of
+as a maneuvering space to move from one door of the cell to another door of
 the same cell, when both doors are on the same side.  This property is
 the main reason for having a specific treatment for degenerate cases.
 This specific treatment actually guarantees that every closed cell has
@@ -551,15 +551,15 @@ actually need the property that every event has a list of outgoing
 edges without duplications.  Our code to generate the sequence of
 events does not include steps to guarantee this, but we guarantee
 that it operates correctly if the input
-list of obstacles has no duplications
+list of obstacles has no duplicates.
 
 Finally, the statement we prove for the second phase is the following one,
 as written in the input language of the Rocq prover (by taste, we prefer
 to avoid special characters).  In this statement, the function
-{\tt complete\_process} represents the algorithm that process the sequence of
+{\tt complete\_process} represents the algorithm that processes the sequence of
 events: it combines together the operation of constructing the first cells
 from the first event, and processing the last open cell to create the rightmost
-close cell.  The function {\tt events\_to\_edges} collects all the edges
+closed cell.  The function {\tt events\_to\_edges} collects all the edges
 from a sequence of events.
 \begin{verbatim}
 Lemma second_phase_safety (bottom top : edge) (evs : seq event) :
@@ -581,7 +581,7 @@ This statement has 8 prerequisites, mostly expressed as properties of the
 sequence of events.
 
 A more compact statement can be used if we consider the combination of the
-two phases, because the first phase guarantees the prerequisites on 
+two phases, because the first phase guarantees the prerequisites on the
 sequence of events.  The combination of the two phases is called
 {\tt edges\_to\_cells} in this statement.
 While the concision of this statement is pleasant, it
@@ -597,15 +597,15 @@ Lemma two_phase_safety bottom top (edges : seq edge) :
     forall p, cell_safe_part c p -> {in edges, forall g, ~ p === g}}.
 \end{verbatim}
 This lemma only has 4 prerequisites: the bounding box given by the
-bottom and top edge must define a workable area of the plane, the sequence
+bottom and top edges must define a workable area of the plane, the sequence
 of input edges must have no duplications, all considered edges must have
 no duplications, and all edges must be inside the bounding box.  With these
 four prerequisites, the algorithms of the first phase are able to produce
-a sequence events satisfying the eight prerequisites of the second phase.
+a sequence of events satisfying the eight prerequisites of the second phase.
 
 As a result, the algorithm produces a sequence of cells that satisfy four
 properties: each contains at least one point, they are well formed (the 
-sequence of points on the side are vetical and ordered, the extremities of
+sequence of points on the side are vertical and ordered, the extremities of
 these sequences are on the low and high edges of the cell) and the safe
 part has an empty intersection with the union of the obstacles.
 
@@ -627,13 +627,13 @@ The generic algorithm is used in all the proof files.  In each of
 these proof files, we actually instantiate the type of numbers with
 a mathematical structure from the {\sc Mathematical Components} library.
 Following the library's idiom, we do not choose a specific field structure,
-we assume we are using one that exists.  So the proofs we make are assuming
+we assume we are using one that exists.  So, the proofs we make are assuming
 that the user of the code also respects that part of the specification and
 actually instantiates the software with a number structure that respects the
 properties specified by the real field structure.
 
 We do provide a running implementation by instantiating the
-type of numbers with rational numbers, implemented as pair of a numerator
+type of numbers with rational numbers, implemented as a pair of a numerator
 (an integer) and a denominator (a positive integer).
 
 Every function imported from {\tt generic\_trajectories} is a function
@@ -641,8 +641,8 @@ with at least 7 arguments.  To make the whole setup comfortable, a
 header of notation definition is provided to instantiate the function
 to the type and operations provided by the field structure.  This header of
 notations needs to be repeated in each working file, because the field
-structure named {\tt R} in each file is a conceptually a different structure
-for each file.   However, theorems proved in one file can be re-used in another
+structure named {\tt R} in each file is conceptually a different structure
+for each file.   However, theorems proved in one file can be reused in another
 simply because they are generalized at the end of each section and can be
 re-instantiated at each usage.
 
@@ -655,7 +655,7 @@ side.  Proving that this sorting algorithm guarantees the properties
 required by Lemma~{\tt second\_phase\_safety} is comparatively easy.
 However, this lemma only expresses safety with respect to the obstacles and
 points found in the list of events.  Therefore, an extra property that is
-important is that the edges present in resulting
+important is that the edges present in the resulting
 list of events are the input edges.
 
 We will now concentrate on the second phase.
@@ -666,19 +666,19 @@ sequence of open cells and the relations between their edges and the remaining
 events.
 \item In the second level, we add properties that fall in three categories
   \begin{enumerate}
-    \item the cache consistency properties of
+    \item The cache consistency properties of
   the scan state: the scan state contains a last open cell, a last high edge,
   and a last {\tt x} coordinate.  It is assumed that the last high edge
   is the high edge of the last open cell, and that the last {\tt x} coordinate
   is the left limit of the last open cell.
-\item the expected properties of the remaining sequence of events: these
+\item The expected properties of the remaining sequence of events: these
   events are ordered lexicographically, all the right extremities of their
   edges are also covered by events in the sequence, the field {\tt outgoing}
   of each event is a list that only contains edges whose left-hand extremity
   is on this event, and this list has no duplicates.
 \item There is no intersection between the high edges of all open cells
   and the outgoing of events in the sequence of events.
-\item the bottom left corner of the last open cell is lexicographically
+\item The bottom left corner of the last open cell is lexicographically
   smaller than any event in the sequence.
 \item If the sequence of events is not empty, the next event is
   lexicographically larger than the left extremity of all edges of
@@ -709,7 +709,7 @@ edges cannot appear in the interior of a given cell.
 
 We performed two proofs of the main result.  The first proof takes
 stronger assumptions on the inputs: it assumes that two events are
-never vertically aligned.  So there is only one case in the treatement
+never vertically aligned.  So, there is only one case in the treatment
 of events that is ever handled in this case.  This proof is simpler
 and makes it possible to understand the main structure of the proof.
 
@@ -725,7 +725,7 @@ determinant, as it only needs ring operations (no division), without
 ever mentioning the projection of the given point on the given
 straight line.
 
-For proofs, however it is useful to have an alternative point of view,
+For proofs, however, it is useful to have an alternative point of view,
 where one expresses the property of being above using a comparison of
 the second coordinates of the given point with the projected point on
 the given line.
@@ -733,12 +733,12 @@ the given line.
 The edge comparison relation, called {\tt edge\_below} and
 noted {\tt <|} is directly related with the area
 function.  To detect whether an edge is below another, we simply
-verify whether the two extremities of one are in the same half plane
+verify whether the two extremities of one are in the same half-plane
 with respect to the other.
 
 It turns out that this relation is reflexive, not transitive, and not
 antisymmetric.  We spent quite some time trying to show that it is transitive
-on some well chosen subsets, but this turned out to be improductive.  For
+on some well-chosen subsets, but this turned out to be unproductive.  For
 this reason, it is not very useful (although it is true) to show that the
 sequence of high edges of all open cells is sorted for the {\tt edge\_below}
 relation.  We
@@ -753,7 +753,7 @@ of the projection of a point on these edges.  This is quite natural to
 express but one must be careful to only consider points that are in
 the intersection of vertical cylinders above the two edges.  The lemmas
 have names like {\tt order\_edges\_viz\_point} or {\tt under\_pvert\_y},
-sometimes with a {\tt strict} qualifer added.
+sometimes with a {\tt strict} qualifier added.
 
 \subsection{Building up invariants}
 \subsection{The key property of disjoint cells}
@@ -771,19 +771,19 @@ high boundary (again, not vertical).  We define three zones:
 \end{itemize}
 The main key property that we want to guarantee is that every point
 strictly inside a cell does not belong to any obstacle.  To establish
-this, we decompose the problem in three parts: first we show
+this, we decompose the problem into three parts: first, we show
 that points can only be owned by one cell.
-prove that every obstacle is included the union of high boundaries of
-all cells.  As an immediate consequence, the interior of cell has no
-intersection with the obstacles.  The third property focusses only on the
+Then, we prove that every obstacle is included in the union of high boundaries of
+all cells.  As an immediate consequence, the interior of a cell doesn't intersect
+with the obstacles.  The third property focuses only on the
 lateral sides of cells.
 
 To prove that closed cells are disjoint, we need to prove that new
 cells added at each iteration are disjoint with the existing ones.
-The new closed closed cell actually come from
+The new closed cells actually come from
 existing open cells.  Thus, we need to prove that
 closed cells are kept disjoint from open cells, and in turn, we need to
-show that open cell are disjoint.
+show that open cells are disjoint.
 
 The position of the sweeping line plays an important role when proving
 that existing closed cells and open cells are disjoint.  At any
@@ -803,7 +803,7 @@ cell after processing the second event.  We need to guarantee that
 the modification does not interfere with the disjointness property with
 respect to the other cells.  We use the fact that
 points attached to the last closed are the same before and after the
-modification (which consists only in adding the second event to
+modification (which consists only in adding the second event to the
 sequence of right points in the cell, in second position).
 \subsection{Obstacle covering}
 The obstacles whose left extremity is at an event that has already been
@@ -837,24 +837,24 @@ When an event is processed, the cell decomposition algorithm computes
 a sequence contact cell together with a last contact cell.  Its high edge
 is the same obstacle as the high edge of the future last open cell.  If we
 are in general position (the current event is not vertically aligned
-with the previous one) This high
+with the previous one), this high
 edge was covered by the combination of a sequence of closed cells and
 an open cell (the last contact cell) before this iteration,
 and after this iteration, the coverage is ensured by a new sequence
-of closed cell which is the same as previously with a new closed cell added,
+of closed cells which is the same as previously with a new closed cell added,
 obtained by closing the last open cell, and the last of newly created open
 cells covers the rest of that obstacle.
 
 For the high edges of all the other contact cells, they are
-necessarily ending in the current event.  So these obstacles move from
+necessarily ending in the current event.  So, these obstacles move from
 the category of obstacles that are partially covered by open cells to
-the category of obstacles that completely covered by closed cells.
+the category of obstacles that are completely covered by closed cells.
 
 If we are in the degenerate position where the current event is
-vertically aligned with the previous event and below the high edge of
+vertically aligned with the previous event and below the high edge of the
 last closed cell, then the sequence of closed cells that participate
 in covering this edge keeps the same number of elements: the previous last
-closed cell is removed and replaced by the the modified closed cell
+closed cell is removed and replaced by the modified closed cell
 where the event is added among its right points.  The portion of the
 obstacle that is covered by the previous last closed cell and the
 modified cell is the same.  Concerning coverage by an open cell, the
@@ -877,10 +877,10 @@ owned points, \(p\) must be attached to both \(c_1\) and \(c_2\).
 \subsection{Safety for points on the lateral boundaries}
 For points on the lateral sides, we first concentrate on the left side.
 When an event is processed, closed cells have a left limit that is
-stricly lower the event's first coordinate, so that this event cannot appear
+strictly lower than the event's first coordinate, so that this event cannot appear
 in the safe left side of a closed cell.  For the open cells, we show
-that all those cells that are not in contact have their left side preserved.
-So in the end we only need to show that the created open cells do contain
+that all the cells that are not in contact have their left side preserved.
+So in the end, we only need to show that the created open cells do contain
 the current event in the left points, so that this event is not considered
 safe by these cells.
 
@@ -894,7 +894,7 @@ Proving that all cells have a safe right side follows a similar track.
 Apart from the last closed cell, we know that no closed cell is in contact
 with the currently processed event, either because the closed cell is
 further to the left of the sweeping line, or because the closed cell has
-a top left corner that is strictly lower than the current event.
+a top-left corner that is strictly lower than the current event.
 
 When creating new closed cells (in the first two cases and the fourth one),
 the proof proceeds by checking that the sequence of the right points
@@ -919,7 +919,7 @@ the same vertical).
 
 \section{Conclusion}
 \subsection{A basis for trajectory computation}
-As a way to assess usability, we integrated this program in a larger
+As a way to assess usability, we integrated this program into a larger
 application that produces trajectories without intersections with
 the obstacles between points inside the bounding
 box, when possible.  To work properly, this larger application relies
@@ -934,7 +934,7 @@ Here are two examples of such properties:
 According to our tests, these properties hold for our algorithm, but
 they have not been proved formally.  If these properties were not satisfied,
 the program would not compute trajectories between some points that can
-actually be connected by a such trajectory.
+actually be connected by such a trajectory.
 
 This may actually correspond to a real life situation, where one might
 want to provide formal proofs for safety properties, but accept that some
@@ -951,7 +951,7 @@ be circumvented by following the following procedure:
 \item The algorithm will naturally produce cells where the two events
   appear as the extremities of a door on the lateral sides of two
   cells,
-\item When buiding trajectories, make sure to invalidate doors corresponding
+\item When building trajectories, make sure to invalidate doors corresponding
   to vertical obstacles.
 \end{itemize}
 A slight modification of the data used in the algorithm can help achieving
@@ -966,7 +966,7 @@ computers do not implement the idealized computations that are
 envisioned in the formal model.
 
 It should be noted that the computation performed in the area function
-is just second-degree multivariate polynomial.  These computations can
+is simply a second-degree multivariate polynomial.  These computations can
 be made exact at a little cost, taking into account the discretization
 that necessarily happens when perceiving the environment.  A robot may
 be designed to work with sensors that yield coordinates in 16 bits.
@@ -978,10 +978,10 @@ However, there is a part of the algorithm that performs a division,
 this is when computing the projection of a point on an edge.  This
 point is stored in the result of the cell decomposition as an extremal
 point in the sequence of left points or the sequence of right points
-of closed cell.  It is later used when computing trajectories.  One
+of a closed cell.  It is later used when computing trajectories.  One
 important feature of this computation is that {\em it is not used to
   take decisions during the vertical cell decomposition}.  It is just
-data that is stored for later usage.
+data that is stored for later use.
 
 Since this value is not needed right away, we could decide not to
 compute it, but to store it as the intersection between a vertical
@@ -991,18 +991,18 @@ the algorithm responsible to compute trajectories can then decide
 whether the exact value is required, or whether an approximation
 suffices.  To compute trajectories, these intersection points appear
 higher or lower extremities of safe doors, and they can safely be
-replace by points with a lower approximation or a higher approximation
+replaced by points with a lower approximation or a higher approximation
 of the second coordinate, respectively.
 
 As future work, we wish to refine the algorithm so that it produces
 cells where the sequences of left points and right points are not in
 the datatype of pairs of coordinates, but rather in a sum type, where
-a point is given either as a pair of coordinate or the pair of a first
-coordinate and a obstacle in which we take the point with that first
-coordinate, so that the information is processed in the right away by
+a point is given either as a pair of coordinates or the pair of a first
+coordinate and an obstacle in which we take the point with that first
+coordinate, so that the information is processed in the right way by
 the following algorithms.
 \subsection{Concerning the neighboring relation}
-In our use case to compute trajectories, we need to know what are the
+In our use case to compute trajectories, we need to know which are the
 neighbors of each closed cell.  It seems obvious that this information
 is already known at the time an open cell is created and could be
 propagated along as the cells are added in the final cell of closed
@@ -1047,10 +1047,10 @@ A second approach that can be implemented is to integrate the
 treatment of crossing obstacles directly in the vertical cell
 decomposition algorithm.  In fact, after each iteration, it is only
 necessary to check whether two neighboring high edges of open cells
-intersect, peform the needed replacement and add the intersection as a
+intersect, perform the needed replacement and add the intersection as a
 new event to be treated later.  It is interesting to understand
 whether the current research concerning algorithm refinement could
-help proving this improved algorithm with optimal reuse of the proofs
+help to prove this improved algorithm with optimal reuse of the proofs
 that were already performed for the naive algorithm.  We plan to study
 such a refinement as future work.
 
@@ -1063,13 +1063,13 @@ approximations in numeric computations, it becomes necessary to understand how
 rounding errors in this division process will affect the operation of
 the algorithm.  We may choose to replace the exact point with an
 approximation, assuming that the obstacles defined with this
-approximation as extremity as close enough to the original obstacles
+approximation as extremity are close enough to the original obstacles
 for the results to be safe.  We may even be able to quantify the risk
 of collision induced by this kind of replacement.
 
 In practice, it may be perfectly acceptable to live with the
 constraint that obstacles do not cross.  It depends on the source of
-the scene description.  If the scene description was drawned by a
+the scene description.  If the scene description was drawn by a
 human being using a computer aided design tool, then intersections are
 likely.  If the scene is the result of a process involving sensors and
 post-processing, it is possible that the post-processor already
