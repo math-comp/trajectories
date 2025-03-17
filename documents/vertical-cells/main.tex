@@ -119,20 +119,29 @@ from bottom to top for events that have the same first coordinate.
 
 The algorithm is described entirely using the functional programming
 language of the inductive calculus of constructions, as implemented in
-Rocq.  The input is given as a bounding box and a list of obstacles.
+Rocq.  The input is given as a bounding box as specified by a bottom and
+a top segments and a list of obstacles.
 The output is a list of cells.  There are quite a few expected
 properties for the inputs: the obstacles should all be entirely inside
 the bounding box and no obstacle should be vertical.  In return, we
-obtain a list of cells that satisfy a few properties: the union of all
-the cells are disjoint, each cell contains a safe part that is guaranteed to
-have an empty intersection with the obstacles, and the safe part of
-each cell is guaranteed to be non-empty.  All these properties have
-been formally formally verified using the rocq prover and the {\sc
-  Mathematical Components} library.
+obtain a list of cells that satisfy a few properties.  In particular,
+we define for each cell a safe part and an owned part.  For the safe part,
+it is composed of two subparts: the interior of the cell (which is included in
+the owned part) and the set of safe points on the lateral sides.  We
+prove several inclusion and disjointness properties for the obstacles, the
+boundaries of cells and the interiors.  Altogether, we obtain a proof that
+what we name the safe part of cells is indeed safe.
+
+An extra property that we prove is that the center of each cell is an
+element of the cell interior.
+
+All these properties have been formally formally verified using the
+rocq prover and the {\sc Mathematical Components} library.
 
 There is an extra property for which the proof has not be done yet:
-the union of all cells and their boundaries covers the entire space in the
-bounding box.
+the union of all owned parts covers the inside of the bounding box.  Lacking
+this property does not endanger the safety property, but a trivial algorithm
+that returns an empty sequence of cells would satisfy the safety property.
 
 The complete development of the algorithm and its proof is available
 in the following branch of a publicly available repository
@@ -239,17 +248,38 @@ to sort edges going out of a given event.  For edges that all have the
 same left extremity, the {\tt <|} relation is transitive, but in
 general this relation is not transitive.
 \subsection{The cells}
-Each cell has a high edge, a low edge, a left side, and the right side.  For
+Each cell has a high edge, a low edge, a left side, and a right side.  For
 the lateral sides, we record the ordered sequence of points that
 correspond  to events in contact with this cell.  These points are
 unsafe.  These two sequences of points are called the {\em left
-  points} and {\em right points} of the cell.  These sequences are
+  points} and {\em right points} of the cell (record projections
+named {\tt left\_pts} and {\tt right\_pts} in the code).
+These sequences are
 ordered and contain no duplication, so that the open interval between two
 points in a sequence is a door, a safe passage to another cell.
 
+In a finished closed cells, the side point sequences are not empty,
+as they always contain the projections of some event on the low and high
+edge, which may be the same point.
+
+As an intermediate data structure, we use cells where the
+right-hand side is empty, called {\em open cells}  but in the code
+there is never an ambiguity as to whether some cell is open or closed.
+
+The left points sequence of a cell is intended to contain
+points that are vertically aligned, the first point is on the high edge and
+and the last point is on the low edge.  The same properties hold for the
+right points.  We defined a predicate named
+{\tt open\_cell\_side\_limit\_ok} to describe the properties of the
+left points, and a predicate named {\tt closed\_cell\_side\_limit\_ok} to
+describe the conjunction of the properties for the left and the right points.
+
+We define the {\em left limit} of a cell to be the first coordinate of
+the first left point, and similarly for the {\em right limit}.
+
 The safe part of a cell is defined as the union of its strict interior
-(points whose first coordinate is strictly between the left-side and
-the right-side, strictly above the low edge, and strictly below the
+(points whose first coordinate is strictly between the left limit and the
+right limit, strictly above the low edge, and strictly below the
 high edge) and its doors (points on each of the sides that are
 strictly abouve the low edge and strictly below the high edge and
 different from the side points).  In what follows, the safe part of of cell
@@ -260,19 +290,6 @@ is described by a predicate named {\tt safe\_part}.
 \caption{A closed cell}
 \end{figure}
 
-Some cells have a side reduced to a single point, when the low edge
-and the high edge meet.  We expect cells to have low edges and high
-edges that meet at most one point, which must be an extremity for both
-edges.  Moreover, the algorithm is designed in such a manner that the
-left side of the cell is different from the right side.
-
-In a finished closed cells, the sides are not empty, as they always
-contain the projections of some event on the low and high edge, which
-may be the same point.
-
-As an intermediate data structure, we use cells where the
-right-hand side is empty, called {\em open cells}  but in the code
-there is never an ambiguity as to whether some cell is open or closed.
 
 \section{The scan state}
 
@@ -589,9 +606,8 @@ a sequence events satisfying the eight prerequisites of the second phase.
 As a result, the algorithm produces a sequence of cells that satisfy four
 properties: each contains at least one point, they are well formed (the 
 sequence of points on the side are vetical and ordered, the extremities of
-these sequences are on the low and high edges of the cell) and any point
-in the safe part of the cell is guaranteed to not be on any of the edges
-given as input.
+these sequences are on the low and high edges of the cell) and the safe
+part has an empty intersection with the union of the obstacles.
 
 \section{Proving the safety property}
 \subsection{Mirroring contexts}
@@ -654,7 +670,7 @@ events.
   the scan state: the scan state contains a last open cell, a last high edge,
   and a last {\tt x} coordinate.  It is assumed that the last high edge
   is the high edge of the last open cell, and that the last {\tt x} coordinate
-  is the position of the left side of the last open cell.
+  is the left limit of the last open cell.
 \item the expected properties of the remaining sequence of events: these
   events are ordered lexicographically, all the right extremities of their
   edges are also covered by events in the sequence, the field {\tt outgoing}
@@ -686,71 +702,24 @@ events.
   sides of cells.
 \end{enumerate}
 
-At each event, the sequence of closed cells evolves.  In the general
-case, new closed cells are created from the open cells in contact, and we
-need to prove that the invariant properties satisfied by the open cells
-are sufficient to guarantee that the created closed cells are well formed.
-
-In our work, we rely quite a lot on a relation between edges, named
-{\tt edge\_below} and noted by the infix symbol {\tt <|}.  It turns
-out that this relation is reflexive, not transitive, and not
-antisymmetric.  We spent quite some time trying to show that it is transitive
-on some well chosen subsets, but this turned out to be improductive.  For
-this reason, it is not very useful (although it is true) to show that the
-sequence of edges is sorted for the {\tt edge\_below} relation ({\tt <}).  We
-finally chose to express that this sequence of edges
-satisfies a stronger invariant: an edge \(g_1\) that appears before an edge
-\(g_2\) in this sequence is below.
-
-All open cells meet the current position of the vertical edge.  As a
-consequence, it is useful to have a collection of lemmas establishing
-correspondences between edges below one another and the second coordinate
-of the projection of a point on these edges.  This is quite natural to
-express but one must be careful to only consider points that are in
-the intersection of vertical cylinders above the two edges.
-
-An edge \(g\) is covered by the sequence of closed cells if there exists a
-sequence of cells \(s\) with the following properties:
-\begin{itemize}
-\item all edges in \(s\) have \(g\) as their high edge,
-\item each cell's right side is on the same vertical as the next cell's
-  left side,
-\item the first cell's left side is aligned with the edge's left side,
-\item the last cell's right side is aligned with the edges right side.
-\end{itemize}
-Some edges are only partially covered by the closed cells, but in that
-case their right side is covered by an open cell.  In that case, there
-is a sequence \(s\) and an open cell \(c_o\) such that:
-\begin{itemize}
-\item all edges in \(s \cup \{c_o\}\) have \(g\) as their high edge,
-\item for the sequence \(s.c_o\) each cell's right side is on
-  the same vertical as the next cell's left side,
-\item the left side of the first cell in \(s\)
-  is aligned with the edge's left side,
-
-\end{itemize}
-
-
-In the end, the safety property for the space inside a given cell was
+In the end, the safety property for the space inside a given cell is
 guaranteed by the main argument that if edges are covered by the high
 edges of all closed cells, and all closed cells are disjoint, then
 edges cannot appear in the interior of a given cell.
 
 We performed two proofs of the main result.  The first proof takes
 stronger assumptions on the inputs: it assumes that two events are
-never vertically aligned.  If this is the case, no specific treatement
-is needed to handle the last created open cell, which is guaranteed to
-be transformed later into a non-empty closed cell.  The second proof
-observes the case where verical alignment of events is permitted.  In
-this case, it sometimes necessary to not create new open cells, but
-only to modify existing cells.n
-\subsection{Algebraic properties of the area function}
-The area function is instrumental to detect when a point is above or
+never vertically aligned.  So there is only one case in the treatement
+of events that is ever handled in this case.  This proof is simpler
+and makes it possible to understand the main structure of the proof.
+
+\subsection{The area function and the {\tt edge\_below} relation}
+The signed area function is instrumental to detect when a point is above or
 below an edge.  More precisely, it makes it possible to detect when a
 point is above the straight line that carries the obstacle.
 
 This area function is given by a determinant formula that we learned
-from Knuth, but is probably part of the folklore in algorithmic
+from Knuth \cite{Knuth}, but is probably part of the folklore in algorithmic
 geometry.  It is quite important that this is only computed using a
 determinant, as it only needs ring operations (no division), without
 ever mentioning the projection of the given point on the given
@@ -761,16 +730,31 @@ where one expresses the property of being above using a comparison of
 the second coordinates of the given point with the projected point on
 the given line.
 
-The edge comparison relation is directly related with the area
+The edge comparison relation, called {\tt edge\_below} and
+noted {\tt <|} is directly related with the area
 function.  To detect whether an edge is below another, we simply
 verify whether the two extremities of one are in the same half plane
 with respect to the other.
 
-In the end, to express that a point lies on a segment, we use the area
-function to detect that the point is aligned with the extremities, and
-using the invariant that no obstacle is given is vertical, we simply
-verify that the first coordinate is between the first coordinates of
-the segment extremities.
+It turns out that this relation is reflexive, not transitive, and not
+antisymmetric.  We spent quite some time trying to show that it is transitive
+on some well chosen subsets, but this turned out to be improductive.  For
+this reason, it is not very useful (although it is true) to show that the
+sequence of high edges of all open cells is sorted for the {\tt edge\_below}
+relation.  We
+finally chose to express that this sequence of edges
+satisfies a stronger invariant: an edge \(g_1\) that appears before an edge
+\(g_2\) in this sequence is below.
+
+All open cells intersect with the sweeping vertical line.  As a
+consequence, it is useful to have a collection of lemmas establishing
+correspondences between edges below one another and the second coordinate
+of the projection of a point on these edges.  This is quite natural to
+express but one must be careful to only consider points that are in
+the intersection of vertical cylinders above the two edges.  The lemmas
+have names like {\tt order\_edges\_viz\_point} or {\tt under\_pvert\_y},
+sometimes with a {\tt strict} qualifer added.
+
 \subsection{Building up invariants}
 \subsection{The key property of disjoint cells}
 In the end, each closed cell has four boundaries: two vertical ones, a
@@ -778,89 +762,88 @@ low boundary (a fragment of an obstacle that is not vertical) and a
 high boundary (again, not vertical).  We define three zones:
 \begin{itemize}
 \item inside the union of the cell and its boundaries,
-\item strictly inside the cell, not on the boundaries,
+\item in the interior of the cell (in the cell, on not on the boundaries),
 \item inside the cell and its
  boundaries, but neither on the bottom boundary nor on the left
  boundary.  In the rest of the paper, we say a point that satisfies
- this property with respect to a cell is {\em attached to the cell}.
- We say that two cells are disjoint if no point can be attached to
- both of them.
+ this property with respect to a cell is {\em owned by the cell} (in the
+ own part of the cell).
 \end{itemize}
 The main key property that we want to guarantee is that every point
 strictly inside a cell does not belong to any obstacle.  To establish
-this, we decompose the problem in two parts: first we show
-that points can only be attached to one cell.  Later, we
+this, we decompose the problem in three parts: first we show
+that points can only be owned by one cell.
 prove that every obstacle is included the union of high boundaries of
-all cells, this makes it possible to conclude with the key property.
+all cells.  As an immediate consequence, the interior of cell has no
+intersection with the obstacles.  The third property focusses only on the
+lateral sides of cells.
 
 To prove that closed cells are disjoint, we need to prove that new
 cells added at each iteration are disjoint with the existing ones.
 The new closed closed cell actually come from
-existing open cells.  Therefore, we need to prove the invariant that
-closed cells are disjoint from open cells, and in turn, we need to
+existing open cells.  Thus, we need to prove that
+closed cells are kept disjoint from open cells, and in turn, we need to
 show that open cell are disjoint.
 
 The position of the sweeping line plays an important role when proving
 that existing closed cells and open cells are disjoint.  At any
-iteration, the newly created cells have their left side on the
+iteration, the newly created open cells have their left side on the
 sweeping line.  On the other hand, newly closed cells have their right
 side on the sweeping line.  Moreover, since the sweeping line is moving
 from left to right, all previously existing closed cells have their
-right side on the left of the sweeping line.
+right side on the left of the sweeping line.  This guarantees that newly
+created open cells are disjoint from all closed cells, whether new or
+previously existing.
 
 In the degenerate case where two successive events are vertically
 aligned and the second event lies below the high edge of the last
 closed cell created when processing the first event, this last closed
 cell is modified and the new modified cell becomes the last closed
 cell after processing the second event.  We need to guarantee that
-the modification does interfere with the disjointness property with
-respect to the other cells.  This is given to us by the fact that the
-points attached to last closed are the same before and after the
+the modification does not interfere with the disjointness property with
+respect to the other cells.  We use the fact that
+points attached to the last closed are the same before and after the
 modification (which consists only in adding the second event to
-sequence of right points in the cell, in second position).  Because
-our model of the algorithm follows the style of functional
-programming, the modified cell is logically a completely different cell,
-and we need to be very explicit about the fact that the modified cell
-is disjoint with any other cell because the un-modified cell already
-was.
-
-\marginpar{\textcolor{blue}{not sure about this par, probably useful,
-    but not the right place.}}
-Just expressing that the two cells have the same attached point is not
-logically sufficient, because the two cells could have an empty set of
-attached points.  It turns out that our algorithm only produces
-non-empty cells, so we chose to add to our collection of invariant
-properties the fact that any closed cell contains at least one point:
-the cell center, computed by as first coordinate the middle between
-the left and right sides, and as second coordinate, the middle of the
-intersections between the low and high boundaries of the cells.
+sequence of right points in the cell, in second position).
 \subsection{Obstacle covering}
-As the sweep line progresses from left to right, more and more events
-are processed, and the obstacles whose leftmost point is at the
-processed event are included in the boundaries of existing cell.  The
-property that is invariant here, is that every obstacle belonging in
-the outgoing edges from an event that has already been processed is
-included in the high boundaries of a collection of cells, with two
-important cases:
+The obstacles whose left extremity is at an event that has already been
+processed are covered by the high boundaries of existing closed cells and
+open cells.
+
+An obstacle (an edge) \(g\) is covered by the sequence of closed cells if
+there exists a sequence of cells \(s\) included in the closed cells
+with the following properties:
 \begin{itemize}
-\item If the event corresponding to the right extremity of the
-  obstacle is yet to be processed, then the rightmost part of the
-  obstacle is included in the high boundary of an open cell,
-\item Otherwise, the obstacle is completely included in the high
-  boundaries of a collection of adjacent closed cells.
+\item all cells in \(s\) have \(g\) as their high edge,
+\item in \(s\), each cell's right limit is the next cell's left limit,
+\item the first cell's left limit is the first coordinate of the obstacle's
+  left extremity.
+\item the last cell's right limit is the first coordinate of the obstacle's
+  right extremity.
+\end{itemize}
+Some obstacles are only partially covered by the closed cells, but in that
+case their right part is covered by an open cell.  In that case, there
+is a sequence \(s\) included in the closed cells
+and an open cell \(c_o\) such that:
+\begin{itemize}
+\item all cells in \(s \cup \{c_o\}\) have \(g\) as their high edge,
+\item for the sequence \(s\) followed by \(c_o\) each cell's right limit
+  the next cell's left limit.
+\item the first cell's left limit is the first coordinate of the obstacle's
+  left extremity.
 \end{itemize}
 
 When an event is processed, the cell decomposition algorithm computes
-a sequence contact cell together with a last contact cell.  The latter
-is meant to become the future last closed cell.  It high edge is the
-same obstacle as the high edge of future last open cell.  If we
+a sequence contact cell together with a last contact cell.  Its high edge
+is the same obstacle as the high edge of the future last open cell.  If we
 are in general position (the current event is not vertically aligned
 with the previous one) This high
 edge was covered by the combination of a sequence of closed cells and
-an open cell before this iteration, and after this iteration, the
-sequence of closed cells receives a new element (the last contact cell
-that was just closed) and the new last open cell still participates in
-its covering.
+an open cell (the last contact cell) before this iteration,
+and after this iteration, the coverage is ensured by a new sequence
+of closed cell which is the same as previously with a new closed cell added,
+obtained by closing the last open cell, and the last of newly created open
+cells covers the rest of that obstacle.
 
 For the high edges of all the other contact cells, they are
 necessarily ending in the current event.  So these obstacles move from
@@ -883,92 +866,99 @@ In the end, there are no more events left to process, so that all
 obstacles are covered by closed cells.  
 We can guarantee that points strictly inside these closed cells are not
 on obstacles by combining the edge covering property and the
-dijointness property.  If we name \(c_1\) a closed cell and \(p\) an
+disjointness property.  If we name \(c_1\) a closed cell and \(p\) an
 point inside that cell, then \(p\) cannot be on the high edge of
 \(c_1\) by definition of ``strictly inside''.  If \(p\) is on an
 obstacle, this obstacle is covered by cells, so that there must be a
 cell \(c_2\) such that \(c_2\) contains \(p\) and \(p\) is on the high
 edge of \(c_2\).  Because \(p\) is not on the high edge of \(c_1\),
 \(c_1\) and \(c_2\) must be distinct, but by the definition of
-attached points, \(p\) must be attached to both \(c_1\) and \(c_2\).
+owned points, \(p\) must be attached to both \(c_1\) and \(c_2\).
 \subsection{Safety for points on the lateral boundaries}
-For each closed cell, our algorithm provides two sequences of points
-corresponding to the points on the left and right boundary that are
-unsafe.  We need to prove that the other points are safe, so that they
-can be used to compute trajectories that move from on cell to a
-neighboring one.
+For points on the lateral sides, we first concentrate on the left side.
+When an event is processed, closed cells have a left limit that is
+stricly lower the event's first coordinate, so that this event cannot appear
+in the safe left side of a closed cell.  For the open cells, we show
+that all those cells that are not in contact have their left side preserved.
+So in the end we only need to show that the created open cells do contain
+the current event in the left points, so that this event is not considered
+safe by these cells.
 
-One of the key way to prove that all cells have a safe left side is to
-observe the following facts:
-\begin{itemize}
-\item After an event is processed, all cells that are likely to
-  contain this event have this event as an element of their left point
-  sequences,
-\item If a point appears in the left point sequence of an open cell
-  that is not the last open cell, an iteration either preserves that
-  open cell, or creates a closed cell with the same sequence of left
-  points,
-\item In degenerate cases where the last open cell is modified to
-  produce a new last open cell, the sequence of left points for the
-  new last open cell contains the previous sequence of left points to
-  which the currently processed event is being added.
-\end{itemize}
+In degenerate situations, it happens that some newly created
+open cell has a left side that covers the same left side as a previously
+existing open cell.  In that case, we do prove that the existing unsafe points
+from the previously existing cell are inherited by the newly
+created open cell.
 
-Proving that all cells have a safe right side follows a similar track:
-\begin{itemize}
-\item Apart from the last closed cell, we know that no closed cell is
-  in contact with the currently processed event,
-\item All newly created closed cells when processing an event have
-  that event inside their right point sequence,
-\item In degenerate cases where the last closed cell is modified to
-  produce a new last closed cell, the sequence of right points for new
-  last closed cell contains the previous sequence of right points to
-  which the currently processed event is being added.
-\item In degenerate cases where the processed event is on the high
-  edge of the last closed cell, the last closed cell is transfered
-  directly to the regular closed cells, and the processed event is
-  already in the sequence of right points of the cell, because it is
-  the projection of the previous event on the high edge of the cell.
-\end{itemize}
+Proving that all cells have a safe right side follows a similar track.
+Apart from the last closed cell, we know that no closed cell is in contact
+with the currently processed event, either because the closed cell is
+further to the left of the sweeping line, or because the closed cell has
+a top left corner that is strictly lower than the current event.
+
+When creating new closed cells (in the first two cases and the fourth one),
+the proof proceeds by checking that the sequence of the right points
+for all newly created cells contains the currently processed event.
+In the fourth case, it happens that the cell that would have been
+the first newly created cell is discarded.  But we show that all points
+that would have been on its right side are already covered by existing closed
+cells.
+
+In the third case, where the last closed cell is simply obtained by
+taking the previous last closed cell and adding the currently processed event
+in the sequence of right points, it is easy to show that all points
+that were already marked as unsafe are still marked as unsafe, together with
+the currently processed event.
+
+In the fourth case, the currently processed event is not added to the
+sequence of right points of the previous last closed cell, because it
+was already present in that sequence: this event is on the high edge of
+the cell, so it is already equal to the projection of the previous event
+on that edge (because the processed event and the previous event are on
+the same vertical).
+
 \section{Conclusion}
 \subsection{A basis for trajectory computation}
-Because we only prove safety, the specification studied in this paper
-could be fulfilled by a stupid program that returns an empty sequence
-of cells.  As a way to assess usability, we actually developed an
-application that uses this vertical cell decomposition algorithmm to
-produce a trajectories between points in the configuration space, when
-such a trajectory exists.
+As a way to assess usability, we integrated this program in a larger
+application that produces trajectories without intersections with
+the obstacles between points inside the bounding
+box, when possible.  To work properly, this larger application relies
+on a few more properties that we have not included in our specification yet.
+Here are two examples of such properties:
+\begin{itemize}
+\item the set of created cells should cover the whole interior of the
+  bounding box
+\item When there exists a safe passage between two adjacent cells, these
+  cells actually have a door in common.
+\end{itemize}
+According to our tests, these properties hold for our algorithm, but
+they have not been proved formally.  If these properties were not satisfied,
+the program would not compute trajectories between some points that can
+actually be connected by a such trajectory.
 
-It is possible that no trajectory exists between two points in the
-safe part of the configuration space, because obstacles could be used
-to delimit polygons, and no trajectory exists between the interior and
-the exterior of a polygon.  
+This may actually correspond to a real life situation, where one might
+want to provide formal proofs for safety properties, but accept that some
+part of the behavior is only guaranteed using a conventional test campaign,
+because such a test campaign may be lest costly to obtain.
 
-To compute trajectories between points that are not in the same cell,
-we need to recognize when two cells are neighbors with a safe passage
-between them.  For now, we compute this neighboring relation by
-computing for each cell what are the intervals between successive
-points in the left points or the right points of that cell.  This
-gives us doors out of that cell.  Two cells are neighbors with a safe
-passage if they have a door in common.  Cells, together with the
-neighboring relation, constitute a graph in which with can perform a
-discrete search for a path between cells.  
-To compute a trajectory, we
-thus only have to find the cells that containing the source and target
-of that trajectory, then find a path between these cells, then
-transform this path into a path between doors.
-
-When the trajectory needs to go from one door into a cell to a door in
-the other side of the cell, a straight line can be used between a
-point in the first door and the second door.  On the other hand, when
-a trajectory needs to go from one door into a cell to another door on
-the same side, a straight line cannot be used, because this would
-collide with extremities of both doors.  For this case, we need to
-build a path that goes from the first door strictly inside the cell,
-and then to the second door.  This is why we made the effort to have
-an algorithm that only produces non-empty cells: we have the guarantee
-that a point inside the cell always exists for this kind of need.
 \subsection{Vertical obstacles in trajectory computation}
+We contend that the constraint of forbidding vertical obstacles can easily
+be circumvented by following the following procedure:
+\begin{itemize}
+\item For every vertical obstacle (not crossing any other obstacle) that
+  should be avoided, include the two extremities in the sequence
+  of events before the second phase,
+\item The algorithm will naturally produce cells where the two events
+  appear as the extremities of a door on the lateral sides of two
+  cells,
+\item When buiding trajectories, make sure to invalidate doors corresponding
+  to vertical obstacles.
+\end{itemize}
+A slight modification of the data used in the algorithm can help achieving
+this behavior: events could be marked as extremities to vertical obstacles
+at the time of adding events to the sequence, and cells could be equipped
+with an extra field containing the invalidated doors.  This field could
+be filled during the second phase or during a third post-processing phase.
 \subsection{Concerning numerical computation}
 When considering safety of trajectory computation, we need to
 anticipate the problems that may arise because of the fact that

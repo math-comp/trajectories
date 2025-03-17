@@ -377,7 +377,7 @@ have [inright | inleft] := ltP (left_limit lc) (p_x p).
         by rewrite -hql hlc eqxx andbF in lbelow.
       rewrite hlc.
       by move=> /(_ p pong ponlow); rewrite (negbTE pnl).
-    have := order_edges_strict_viz_point' vllc (proj2 (andP pong))
+    have := order_edges_strict_viz_point vllc (proj2 (andP pong))
       (proj1 (andP lbelow)) pstrictunderlow.
     by rewrite (strict_nonAunder (proj2 (andP pong))) pong.
   rewrite /strict_inside_closed hlc.
@@ -744,7 +744,7 @@ elim=> [ | {evsq oca_eq istate invss} ev {req}future_events Ih]
         by apply: vbt; rewrite !inE eqxx orbT.
       move=> /andP[] /andP[] pab put _ tnb.
       have abs : top <| bottom by rewrite -lcq -hcq; apply: (allP rfo).
-      have := order_edges_strict_viz_point' vt vb abs put.
+      have := order_edges_strict_viz_point vt vb abs put.
       by move: pab; rewrite under_onVstrict // orbC => /[swap] ->.
     have := inj_high e_inv; rewrite /state_open_seq/= => ijh.
     have f0 : fop = [::].
@@ -1165,7 +1165,7 @@ case evsq: evs evsn0 => [ | ev future_events] // _.
       have vbt : valid_edge top (right_pt bottom) := vbt' xcond.
       rewrite -(strict_under_pvert_y vbt).
       rewrite (strict_nonAunder vbt).
-      rewrite (order_edges_viz_point' 
+      rewrite (order_edges_viz_point 
          (proj2 (andP (right_on_edge _))) vbt boxwf); last first.
         rewrite (under_onVstrict (proj2 (andP (right_on_edge _)))).
         by rewrite right_on_edge.
@@ -1179,7 +1179,7 @@ case evsq: evs evsn0 => [ | ev future_events] // _.
     rewrite (under_onVstrict vtb) negb_or.
     have -> : right_pt top >>= bottom.
       apply/negP=> tbb.
-    have := (order_edges_strict_viz_point' vtb
+    have := (order_edges_strict_viz_point vtb
         (proj2 (andP (right_on_edge _))) boxwf tbb).
       rewrite (strict_nonAunder (proj2 (andP (right_on_edge _)))).
       by rewrite right_on_edge.

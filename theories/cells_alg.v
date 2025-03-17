@@ -1418,7 +1418,7 @@ have puy : point e <<= y.
 have xble : x <| le by apply: (allP fcbl).
 have pax : point e >>> x.
   apply/negP=> pux; case/negP: pal.
-  by apply: (order_edges_viz_point' vx vle xble pux).
+  by apply: (order_edges_viz_point vx vle xble pux).
 have nocyx : below_alt y x.
   apply: noc; rewrite ocd /all_edges/events_to_edges; last first.
     by rewrite !(cell_edges_cat, mem_cat) ?xin ?orbT //.
@@ -1457,7 +1457,7 @@ have vx: valid_edge x (point e) by apply valid_edge_extremities; rewrite oute'.
 have vy: valid_edge y (point e) by apply: (allP vlc).
 have highlccley : high lcc <| y by apply: (allP heblc).
 have puy : point e <<< y.
-  by have := order_edges_strict_viz_point' vhe vy highlccley puh.
+  by have := order_edges_strict_viz_point vhe vy highlccley puh.
 have pax : point e >>= x.
   rewrite -(eqP (oute' xin)); apply left_pt_above.
 have nocxy : below_alt x y.

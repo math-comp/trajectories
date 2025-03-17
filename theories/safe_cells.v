@@ -111,7 +111,7 @@ Proof.
 move=> c cin p /[dup] ponh /andP[] _ vh vl.
 apply/negP=> pul.
 have lbh : low c <| high c by apply: low_high.
-have := order_edges_strict_viz_point' vl vh lbh pul.
+have := order_edges_strict_viz_point vl vh lbh pul.
 by rewrite strict_nonAunder // ponh.
 Qed.
 
@@ -458,7 +458,7 @@ have vb : valid_edge bottom p.
   by rewrite /valid_edge/generic_trajectories.valid_edge !ltW.
 have vt : valid_edge top p.
   by rewrite /valid_edge/generic_trajectories.valid_edge !ltW.
-have pub := order_edges_strict_viz_point' vt vb abs put.
+have pub := order_edges_strict_viz_point vt vb abs put.
 by move: pab; rewrite under_onVstrict // pub orbT.
 Qed.
 

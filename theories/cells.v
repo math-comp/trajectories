@@ -101,17 +101,17 @@ Proof. by case: c. Qed.
 
 Definition valid_cell c x := valid_edge (low c) x /\ valid_edge (high c) x.
 
-Lemma order_edges_viz_point c p :
+Lemma cell_order_edges_viz_point c p :
 valid_edge (low c) p -> valid_edge (high c) p ->
 (low c) <| (high c) ->
 p <<= (low c) -> p <<= (high c).
-Proof. apply : order_edges_viz_point'. Qed.
+Proof. apply : order_edges_viz_point. Qed.
 
-Lemma order_edges_strict_viz_point c p :
+Lemma cell_order_edges_strict_viz_point c p :
 valid_edge (low c) p -> valid_edge (high c) p ->
 (low c) <| (high c) ->
 p <<< (low c) ->  p <<< (high c).
-Proof. apply: order_edges_strict_viz_point'. Qed.
+Proof. apply: order_edges_strict_viz_point. Qed.
 
 Definition unsafe_Bedge (a b : pt) :=
   if (ltrP (p_x a) (p_x b)) is LtrNotGe h then Bedge h else
@@ -441,7 +441,7 @@ move: (valcp)=> [vallp valhp].
 rewrite (under_onVstrict vallp) => /orP [] //.
 move=> ponl; rewrite /contains_point negb_and negbK=> /orP[] //.
 case/negP.
-apply: (order_edges_viz_point vallp) => //.
+apply: (cell_order_edges_viz_point vallp) => //.
 by rewrite under_onVstrict // ponl.
 Qed.
 
@@ -482,7 +482,7 @@ move: adj; rewrite /adjacent_cells /= => /andP[/eqP eq_edges adj'].
 move: vals; rewrite /seq_valid /= => /andP[/andP[vallc valhc] valc'q].
 move: rfs; rewrite /s_right_form /= => /andP[lowhigh rfc'q].
 have pc' : p <<< (low c').
-  by rewrite -eq_edges; apply: (order_edges_strict_viz_point vallc).
+  by rewrite -eq_edges; apply: (cell_order_edges_strict_viz_point vallc).
 have [/eqP c1c' | c1nc'] := boolP (c1 == c').
   by rewrite c1c'.
 apply: (Ih c')=> //.
@@ -931,7 +931,7 @@ have g0below : g0 <| g.
   move: adj; rewrite /= (path_sorted_inE e_trans); last by apply/allP.
   by move=> /andP[]/allP + _; apply; rewrite mem_rcons inE eqxx.
 move:g1in; rewrite /= inE => /orP[/eqP g1g0 | intail].
-  by apply: (order_edges_strict_viz_point' v0p vgp g0below); rewrite -g1g0.
+  by apply: (order_edges_strict_viz_point v0p vgp g0below); rewrite -g1g0.
 have tr' : {in rcons s g & &, transitive edge_below}.
   move=> g1' g2' g3' g1in g2in g3in.
   by apply: e_trans; rewrite inE ?g1in ?g2in ?g3in orbT.
@@ -1298,7 +1298,7 @@ rewrite under_onVstrict // negb_or.
 move: noclh=> [abs | noclh]; first by rewrite abs eqxx in dif.
 apply/andP; split; last first.
   apply/negP=> abs.
-  have := order_edges_strict_viz_point' vlp vhp bel abs.
+  have := order_edges_strict_viz_point vlp vhp bel abs.
   by rewrite strict_nonAunder // on.
 apply/negP=> abs.
 have := noclh _ abs on; rewrite !inE=> /orP[] /eqP {}abs.
@@ -1746,7 +1746,7 @@ have c1in : c1 \in open.
   by rewrite ocd fc_eq !(mem_cat, mem_rcons, inE) eqxx.
 have /andP[vlc1 vhc1] : valid_edge (low c1) p && valid_edge (high c1) p.
   by apply: (allP sval).
-have /order_edges_strict_viz_point' : low c1 <| high c1 by apply: (allP rfo).
+have /order_edges_strict_viz_point : low c1 <| high c1 by apply: (allP rfo).
 move=> /(_ _ vlc1 vhc1) oc1.
 have ctfc : contains_point p (head lcc cc).
   case cc_eq : (cc) => [ // | c2 cc'].
@@ -1772,7 +1772,7 @@ have c1in : c1 \in open.
   by rewrite ocd lc_eq /= !(mem_cat, inE) eqxx !orbT.
 have /andP[vlc1 vhc1] : valid_edge (low c1) p && valid_edge (high c1) p.
   by apply: (allP sval).
-have /order_edges_viz_point' := allP rfo _ c1in => /(_ _ vlc1 vhc1) oc1.
+have /order_edges_viz_point := allP rfo _ c1in => /(_ _ vlc1 vhc1) oc1.
 have hlcclc1 : high lcc = low c1.
   move: adj; rewrite ocd lc_eq=> /adjacent_catW[] _ /adjacent_catW[] _.
   by move=> /andP[] /eqP.
@@ -1878,7 +1878,7 @@ Qed.
 Lemma low_under_high : le <| he.
 Proof.
 have [// | abs_he_under_le] := noc lein hein; case/negP: pal.
-by have /underW := (order_edges_strict_viz_point' vhe vle abs_he_under_le puh).
+by have /underW := (order_edges_strict_viz_point vhe vle abs_he_under_le puh).
 Qed.
 
 Lemma in_cc_on_high c : c \in cc -> p === high c.
@@ -2013,7 +2013,7 @@ have [ab bel] : cell_center c >>> low c /\
     by apply: (lt_le_trans (proj2 (andP mldifl))).
   have mlu : ml <<< high c.
     rewrite strict_nonAunder //; last first.
-    have := order_edges_viz_point' vl vlh cwf mll => ->; rewrite andbT.
+    have := order_edges_viz_point vl vlh cwf mll => ->; rewrite andbT.
     apply/negP=> mlh.
     move: noc; rewrite /inter_at_ext=> -[abs | ].
       by rewrite abs eqxx in dif.
@@ -2191,7 +2191,7 @@ move: adjs.
 rewrite -(cat_take_drop j.+1 s)=> /adjacent_catW[] + _.
 rewrite (take_nth dummy_cell jlts) -/y jj (take_nth dummy_cell j'lts).
 rewrite -2!cats1 -catA /= =>/adjacent_catW[] _ /= /andP[] /eqP lyq _.
-apply: (order_edges_viz_point' vhx) => //.
+apply: (order_edges_viz_point vhx) => //.
 rewrite -lyq.
 move: pws => /(pairwiseP dummy_edge) /(_ i j') /=; rewrite size_map 2!inE.
 move=> /(_ ilts j'lts iltj').

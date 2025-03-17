@@ -1307,7 +1307,7 @@ rewrite opening_cells_aux_eqn.
     by apply: (edge_below_from_point_above ba vle' vhe).
   have p1uh : p1 <<< he.
     have p1ule' : p1 <<= le' by rewrite (under_onVstrict vlp1) p1onle'.
-    have : p1 <<= he by apply: (order_edges_viz_point' vlp1).
+    have : p1 <<= he by apply: (order_edges_viz_point vlp1).
     rewrite (under_onVstrict vhp1)=> /orP[p1onhe |]; last by [].
     case: ba'=> [lqh | ]; first by move: pale'; rewrite lqh puh.
     move=> /(_ _ p1onle' p1onhe).
@@ -1368,7 +1368,7 @@ have le'bhe : le' <| g1 by move: srt=> /= /andP[].
 have p1ug1 : p1 <<< g1.
   have p1ule' : p1 <<= le' by rewrite (under_onVstrict vlp1) p1onle'.
   have : p1 <<= g1.
-    by apply: (order_edges_viz_point' vlp1).
+    by apply: (order_edges_viz_point vlp1).
   rewrite (under_onVstrict vhp1)=> /orP[p1ong1 |]; last by [].
   case: ba'=> [lqg1 | ]; first by move: uns; rewrite lqg1 /= inE eqxx.
   move=> /(_ _ p1onle' p1ong1).

@@ -479,7 +479,7 @@ have wcl' : {in rcons (cls ++ (lstc :: closing_cells (point ev) cc))
     have lstoin2 : lsto \in lsto :: lop by rewrite inE eqxx.
     rewrite map_cat /= pairwise_cat=> /andP[] + _.
     move=> /allrelP /(_ _ _ (map_f _ c'fop) (map_f _ lstoin2)) hc'blsto.
-    apply: (order_edges_viz_point' vhc' vho hc'blsto).
+    apply: (order_edges_viz_point vhc' vho hc'blsto).
     by move/andP: cont=>[].
   rewrite -/(left_limit c').
   move: llt.
@@ -540,7 +540,7 @@ have wcl' : {in rcons (cls ++ (lstc :: closing_cells (point ev) cc))
     by have := allP oks c' c'in2 => /andP[] _ /andP[] _ /andP[] _ /andP[] _ ->.
   have : last dummy_pt (left_pts c') >>= high lsto.
     apply/negP=> HH.
-    have := (order_edges_strict_viz_point' vhob vlc'l lstobc' HH).
+    have := (order_edges_strict_viz_point vhob vlc'l lstobc' HH).
     rewrite strict_nonAunder; last by [].
     by rewrite lon.
   have := strict_under_pvert_y vhob; rewrite lstheq.
@@ -790,7 +790,7 @@ have ucc' : uniq [seq cell_center c | c <-
             (nth dummy_cell (rcons cc lcc) j.-1).
     by have [_ -> _] := close_cell_preserve_3sides (point ev)
             (nth dummy_cell (rcons cc lcc) i).
-    have := order_edges_viz_point' vni vnj ibelj'.
+    have := order_edges_viz_point vni vnj ibelj'.
     rewrite -jpred; apply.
     by apply: belowhigh.
   move=> i j; rewrite ?inE /= => i_s js eqcc.
@@ -1247,7 +1247,7 @@ have samex_situation_safe_side_right_new_closed p c :
     have lbho := allP rfo _ lstoin.
     have evbllsto := decomposition_under_low_lc oe' cbtom adj
       (inside_box_between inbox_e) rfo sval inlc.
-    have step3_abs := order_edges_strict_viz_point' vlo vho lbho evbllsto.
+    have step3_abs := order_edges_strict_viz_point vlo vho lbho evbllsto.
     by case/negP: evablsthe; rewrite -hlsto (underW step3_abs).
   have lstheble : lsthe <| le.
     have := (pairwise_open_non_gp d_inv); rewrite ocd.
@@ -1274,7 +1274,7 @@ have samex_situation_safe_side_right_new_closed p c :
     move=> pblsthe.
     have vple : valid_edge le p by rewrite (same_x_valid _ samex).
     have vpho : valid_edge lsthe p by rewrite (same_x_valid _ samex).
-      by apply: (order_edges_viz_point' vpho vple lstheble pblsthe).
+      by apply: (order_edges_viz_point vpho vple lstheble pblsthe).
   have last_step_lt : p <<= lsthe -> p_y (point ev) < p_y p -> False.
     move=> pblsthe abs.
     have := same_x_under_edge_lt_y_trans
@@ -1595,7 +1595,7 @@ have cl_safe_edge :
   have pabo : p >>= high opc by rewrite strict_nonAunder // opch pong.
   have opcNab : ~~ (high c' <| high opc).
     apply/negP=> c'bo.
-    have := order_edges_strict_viz_point' vhc'p vphc c'bo puhc'.
+    have := order_edges_strict_viz_point vhc'p vphc c'bo puhc'.
     by rewrite strict_nonAunder // opch pong.
   have hobhc' := edge_below_from_point_above balt vhc'p vphc.
   have [s1 [s2 sq]] := mem_seq_split c'in'.
@@ -1620,7 +1620,7 @@ have cl_safe_edge :
     rewrite all_cat map_rcons all_rcons => /andP[] /andP[] + _ _.
     by rewrite hc2.
   case/negP: palc'.
-  apply: (order_edges_viz_point' vphc vlc'p opcbl).
+  apply: (order_edges_viz_point vphc vlc'p opcbl).
   by rewrite under_onVstrict // opch pong.
 have op_safe_edge :
   {in events_to_edges (rcons previous_events ev) & state_open_seq rstate,

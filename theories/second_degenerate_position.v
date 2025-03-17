@@ -1311,7 +1311,7 @@ apply/(uniqP dummy_pt).
             (nth dummy_cell (rcons cc' lcc) j.-1).
     by have [_ -> _] := close_cell_preserve_3sides (point ev)
             (nth dummy_cell (rcons cc' lcc) i).
-    have := order_edges_viz_point' vni vnj ibelj'.
+    have := order_edges_viz_point vni vnj ibelj'.
     rewrite -jpred; apply.
     by apply: belowhigh.
   move=> i j; rewrite ?inE /= => i_s js eqcc.
@@ -1785,7 +1785,7 @@ move=> _ pin.
       by rewrite /= heq edge_below_refl.
     move=> /allP /(_ (high (last a tl)) (map_f _ _)).
     by rewrite mem_cat mem_last heq => /(_ isT).
-  have /underW puc := order_edges_strict_viz_point' vhe vlc cahe puh.
+  have /underW puc := order_edges_strict_viz_point vhe vlc cahe puh.
 by rewrite puc in pac.
 have notbelow : ~~(c \in fop ++ fc').
   apply/negP=> cf.
@@ -1809,7 +1809,7 @@ have notbelow : ~~(c \in fop ++ fc').
     rewrite pairwise_cat=> /andP[] _ /andP[] _ /= /andP[] + _.
     case: (s2) => [ | a tl]; first by rewrite edge_below_refl.
     by move=> /allP /(_ (high (last a tl)) (map_f _ (mem_last _ _))).
-  have pul := order_edges_strict_viz_point' vhc vle cble puc.
+  have pul := order_edges_strict_viz_point vhc vle cble puc.
   have /all_ctn/andP[+ _]: head lcc cc \in cc.
     by case: (cc) ccn0 => [ | ? ?]; rewrite // inE eqxx.
 by rewrite -leq pul.
@@ -1960,7 +1960,7 @@ rewrite mem_rcons inE=> /orP [/eqP -> | epast]; last first.
   have pabo : p >>= high oc by rewrite strict_nonAunder // -opch pong.
   have opcNab : ~~ (high c' <| high oc).
     apply/negP=> c'bo.
-    have := order_edges_strict_viz_point' vhc'p vphc c'bo puhc'.
+    have := order_edges_strict_viz_point vhc'p vphc c'bo puhc'.
     by rewrite strict_nonAunder // -opch pong.
   have hobhc' := edge_below_from_point_above balt vhc'p vphc.
   have [s1 [s2 sq]] := mem_seq_split c'ino.
@@ -1985,7 +1985,7 @@ rewrite mem_rcons inE=> /orP [/eqP -> | epast]; last first.
     rewrite all_cat map_rcons all_rcons => /andP[] /andP[] + _ _.
     by rewrite hc2.
   case/negP: palc'.
-  apply: (order_edges_viz_point' vphc vlc'p opcbl).
+  apply: (order_edges_viz_point vphc vlc'p opcbl).
   by rewrite under_onVstrict // -opch pong.
 
 (* have pev : p === g -> g \in outgoing ev -> p = point ev.

@@ -1089,7 +1089,7 @@ elim=> [ | {evsq oca_eq istate invss}ev {req}future_events Ih] op cl st all_even
           by apply: vbt; rewrite !inE eqxx orbT.
         move=> /andP[] /andP[] pab put _ tnb.
         have abs : top <| bottom by rewrite -lcq -hcq; apply: (allP rfo).
-        have := order_edges_strict_viz_point' vt vb abs put.
+        have := order_edges_strict_viz_point vt vb abs put.
         by move: pab; rewrite under_onVstrict // orbC => /[swap] ->.
       have := inj_high e_inv; rewrite /state_open_seq/= => ijh.
       have f0 : fop = [::].
@@ -1357,7 +1357,7 @@ have cl_safe_edge :
       by have := (allP sval _ opco) => /andP[].
     rewrite opch abs; split; last by [].
     apply/negP=> pun.
-    have := order_edges_strict_viz_point' vplc vphc rfc pun.
+    have := order_edges_strict_viz_point vplc vphc rfc pun.
     by apply/negP/onAbove; rewrite opch.
   have pw : pairwise edge_below [seq high c | c <- state_open_seq st].
     by move: (pairwise_open d_inv)=> /= /andP[].
@@ -1393,7 +1393,7 @@ have cl_safe_edge :
     by rewrite // odec !mem_cat mem_rcons inE eqxx.
   have pab : p >>> bottom.
     apply/negP=> pub.
-    have:= order_edges_viz_point' vbp vlc'p bottom_b_c' pub.
+    have:= order_edges_viz_point vbp vlc'p bottom_b_c' pub.
     by move: palc'=> /[swap] => ->.
   have ldifh : low opc != high opc by apply: d_e; rewrite mem_cat opco.
   have low_opc_s : low opc \in [:: bottom, top & s].
@@ -1417,7 +1417,7 @@ have cl_safe_edge :
    because it is the end of an edge. *)
   move=> prl.
   have put : p <<< top.
-    apply: (order_edges_strict_viz_point' vhc'p vtp _ puhc').
+    apply: (order_edges_strict_viz_point vhc'p vtp _ puhc').
     move: cbtom=> /andP[] _.
     have := pw.
     have [s1 [s2 s1q]] := mem_seq_split c'in'.

@@ -1414,7 +1414,7 @@ rewrite strictE => <-.
 by rewrite pmulr_rlt0.
 Qed.
 
-Lemma order_edges_viz_point' low_e high_e p :
+Lemma order_edges_viz_point low_e high_e p :
 valid_edge low_e p -> valid_edge high_e p ->
 low_e <| high_e ->
 p <<= low_e -> p <<= high_e.
@@ -1431,7 +1431,7 @@ move => pabpleft pabpright.
   apply (under_low_imp_under_high_bis pabpleft pabpright vallow valhigh).
 Qed.
 
-Lemma order_edges_strict_viz_point' low_e high_e p :
+Lemma order_edges_strict_viz_point low_e high_e p :
 valid_edge low_e p -> valid_edge high_e p ->
 low_e <| high_e ->
 p <<< low_e ->  p <<< high_e.
@@ -2274,7 +2274,7 @@ have plhv: valid_edge high_e pl.
 have pllv: valid_edge low_e pl.
   move : lowv.
   by rewrite /valid_edge/generic_trajectories.valid_edge -lx_eq.
-have := order_edges_viz_point' pllv  plhv luh.
+have := order_edges_viz_point pllv  plhv luh.
 rewrite under_onVstrict // poel /= => [] /= plinfh.
 have pluh: pl <<= high_e .
   by apply plinfh.
@@ -2551,7 +2551,7 @@ move=> v1 v2 g1g2.
 have := pvert_on v1; set p' := Bpt _ _ => p'on.
 have/esym := @same_x_valid p p' g1 erefl; rewrite v1 => v'1.
 have/esym := @same_x_valid p p' g2 erefl; rewrite v2 => v'2.
-have := order_edges_viz_point' v'1 v'2 g1g2.
+have := order_edges_viz_point v'1 v'2 g1g2.
 rewrite (under_onVstrict v'1) p'on => /(_ isT).
 by rewrite under_pvert_y.
 Qed.
@@ -2674,7 +2674,7 @@ Lemma edge_below_from_point_above g1 g2 p:
   p >>= g1 -> p <<< g2 -> g1 <| g2.
 Proof.
 move=>[] //= g2g1 v1 v2 ab bel.
-have := order_edges_strict_viz_point' v2 v1 g2g1 bel.
+have := order_edges_strict_viz_point v2 v1 g2g1 bel.
 by rewrite (negbTE ab).
 Qed.
 
@@ -2683,7 +2683,7 @@ Lemma edge_below_from_point_under g1 g2 p:
   p <<= g1 -> p >>> g2 -> g2 <| g1.
 Proof.
 move=>/below_altC[] //=g1g2 v1 v2 bel ab.
-have := order_edges_viz_point' v1 v2 g1g2 bel.
+have := order_edges_viz_point v1 v2 g1g2 bel.
 by rewrite (negbTE ab).
 Qed.
 
@@ -2697,7 +2697,7 @@ Proof.
 move=> noc vr vr' vp vp' cmp pbelow.
 have ebe'0 := pvert_y_edge_below vr vr' cmp.
 have ebe' : e <| e' by case: noc ebe'0=> [// | -> ].
-by apply:(order_edges_strict_viz_point' vp vp').
+by apply:(order_edges_strict_viz_point vp vp').
 Qed.
 
 Lemma transport_above_edge r p e e':
@@ -2711,7 +2711,7 @@ move=> noc vr vr' vp vp' cmp pabove.
 have ebe'0 := pvert_y_edge_below vr vr' cmp.
 have ebe' : e <| e' by case: noc ebe'0=> [// | -> ].
 apply/negP=> abs.
-by move: pabove; rewrite (order_edges_viz_point' vp vp').
+by move: pabove; rewrite (order_edges_viz_point vp vp').
 Qed.
 
 Lemma path_edge_below_pvert_y bottom s p :

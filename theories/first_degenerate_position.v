@@ -1423,7 +1423,7 @@ have open_safe_viz_past_edges :
         rewrite /= => /andP[] /allP /(_ (high ls2)) + _.
         by apply;  apply/map_f; rewrite mem_rcons inE eqxx.
       have pul : p <<= low lsto.
-        by apply: (order_edges_viz_point' _ _ hcb (underW puc)); rewrite pev.
+        by apply: (order_edges_viz_point _ _ hcb (underW puc)); rewrite pev.
       by rewrite pev in pul; rewrite pul in evabove.
     have pac : p >>> low c.
       by move: pin=> /andP[] _ /andP[] _ /andP[].
@@ -1443,7 +1443,7 @@ have open_safe_viz_past_edges :
       by rewrite mem_cat mem_rcons inE eqxx.
     case/negP: pac.
     rewrite pev.
-    by apply: (order_edges_viz_point' vho vevlc hlb (underW puho)).
+    by apply: (order_edges_viz_point vho vevlc hlb (underW puho)).
   move=> p pin pong.
   have xp : p_x p = p_x (point ev).
     have := update_open_cell_left_Limit oute sval sok sll uoc_eq at_ll puho
@@ -1538,7 +1538,7 @@ have open_safe_viz_past_events :
         rewrite /= => /andP[] /allP /(_ (high ls2)) + _.
         by apply;  apply/map_f; rewrite mem_rcons inE eqxx.
       have pul : p <<= low lsto.
-        by apply: (order_edges_viz_point' _ _ hcb (underW puc)); rewrite pev.
+        by apply: (order_edges_viz_point _ _ hcb (underW puc)); rewrite pev.
       by rewrite pev in pul; rewrite pul in evabove.
     have pac : p >>> low c.
       by move: pin=> /andP[] _ /andP[] _ /andP[].
@@ -1558,7 +1558,7 @@ have open_safe_viz_past_events :
       by rewrite mem_cat mem_rcons inE eqxx.
     case/negP: pac.
     rewrite pev.
-    by apply: (order_edges_viz_point' vho vevlc hlb (underW puho)).
+    by apply: (order_edges_viz_point vho vevlc hlb (underW puho)).
   have := update_open_cell_safe_side oute vlo vho puho evabove at_ll sll
       nth1oev lstok uoc_eq cnew pin.
   by move=> /andP[].
