@@ -50,7 +50,8 @@
 We design a succession of algorithms to decompose a finite area of the
 plane into cells in such a way that none of these cells contain obstacles.
 We provide a formally verified proof that this produces safe cells,
-obtained using the Rocq prover and the mathematical components library.
+obtained using the Rocq prover
+and the Mathematical Components library.
 
 This article discusses the assumptions made concerning the area and the
 obstacles, the structure of the main algorithm, especially the way it handles
@@ -119,7 +120,7 @@ from bottom to top for events that have the same first coordinate.
 
 The algorithm is described entirely using the functional programming
 language of the inductive calculus of constructions, as implemented in
-Rocq.  The input is given as a bounding box as specified by a bottom and
+Rocq \cite{the_coq_development_team_2024_14542673}.  The input is given as a bounding box as specified by a bottom and
 a top segments and a list of obstacles.
 The output is a list of cells.  There are quite a few expected
 properties for the inputs: the obstacles should all be entirely inside
@@ -136,7 +137,8 @@ An extra property that we prove is that the center of each cell is an
 element of the cell interior.
 
 All these properties have been formally formally verified using the
-Rocq prover and the {\sc Mathematical Components} library.
+Rocq prover and the {\sc Mathematical Components} library
+\cite{assia_mahboubi_2022_7118596}.
 
 There is an extra property for which the proof has not been done yet:
 the union of all owned parts covers the inside of the bounding box.  Lacking
@@ -613,7 +615,7 @@ part has an empty intersection with the union of the obstacles.
 \subsection{Mirroring contexts}
 The infrastructure of definitions provided by the {\sc Mathematical
 Components} library is not fully compatible with the extraction
-process provided by the Rocq prover \cite{extraction}.
+process provided by the Rocq prover \cite{letouzey:hal-00150914}.
 To obtain code that is amenable for extraction, we write a
 first file called {\tt generic\_trajectories}, that does not rely on
 any of the mathematical structures of the library, but is
@@ -929,7 +931,7 @@ culminates with Function {\tt edges\_to\_cells}, defined at line 507.
 This prefix actually contains 381 lines of algorithm description, the
 rest being blank or comment lines.
 
-The proofs span 12 files, visible in the supplementary material \cite{}.
+The proofs span 12 files, visible in the supplementary material \cite{suppl_material}.
 There are almost 15000 lines of proof.  The supplementary material also
 contains a demonstration tool, where users can give obstacles one by one
 and see the decomposition in vertical cells being computed after each
@@ -1030,43 +1032,24 @@ to compute trajectories, but it also places itself at a different level of
 interaction: we provide a correctness proof for an algorithm that can run
 independently from the proof assistant that was used to prove its correctness.
 Anand and Knepper \cite{AnandRoscoq15} also concentrate on robot
-trajectories, but they do so at the level of one maneuvre, checking that all
+trajectories, but they do so for a single maneuver, checking that all
 numeric computations combine to guarantee that the robot will reach the
 prescribed destination, while we are interested in the preliminary step
 of decomposing the configuration space into cells where movement will be safe).
 
-A second approach that can be implemented is to integrate the
-treatment of crossing obstacles directly in the vertical cell
-decomposition algorithm.  In fact, after each iteration, it is only
-necessary to check whether two neighboring high edges of open cells
-intersect, perform the needed replacement and add the intersection as a
-new event to be treated later.  It is interesting to understand
-whether the current research concerning algorithm refinement could
-help to prove this improved algorithm with optimal reuse of the proofs
-that were already performed for the naive algorithm.  We plan to study
-such a refinement as future work.
+As future work, we wish to work in three directions.  The first direction
+is to refine the algorithm to make it more efficient: for instance,
+each cell should contain a reference to its neighbors, so that computing
+the neighbors can be done in constant time, instead of the current situation
+where all existing cells must be visited to find the ones that have a door
+in common.  The second direction is to make the algorithm stronger, either
+by accepting vertical obstacles or by accepting obstacles that cross.
+The third direction is to work on trajectory computation, either by proving
+formally the correctness of a prototype that we already designed, or by
+designing a variety of planning algorithms relying on different kinds
+of curves.
+\bibliography{main}
 
-However, an algorithm that replaces pairs of crossing segments by
-segments that touch only at their extremities has the default that it
-relies on division (in the case where four new segments are produced,
-one needs division to determine the coordinates of
-the intersection point).  When factoring in our concern for
-approximations in numeric computations, it becomes necessary to understand how
-rounding errors in this division process will affect the operation of
-the algorithm.  We may choose to replace the exact point with an
-approximation, assuming that the obstacles defined with this
-approximation as extremity are close enough to the original obstacles
-for the results to be safe.  We may even be able to quantify the risk
-of collision induced by this kind of replacement.
-
-In practice, it may be perfectly acceptable to live with the
-constraint that obstacles do not cross.  It depends on the source of
-the scene description.  If the scene description was drawn by a
-human being using a computer aided design tool, then intersections are
-likely.  If the scene is the result of a process involving sensors and
-post-processing, it is possible that the post-processor already
-guarantees that the scene description is given by polygons whose edges
-do not intersect.
 
 \end{document}
 
