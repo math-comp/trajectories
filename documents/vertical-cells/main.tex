@@ -199,7 +199,8 @@ our development.
 The most important basic block used in the algorithm is the
 computation of whether a point {\tt p} is above or below an edge, or whether
 it is aligned with the two extremities of the edge.  To compute this
-condition, it is well known in computational geometry \cite{Knuth} that the
+condition, it is well known in computational geometry \cite{KnuthAxiomsHulls}
+that the
 following determinant can be used, where {\tt l} and {\tt r} are the
 names for the left and right extremities of the edge:
 \[\begin{array}{|ccc|}
@@ -721,8 +722,8 @@ below an edge.  More precisely, it makes it possible to detect when a
 point is above the straight line that carries the obstacle.
 
 This area function is given by a determinant formula that we learned
-from Knuth \cite{Knuth}, but is probably part of the folklore in algorithmic
-geometry.  It is quite important that this is only computed using a
+from Knuth \cite{KnuthAxiomsHulls}.
+It is quite important that this is only computed using a
 determinant, as it only needs ring operations (no division), without
 ever mentioning the projection of the given point on the given
 straight line.
