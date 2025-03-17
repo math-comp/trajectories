@@ -1,4 +1,4 @@
-\documentclass[a4paper, USenglish, cleveref, autoref, thm-restate]{lipics-v2021}
+\documentclass[a4paper, USenglish, cleveref, autoref, thm-restate,anonymous]{lipics-v2021}
 
 \usepackage{hyperref}
 \bibliographystyle{plainurl}
@@ -918,6 +918,74 @@ on that edge (because the processed event and the previous event are on
 the same vertical).
 
 \section{Conclusion}
+In our development, the code of the algorithms is in a
+file named {\tt generic\_trajectories.v}.  This files does not only contain
+the vertical cell decomposition algorithm, but also some more code to compute
+trajectories based on the cells that are obtained, with the aim of building
+a piece of software used in reachout activities.
+
+The part that is concerned with only computing the vertical cell decomposition
+culminates with Function {\tt edges\_to\_cells}, defined at line 507.
+This prefix actually contains 381 lines of algorithm description, the
+rest being blank or comment lines.
+
+The proofs span 12 files, visible in the supplementary material \cite{}.
+There are almost 15000 lines of proof.  The supplementary material also
+contains a demonstration tool, where users can give obstacles one by one
+and see the decomposition in vertical cells being computed after each
+interaction.  The demonstration tool also computes trajectories, but the
+algorithm to compute these trajectories is outside the scope of the paper.
+
+It is often advocated that one should have a complete proof
+infrastructure before starting a formal proof.  This is not the
+approach that was followed here.  We took an algorithm from a book
+description, a junior member of the team implemented it in the
+functional programming language of the calculus of inductive
+constructions, and we started to prove simple invariants about this
+algorithm, as this was also understood as an opportunity for the junior
+member of the development team to train on formal verification.
+
+During the same period, we had discussions and reflexions on the way to
+state and verify a reasonable safety specification.  Thus we came up with the
+crucial invariant that two distinct cells had disjoint owned parts.  We then
+started proving that invariant under the strong assumption that there
+were no degenerate cases (events are never vertically aligned).
+
+This proof was done in a progressive manner: everytime we came
+across the need for a property that seemed reasonable, we would add it to
+a large collection of invariants as an assumption and finish the needing proof.
+Later, we would attempt to prove all the invariants, thus requiring possibly
+more.  This trial-and-error approach may seem clumsy, but it also illustrates
+that the formal verification process can help the proof designers organize
+their thoughts.  The main remnant of that period is Section~{\tt step} in
+file {\tt cells\_alg.v}.
+
+When the proof under the strong assumption was complete, we wrapped up the
+results in files {\tt general\_position.v} and {\tt safe\_cells.v}.
+We started to prove the more general statement, accepting events that
+would be vertically
+aligned.  While performing that proof, we discovered that each degenerate
+case required lengthy proofs, which we chose to store in separate files:
+{\tt initial\_cell.v}, {\tt simple\_step.v},
+{\tt first\_degenerate\_position.v}, and
+{\tt second\_degenerate\_position.v}.  In the end, the proof of the main
+safety statement is in file {\tt step\_correct.v}.
+
+In the end, there were so many invariant properties that we decided to group
+them into packages, which are the several level of invariants presented
+in this paper.  In this process, some redundancies between invariants were
+detected and removed (often relying on a small lemma to show that a redundant
+lemma is an easy consequences of other invariants).  We do not use the same
+packages for the proof in the general position (with no vertical alignement
+between events) and for the strong proof.
+
+The resulting proof is still very large and difficult to share between several
+developers.  We believe that the whole formal document should probably be
+re-factored to improve its readability and long-term maintainability, but it
+has reached a state that is ready for external usage: the code can be executed
+and its specification is concise enough to make further usage in larger
+applications feasible.
+
 \subsection{A basis for trajectory computation}
 As a way to assess usability, we integrated this program into a larger
 application that produces trajectories without intersections with
@@ -936,112 +1004,36 @@ they have not been proved formally.  If these properties were not satisfied,
 the program would not compute trajectories between some points that can
 actually be connected by such a trajectory.
 
-This may actually correspond to a real life situation, where one might
-want to provide formal proofs for safety properties, but accept that some
-part of the behavior is only guaranteed using a conventional test campaign,
-because such a test campaign may be lest costly to obtain.
+\subsection{Related and Future work}
+The literature of formal verification has few examples of verification for
+algorithms coming from computational algebra.  Pichardie and Bertot
+\cite{pichardie:hal-01702679} published
+formally verified proofs of convex hull algorithms in two dimensions.  They
+describe the determinant that can be used to know whether a point is on the
+left or the right of an oriented segment.  We re-use that determinant in our
+work, to detect when a point is above or below an obstacle, because our
+obstacles can naturally be viewed as oriented segments (from left to right).
+Convex hulls, have been studied formally again in the work of Brun, Dufourd,
+and Magaud \cite{brun:hal-00955400}, but this time the aim was to illustrate
+the use of a general data structure to describe sub-divisions of the plane,
+called hypermaps.  Our work makes no use of hypermaps.  Another formally
+verified work using convex hulls is the work of Immler on
+zonotopes \cite{ImmlerZonotopes15}.
 
-\subsection{Vertical obstacles in trajectory computation}
-We contend that the constraint of forbidding vertical obstacles can easily
-be circumvented by following the following procedure:
-\begin{itemize}
-\item For every vertical obstacle (not crossing any other obstacle) that
-  should be avoided, include the two extremities in the sequence
-  of events before the second phase,
-\item The algorithm will naturally produce cells where the two events
-  appear as the extremities of a door on the lateral sides of two
-  cells,
-\item When building trajectories, make sure to invalidate doors corresponding
-  to vertical obstacles.
-\end{itemize}
-A slight modification of the data used in the algorithm can help achieving
-this behavior: events could be marked as extremities to vertical obstacles
-at the time of adding events to the sequence, and cells could be equipped
-with an extra field containing the invalidated doors.  This field could
-be filled during the second phase or during a third post-processing phase.
-\subsection{Concerning numerical computation}
-When considering safety of trajectory computation, we need to
-anticipate the problems that may arise because of the fact that
-computers do not implement the idealized computations that are
-envisioned in the formal model.
-
-It should be noted that the computation performed in the area function
-is simply a second-degree multivariate polynomial.  These computations can
-be made exact at a little cost, taking into account the discretization
-that necessarily happens when perceiving the environment.  A robot may
-be designed to work with sensors that yield coordinates in 16 bits.
-When this happens, the computations performed in the area function
-will be exact if they are performed with a processor computing with 32
-bits (a rough estimate).
-
-However, there is a part of the algorithm that performs a division,
-this is when computing the projection of a point on an edge.  This
-point is stored in the result of the cell decomposition as an extremal
-point in the sequence of left points or the sequence of right points
-of a closed cell.  It is later used when computing trajectories.  One
-important feature of this computation is that {\em it is not used to
-  take decisions during the vertical cell decomposition}.  It is just
-data that is stored for later use.
-
-Since this value is not needed right away, we could decide not to
-compute it, but to store it as the intersection between a vertical
-line (whose position is given as input) and an obstacle (whose
-extremities are given as input).  The consumer algorithm, in our case
-the algorithm responsible to compute trajectories can then decide
-whether the exact value is required, or whether an approximation
-suffices.  To compute trajectories, these intersection points appear
-higher or lower extremities of safe doors, and they can safely be
-replaced by points with a lower approximation or a higher approximation
-of the second coordinate, respectively.
-
-As future work, we wish to refine the algorithm so that it produces
-cells where the sequences of left points and right points are not in
-the datatype of pairs of coordinates, but rather in a sum type, where
-a point is given either as a pair of coordinates or the pair of a first
-coordinate and an obstacle in which we take the point with that first
-coordinate, so that the information is processed in the right way by
-the following algorithms.
-\subsection{Concerning the neighboring relation}
-In our use case to compute trajectories, we need to know which are the
-neighbors of each closed cell.  It seems obvious that this information
-is already known at the time an open cell is created and could be
-propagated along as the cells are added in the final cell of closed
-cells.  If we refine the algorithm so that this information is
-constructed and preserved, the result of the algorithm will not be a
-sequence of closed cells, but a graph whose nodes are closed cells and
-edges are the doors between cells.  The safety property would be the
-same as the one that we have already proved: the safe part of each
-cell must have no intersection with the obstacles.  The correctness of
-the graph would stand as follows: if there is an edge between two
-nodes, then the corresponding door is included in the safe part of the
-cells it connects.
-
-To make this proof easier, we need a way to keep track of the life of
-closed cells as they are created.  It turns out that a bit of
-imperative programming could help here.  When closed cells are
-created, we store them in a sequence, but this sequence could be
-viewed as an array, so that closed cell stored in that array never
-moves afterwards, and the index in that array can be used as a unique
-identifier for that cell.  Special care must be taken concerning cells
-that are modified after their creation, like the last closed cell.
-\subsection{Concerning obstacle crossing}
-This vertical cell decomposition algorithm works under a strong
-assumption that the edges describing the obstacles do not cross.  This
-assumption deserves a discussion.
-
-Given a pair of straight line segments that have an intersection, it
-is rather easy to compute that intersection and then decompose the two
-segments into two, three, or four segments that only intersect at
-their extremities and cover the same subset of the plane.  The
-intersecting obstacles can then be replaced by the new segments and
-the precondition of the algorithm is satisfied.
-
-A first approach that can be implemented and
-proved is to process the initial list of segments, compute all pairs
-of two obstacles, and for each of these pairs detect whether this
-decomposition must be performed.  It is annoying that this process
-will have a quadratic cost in the number of obstacles that need to be
-processed.
+Motion planning is an envisioned application domain for the work presented
+here.  Motion planning has also been studied formally, by Rizaldi and 
+their co-authors \cite{Rizaldietal18}.  This experiment is quite remote from
+ours, as they rely on an interaction between the proof assistant {\sc Isabelle}
+and another symbolic engine to obtain trajectories paired with a proof.  The
+work described in this article is less complete since we do not show how
+to compute trajectories, but it also places itself at a different level of
+interaction: we provide a correctness proof for an algorithm that can run
+independently from the proof assistant that was used to prove its correctness.
+Anand and Knepper \cite{AnandRoscoq15} also concentrate on robot
+trajectories, but they do so at the level of one maneuvre, checking that all
+numeric computations combine to guarantee that the robot will reach the
+prescribed destination, while we are interested in the preliminary step
+of decomposing the configuration space into cells where movement will be safe).
 
 A second approach that can be implemented is to integrate the
 treatment of crossing obstacles directly in the vertical cell
@@ -1075,4 +1067,6 @@ likely.  If the scene is the result of a process involving sensors and
 post-processing, it is possible that the post-processor already
 guarantees that the scene description is given by polygons whose edges
 do not intersect.
+
 \end{document}
+
