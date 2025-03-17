@@ -18,6 +18,8 @@ depends: [
   "coq-mathcomp-field" { (= "2.3.0")}
   "coq-mathcomp-real-closed" { (= "2.0.0")}
   "coq-mathcomp-algebra-tactics" { (= "1.2.0")}
+  "js_of_ocaml" { (= "6.0.1")}
+  "js_of_ocaml-ppx" { (= "6.0.1")}
 ]
 
 tags: [
