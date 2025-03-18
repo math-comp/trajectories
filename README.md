@@ -15,7 +15,8 @@ To instead build and install manually, do:
 ```shell
 tar xfz trajectories.tgz
 cd trajectories
-opam install --deps-only trajectories.opam
+opam repo add coq-released https://coq.inria.fr/opam/released
+opam install --deps-only ./trajectories.opam
 make
 cd www
 make
