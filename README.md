@@ -29,6 +29,18 @@ Executing the line `make` in directory `www` can take around 5 seconds.
 The main lemmas from the paper `second_phase_safety` and `two_phase_safety`
 are proved in file `theories/step_correct.v`.
 
+The following bash command line makes it possible to check the statement
+of `two_phase_safety` and to verify that it does not rely on unwanted
+assumptions.
+
+```
+echo "Check two_phase_safety.  Print Assumptions two_phase_safety." | \
+coqtop -R theories trajectories -require-import step_correct \
+ -require-import generic_trajectories -require-import points_and_edges \
+ -require-import-from mathcomp all_ssreflect \
+ -require-import-from mathcomp all_algebra -require-import cells
+```
+
 ## To run the interactive demonstration
 
 while in directory `www`
