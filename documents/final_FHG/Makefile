@@ -23,4 +23,5 @@ $(PDFFILES): %.pdf: %.ps
 	ps2pdf -sPAPERSIZE=a4 $<
 
 clean:
-	rm -f $(PDFFILES) FHG_paper.pdf *.aux *.bbl *blg *.log
+	rm -f $(PDFFILES) FHG_paper.pdf FHG_paper.aux FHG_paper.bbl \
+         FHG_paper.blg FHG_paper.log
