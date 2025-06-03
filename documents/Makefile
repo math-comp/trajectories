@@ -13,8 +13,8 @@ intro_slides.pdf : intro_slides.tex $(PDFFILES)
 	pdflatex intro_slides.tex
 
 FHG_paper.pdf : FHG_paper.tex FHG_paper.bib $(PDFFILES) illustration.png
-	pdflatex FHG_paper.tex; bibtex FHG_paper; pdflatex FHG_paper.tex \
-        FHG_paper.tex
+	pdflatex FHG_paper.tex; bibtex FHG_paper; pdflatex FHG_paper.tex; \
+        pdflatex FHG_paper.tex
 
 FHG_slides.pdf : FHG_slides.tex $(PDFFILES)
 	PDFLATEX FHG_slides.tex; pdflatex FHG_slides.tex
