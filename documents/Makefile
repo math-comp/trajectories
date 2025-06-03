@@ -21,3 +21,6 @@ FHG_slides.pdf : FHG_slides.tex $(PDFFILES)
 
 $(PDFFILES): %.pdf: %.ps
 	ps2pdf -sPAPERSIZE=a4 $<
+
+clean:
+	rm -f $(PDFFILES) FHG_paper.pdf intro_slides.pdf FHG_slides.pdf
