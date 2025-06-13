@@ -1,7 +1,10 @@
 # Trajectories
 
 This archive contains the formal development described in submission
- "Formally verifying a vertical cell decomposition algorithm"
+ "Formally verifying a vertical cell decomposition algorithm".  This branch
+contains the snapshot at the time of publication.  To see a more up to date
+version of the development, you should rather use branch main, where
+improvements made later than the paper publication are included.
 
 ## Building and installation instructions
 
@@ -13,7 +16,7 @@ the procedure with a switch using `ocaml.4.14.1`).
 To build and install manually, do:
 
 ```shell
-tar xfz trajectories.tgz
+git clone git@github.com:math-comp/trajectories -b vertical-cell-papers
 cd trajectories
 opam repo add coq-released https://coq.inria.fr/opam/released
 opam install -y --deps-only ./trajectories.opam
