@@ -20,11 +20,11 @@ Notation sort := path.sort.
     top edge
   - all edges should have a left_pt that has a lower x coordinate than the
     right_pt
-  - no two edges should cross.
-  At the time of writing these lines, the proof of correctness is not
-  complete, due to the complexity of the function "step".  Three important
-  properties need to be satisfied:
-  - edges given in the input never collide with the interior of cells,
+  - intersections between two edges only happen at their extremities
+  - events in contact with edges must also be at extremities
+  - the sequence of edges describing the obstacles has no duplications.
+  The proof of correctness provides the following facts:
+  - edges given in the input are disjoint with the interior of cells,
   - points in the left_pts and right_pts sequences are vertically aligned
     and are the only potentially colliding points in these segments
   - the elements of left_pts have an x coordinate that is strictly smaller than
@@ -146,8 +146,6 @@ Notation no_dup_seq := (no_dup_seq_aux pt_eqb).
 Definition valid_edge e p := (R_leb (p_x (left_pt e)) (p_x p)) &&
 (R_leb (p_x p) (p_x (right_pt e))).
 
-(* TODO: check again the mathematical formula after replacing the infix     *)
-(* operations by prefix function calls. *)
 Definition vertical_projection (p : pt) (e : edge) : option pt :=
   if valid_edge e p then
     Some(Bpt (p_x p) (R_add
