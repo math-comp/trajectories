@@ -1,5 +1,6 @@
-\documentclass[a4paper, USenglish, cleveref, autoref, thm-restate,anonymous]{lipics-v2021}
+\documentclass[a4paper, USenglish, cleveref, autoref, thm-restate, final]{lipics-v2021}
 
+%\nolinenumbers
 \usepackage{hyperref}
 \bibliographystyle{plainurl}
 
@@ -47,11 +48,11 @@
 \maketitle
 
 \begin{abstract}
-We design a succession of algorithms to decompose a finite area of the
-plane into cells in such a way that none of these cells contain obstacles.
-We provide a formally verified proof that this produces safe cells,
-obtained using the Rocq prover
-and the Mathematical Components library.
+The context of this work is the application of formal methods to robotics.
+We describe an algorithm to decompose a working area
+containing obstacles into a collection of safe cells and the formal
+proof that this algorithm is correct.  We expect such an
+algorithm will be useful to compute safe trajectories.
 
 This article discusses the assumptions made concerning the area and the
 obstacles, the structure of the main algorithm, especially the way it handles
@@ -68,26 +69,48 @@ prohibitive.
 
 In recent years, there has been much progress in the design and
 acceptance of autonomous vehicles.
-In the long run, we wish to formally describe
-software that plans trajectories
-for complex objects.  One of the first case studies that comes to mind
+This domain seems suited for formal verification because it easy
+rather practical to explain what situations constitute an error:
+collisions between the controlled object and obstacles.
+One of the first case studies that comes to mind
 is concerned with proving that a program producing trajectories for a
-point in a bidimensional scene is safe.  We designed such a program,
-and its first component is concerned with reading the description of
-the scene and constructing a decomposition into cells, where each cell
-helps describing where it is safe to evolve.
+point in a bidimensional scene is safe.  We designed such a program.
+Its first component is decomposing the scene into a collection of safe cells,
+where each cell is a simple geometrical object.  Other components are
+concerned with finding a path in a graph where the nodes are the safe
+cells, connecting points inside or at the boundary of safe cells with
+straight line segments, and then smoothing the angles of
+that trajectory.  The first component is the
+object studied in this paper, but the complete program and its
+design choices are presented in \cite{bertot:hal-04312815}.
+\begin{figure}
+% trim left bottom right top
+\begin{center}
+\includegraphics[trim={0 24cm 0 2.0cm}, clip,scale=0.5]{main_program_steps.pdf}
+\end{center}
+\caption{The main steps of a trajectory computation: input, 
+  vertical cells, piecewise straight trajectory, smooth trajectory}
+\end{figure}
+
 
 We chose to study an algorithm described in the book {\em Robot Motion
  Planning} by J.-C. Latombe under the name ``vertical cell
 decomposition'' \cite{Latombe91} (pages 205--206).  In that book's
 presentation, the obstacles are
-described as polygons, but we chose to simplify the problem by
+described as polygons, but we simplify the problem by
 considering only obstacles described using straight-line segments.
-Our algorithm is a simple generalization, since any polygon can be
-decomposed into a collection of edges corresponding to the polygon's
-boundary.
+Our algorithm is a simple generalization, since the boundary of
+any polygon can be viewed as a collection of straight edge segments.
 
-This algorithm is a sweeping line algorithm.  It can be described
+Following this algorithm's description, each cell is either a
+triangle or a trapezoid, with a bottom and a top side that are
+portions of the given obstacles, and lateral sides that are vertical.
+This justifies the algorithm name as ``vertical cell decomposition''.
+Most of the time, the vertical sides of a cell provide a safe passage
+to neighbor cells.
+
+The vertical cell decomposition algorithm is a sweeping line
+algorithm. It can be described
 intuitively as the process of moving a line from left to right over
 the scene, stopping each time an event is encountered.
 Events occur when the extremities of obstacles are encountered.
@@ -106,10 +129,10 @@ the current location of the sweeping line.
 
 The lateral sides of each cell are vertical, because the sweeping line
 is vertical.  Most of the points on these sides are safe, but
-sometimes there is a point on one of these sides that is not safe,
-because it is the location of an event, most often an extremity of an
+some are not safe,
+because they are the location of an event, most often an extremity of an
 obstacle.  The algorithm is designed in such a way that the unsafe
-points on each lateral side are given with each closed cell.
+points on each lateral side are recorded in the data of each closed cell.
 
 For the use case that we have in mind, it is also important that cells
 are non-empty.  To guarantee this property, we had to design specific
@@ -179,7 +202,7 @@ the {\sc Mathematical Components} library can again be used for these
 datatypes.  One peculiarity of our development
 is that we chose to describe the edges as pairs of points with an extra
 condition in our proofs: the first point has to have a first
-coordinate that is strictly smaller than the right coordinate of the
+coordinate that is strictly smaller than the first coordinate of the
 second point.  This is an example of design where some data invariant
 is hard-coded in the data structure.  As a result, the algorithm
 cannot process vertical obstacles, because the data structure
@@ -214,7 +237,7 @@ determinant computes twice the {\em signed} area of the triangle {\tt
   lrp}.  The function {\tt area} computes this determinant.
 Because it is a signed area, the value is positive if {\tt p}
 is above and negative if {\tt p} is below.  We use the notations
-{\tt \(p\) <{}<{}= \(g\)} {\tt \(p\) <{}<{}< \(g\)} to express that a point
+{\tt \(p\) <{}<{}= \(g\)} and {\tt \(p\) <{}<{}< \(g\)} to express that a point
 \(p\) is in the half-plane below an edge \(g\) or strictly below an
 edge, respectively.
 
@@ -226,7 +249,7 @@ We write {\tt valid\_edge \(g\) \(p\)} to express that \(p\) is in
 that cylinder.  We use the notation {\tt p === g} to express that
 point {\tt p} is included in the obstacle (the {\tt area} function
 returns 0 and {\tt valid\_edge} holds (the function is named
-{\tt point\_on\_edge}.
+{\tt point\_on\_edge}).
 
 When a point is valid for an edge, the vertical projection of that
 point on that edge exists.  It is computed by a function called
@@ -453,7 +476,8 @@ the last open cell needs to be included in the sequence of left
 points of the first newly created open cell.
 \begin{figure}
 \begin{center}
-\includegraphics[trim={0 0 0 0}, clip,scale=0.5]{third_case.pdf}
+% trim left bottom right top
+\includegraphics[trim={0 20cm 0 0}, clip,scale=0.5]{third_case.pdf}
 \end{center}
 \caption{Processing a degenerate case (third case):
   the processed event appears on
@@ -711,11 +735,15 @@ guaranteed by the main argument that if edges are covered by the high
 edges of all closed cells, and all closed cells are disjoint, then
 edges cannot appear in the interior of a given cell.
 
-We performed two proofs of the main result.  The first proof takes
+We performed two formal proofs of the main result.  The first proof takes
 stronger assumptions on the inputs: it assumes that two events are
-never vertically aligned.  So, there is only one case in the treatment
-of events that is ever handled in this case.  This proof is simpler
+never vertically aligned.  This corresponds to the tradition in
+computational geometry to assume a ``general position'' to describe
+algorithms.  This proof is simpler
 and makes it possible to understand the main structure of the proof.
+In our formal development, this proof is found in files
+{\tt general\_position.v} and {\tt safe\_cells.v}.
+In this paper, we concentrate on the second, more complete proof.
 
 \subsection{The area function and the {\tt edge\_below} relation}
 The signed area function is instrumental to detect when a point is above or
