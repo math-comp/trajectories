@@ -142,7 +142,7 @@ When processing an event, the algorithm produces two kinds of cells.
 Some of the new cells are {\em open}.  They are in a temporary state,
 where only the left-hand side is known, actually this side is aligned
 with the sweeping line.  The other new cells are {\em closed}.  These
-cells are obtained by collecting all the cells that are in contact
+cells are obtained by collecting all the existing open cells that are in contact
 with the processed event and giving them a right side, again aligned with
 the current location of the sweeping line.
 Figure~\ref{fig:sweeping_steps} illustrates the progression of the
@@ -156,7 +156,7 @@ sweep line along several events.
 \caption{Sweeping through 4 events in a simple case.  For each event,
   the sweep line is shown as a vertical dash-dotted line,
   new open cells are shown with a striped pattern, new closed cells
-  are shown with a solid grey pattern.}
+  are shown with a dotted pattern.}
 \label{fig:sweeping_steps}
 \end{figure}
 
@@ -408,6 +408,7 @@ high edge of the last created open cell,
 
 To obtain the initial scan state, we need to have already one closed
 cell, which is only constructed after the first event is processed.
+This assumes that the first event is not on the bounding box's left side.
 This first closed cell has the left side of the bounding box as its left
 side, and its right side contains exactly three points: the first
 event, its projection on the high boundary of the bounding box, and its
@@ -419,7 +420,8 @@ one outgoing edge, the initial last open cell is a cell whose low edge
 is the highest outgoing edge and whose high edge is the bounding box's
 high boundary, with only two points in the left point sequence: the
 projection of the event on the high boundary and the event itself (see Figure~\ref{figure:initial}).
-When the first event has no outgoing edge, the initial last open cell
+When the first event has no outgoing edge (it is then handled as an
+isolated obstacle), the initial last open cell
 has the bounding box low boundary as low edge and the bounding box
 high boundary as high edge, its sequence of left points contains the
 event and the two projections on the boundaries.
@@ -562,7 +564,7 @@ collection of assumptions.
   comparison predicates forms an ordered field structure.  It means that the
   algorithm only uses addition, multiplication, and their inverses.
 \item The only allowed intersections between obstacles are at their
-  extremities.
+  extremities.  Removing this constraint is planned as future work.
 \item The sequence of obstacles does not contain any duplications.
 \item There is a bounding box, given by a bottom and a top edge and two
   lateral sides, which contains all events.  In particular, this bounding box
@@ -635,7 +637,12 @@ Lemma second_phase_safety (bottom top : edge) (evs : seq event) :
     forall p, cell_safe_part c p -> ~ unsafe evs p}.
 \end{verbatim}
 This statement has 8 prerequisites, mostly expressed as properties of the
-sequence of events.
+sequence of events.  Among notations, {\tt \{in F, forall x, \dots\}}
+represents a universal quantification over all elements satisfying {\tt
+  F}, {\tt \{in F \& G, forall x y, \dots\}} represents two
+quantifications over elements in {\tt F} (for {\tt x}) and {\tt G}
+(for {\tt y}), {\tt \{in F \&, forall x y, \dots\}} represents two
+quantifications both ranging voer elements in {\tt F}.
 
 A more compact statement can be used if we consider the combination of the
 two phases, because the first phase guarantees the prerequisites on the
@@ -655,12 +662,12 @@ Lemma two_phase_safety bottom top (edges : seq edge) :
 \end{verbatim}
 This lemma only has 4 prerequisites: the bounding box given by the
 bottom and top edges must define a workable area of the plane, the sequence
-of input edges must have no duplications, all considered edges must have
-no duplications, and all edges must be inside the bounding box.  With these
+of input edges must have no duplications, considered edges may only
+meet at endpoints, and all edges must be inside the bounding box.  With these
 four prerequisites, the algorithms of the first phase are able to produce
 a sequence of events satisfying the eight prerequisites of the second phase.
 
-As a result, the algorithm produces a sequence of cells that satisfy four
+As a result, the algorithm produces a sequence of cells that satisfy three
 properties: each contains at least one point, they are well formed (the 
 sequence of points on the side are vertical and ordered, the extremities of
 these sequences are on the low and high edges of the cell) and the safe
@@ -716,12 +723,12 @@ important is that the edges present in the resulting
 list of events are the input edges.
 
 We will now concentrate on the second phase.
-We established five levels of invariants:
+We established six levels of invariants:
 \begin{enumerate}
 \item In the first level, we state properties that concern the
 sequence of open cells and the relations between their edges and the remaining
 events.
-\item In the second level, we add properties that fall in three categories
+\item In the second level, we add properties that fall in three categories:
   \begin{enumerate}
     \item The cache consistency properties of
   the scan state: the scan state contains a last open cell, a last high edge,
@@ -734,7 +741,7 @@ events.
   of each event is a list that only contains edges whose left-hand extremity
   is on this event, and this list has no duplicates.
 \item There is no intersection between the high edges of all open cells
-  and the outgoing of events in the sequence of events.
+  and the outgoing edges of events in the sequence of events.
 \item The bottom left corner of the last open cell is lexicographically
   smaller than any event in the sequence.
 \item If the sequence of events is not empty, the next event is
@@ -742,18 +749,18 @@ events.
   open cells, and lexicographically smaller than the right extremity.
 \end{enumerate}
 \item In the third level, we add properties that are specific to the
-  last created cell,
-\item In the third level, we add mainly the properties that concern
+  last created open cell,
+\item In the fourth level, we add mainly the properties that concern
   the closed cells that were built so far and their interactions with
   the current open cells.  The main purpose of the properties
   available in this invariant is to contribute to the proof that
   all closed cells are disjoint and non-empty.
-\item In the fourth level, we add mainly the properties that concern
+\item In the fifth level, we add mainly the properties that concern
   edges that were outgoing from events that have already been processed.
   In particular, we concentrate on properties that are useful to show that
   all these edges are covered by the top side of existing closed cells and
   existing open cells.
-\item In the fifth level, we add mainly the properties that concern
+\item In the sixth level, we add mainly the properties that concern
   the points recorded in cell sides.  The aim is to show that cell
   sides enumerate the points that are unsafe on the lateral
   sides of cells.
@@ -764,15 +771,18 @@ guaranteed by the main argument that if edges are covered by the high
 edges of all closed cells, and all closed cells are disjoint, then
 edges cannot appear in the interior of a given cell.
 
-We performed two formal proofs of the main result.  The first proof takes
-stronger assumptions on the inputs: it assumes that two events are
-never vertically aligned.  This corresponds to the tradition in
-computational geometry to assume a ``general position'' to describe
-algorithms.  This proof is simpler
-and makes it possible to understand the main structure of the proof.
-In our formal development, this proof is found in files
+When addressing a complex algorithm like the one presented here, it is
+possible to develop a simpler proof of the main result, obtained under
+stronger assumptions concerning the inputs.  We performed such a
+simpler proof, which expresses how the algorithm works in cases where
+no events are vertically aligned.  This proof relies on simpler
+invariants and leaves some branches of the code unverified.  Still it
+was useful to us a a means to explore the structure of the more
+complete proof.  In our formal development, the simpler proof is found in files
 {\tt general\_position.v} and {\tt safe\_cells.v}.
-In this paper, we concentrate on the second, more complete proof.
+In this paper, we concentrate on the second, more complete proof.  The
+main lemma for that simple proof is named {\tt
+  start\_yields\_safe\_cells} in file {\tt safe\_cells.v}.
 
 \subsection{The area function and the {\tt edge\_below} relation}
 The signed area function is instrumental to detect when a point is above or
@@ -1101,10 +1111,11 @@ is to refine the algorithm to make it more efficient: for instance,
 each cell should contain a reference to its neighbors, so that computing
 the neighbors can be done in constant time, instead of the current situation
 where all existing cells must be visited to find the ones that have a door
-in common.  The second direction is to make the algorithm stronger, either
-by accepting vertical obstacles or by accepting obstacles that cross.
+in common.  The second direction is to make the algorithm stronger, 
+by accepting vertical obstacles and by accepting obstacles that cross.
 The third direction is to work on trajectory computation, either by proving
-formally the correctness of a prototype that we already designed, or by
+formally the correctness of a prototype that we already designed using
+Bezier curves, or by
 designing a variety of planning algorithms relying on different kinds
 of curves.
 \bibliography{main}
