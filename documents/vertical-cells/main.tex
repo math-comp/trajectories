@@ -48,16 +48,21 @@
 \maketitle
 
 \begin{abstract}
-The context of this work is the application of formal methods to robotics.
+The broad context of this work is the application of formal methods to
+geometry and robotics.
 We describe an algorithm to decompose a working area
 containing obstacles into a collection of safe cells and the formal
 proof that this algorithm is correct.  We expect such an
 algorithm will be useful to compute safe trajectories.
 
-This article discusses the assumptions made concerning the area and the
-obstacles, the structure of the main algorithm, especially the way it handles
-the possibility of degenerate cases, the specification of the final safety
-property, and the organization of the formal proof.
+To our knowledge, this is one of the first formalization of such an
+algorithm to decompose a working space into elementary cells that are
+suitable for later applications, with the proof of correctness that
+guarantees that large parts of the working space are safe.  Techniques
+to perform this proof go from algebraic reasoning on coordinates and
+determinants to sorting.  The main difficulty 
+comes from the possible existence of degenerate cases, which are
+treated in a principled way.
 \end{abstract}
 
 \section{Introduction}
@@ -71,10 +76,12 @@ In recent years, there has been much progress in the design and
 acceptance of autonomous vehicles.
 This domain seems suited for formal verification because it easy
 rather practical to explain what situations constitute an error:
-collisions between the controlled object and obstacles.
+collisions between the controlled object and obstacles can be
+described by some pair of set having a non-empty intersection.
+
 One of the first case studies that comes to mind
 is concerned with proving that a program producing trajectories for a
-point in a bidimensional scene is safe.  We designed such a program.
+point in a 2-dimensional scene is safe.  We designed such a program.
 Its first component is decomposing the scene into a collection of safe cells,
 where each cell is a simple geometrical object.  Other components are
 concerned with finding a path in a graph where the nodes are the safe
@@ -92,32 +99,44 @@ design choices are presented in \cite{bertot:hal-04312815}.
   vertical cells, piecewise straight trajectory, smooth trajectory}
 \end{figure}
 
-
 We chose to study an algorithm described in the book {\em Robot Motion
  Planning} by J.-C. Latombe under the name ``vertical cell
 decomposition'' \cite{Latombe91} (pages 205--206).  In that book's
 presentation, the obstacles are
 described as polygons, but we simplify the problem by
 considering only obstacles described using straight-line segments.
-Our algorithm is a simple generalization, since the boundary of
+Our algorithm is thus an approximation, since the boundary of
 any polygon can be viewed as a collection of straight edge segments.
+To describe interiors of polygons as obstacles, we would need to add an
+algorithm to compute the interior of polygons, which we believe to be
+simple.
+
+For now, we only consider the obstacles to be unsafe regions of the
+working space, so we shall use the term {\em safe} for any point that
+neither an event neither element of an obstacle.
 
 Following this algorithm's description, each cell is either a
 triangle or a trapezoid, with a bottom and a top side that are
-portions of the given obstacles, and lateral sides that are vertical.
-This justifies the algorithm name as ``vertical cell decomposition''.
-Most of the time, the vertical sides of a cell provide a safe passage
-to neighbor cells.
+straight lines, portions of the given obstacles, and lateral sides
+that are vertical, as illustrated in Figure~\ref{fig:closed_cell}.
+\begin{figure}[h]
+\includegraphics[trim={0 19cm 0 4cm}, clip,scale=0.5]{one_closed_cell.pdf}
+\caption{A closed cell: slanted dashed lines represent obstacles,
+  vertical dotted lines are the lateral sides, solid black lines are
+  the low and high sides of the cell.}
+\label{fig:closed_cell}
+\end{figure}
 
 The vertical cell decomposition algorithm is a sweeping line
 algorithm. It can be described
 intuitively as the process of moving a line from left to right over
 the scene, stopping each time an event is encountered.
 Events occur when the extremities of obstacles are encountered.
-Several obstacles may be concerned by a single event: several
+Several obstacles may be involved in a single event: several
 obstacles that were present on the left side the sweeping line may be
 finishing at this event, and several obstacles may be starting at this
-event.
+event.  The extra special case where an obstacle is vertical is not
+treated by this algorithm.
 
 When processing an event, the algorithm produces two kinds of cells.
 Some of the new cells are {\em open}.  They are in a temporary state,
@@ -126,24 +145,39 @@ with the sweeping line.  The other new cells are {\em closed}.  These
 cells are obtained by collecting all the cells that are in contact
 with the processed event and giving them a right side, again aligned with
 the current location of the sweeping line.
+Figure~\ref{fig:sweeping_steps} illustrates the progression of the
+sweep line along several events.
+
+\begin{figure}[h]
+% trim left bottom right top
+\begin{center}
+\includegraphics[trim={0 24cm 0 2.0cm}, clip,scale=0.5]{sweeping_steps.pdf}
+\end{center}
+\caption{Sweeping through 4 events in a simple case.  For each event,
+  the sweep line is shown as a vertical dash-dotted line,
+  new open cells are shown with a striped pattern, new closed cells
+  are shown with a solid grey pattern.}
+\label{fig:sweeping_steps}
+\end{figure}
 
 The lateral sides of each cell are vertical, because the sweeping line
 is vertical.  Most of the points on these sides are safe, but
-some are not safe,
+some are not,
 because they are the location of an event, most often an extremity of an
 obstacle.  The algorithm is designed in such a way that the unsafe
-points on each lateral side are recorded in the data of each closed cell.
+points on each lateral side are recorded in the data of each closed
+cell (left points and right points in Figure~\ref{fig:closed_cell}).
 
 For the use case that we have in mind, it is also important that cells
 are non-empty.  To guarantee this property, we had to design specific
 tests and corrective actions when two successive events are vertically
 aligned.  So instead of processing events from left to right, which is
-not precise enough, we process events in lexical order: from left to
+not precise enough, we process events in lexicographic order: from left to
 right if the successive events have a different first coordinate, and
 from bottom to top for events that have the same first coordinate.
 
 The algorithm is described entirely using the functional programming
-language of the inductive calculus of constructions, as implemented in
+language of the calculus of inductive constructions, as implemented in
 Rocq \cite{the_coq_development_team_2024_14542673}.  The input is given as a bounding box as specified by a bottom and
 a top segments and a list of obstacles.
 The output is a list of cells.  There are quite a few expected
@@ -160,7 +194,7 @@ what we name the safe part of cells is indeed safe.
 An extra property that we prove is that the center of each cell is an
 element of the cell interior.
 
-All these properties have been formally formally verified using the
+All these properties have been formally verified using the
 Rocq prover and the {\sc Mathematical Components} library
 \cite{assia_mahboubi_2022_7118596}.
 
@@ -170,7 +204,8 @@ this property does not endanger the safety property, but a trivial algorithm
 that returns an empty sequence of cells would satisfy the safety property.
 
 The complete development of the algorithm and its proof is available
-in the following branch of a publicly available repository
+in the branch {\tt vertical-cell-paper} of a publicly
+available repository
 \begin{center}
 \url{https://github.com/math-comp/trajectories/tree/vertical-cells-paper}.
 \end{center}
@@ -246,10 +281,9 @@ require that we check when a point is in the vertical cylinder
 containing the edge.  This is simply done by comparing the point's
 first coordinate with the first coordinates of the edge's extremities.
 We write {\tt valid\_edge \(g\) \(p\)} to express that \(p\) is in
-that cylinder.  We use the notation {\tt p === g} to express that
-point {\tt p} is included in the obstacle (the {\tt area} function
-returns 0 and {\tt valid\_edge} holds (the function is named
-{\tt point\_on\_edge}).
+that cylinder.  We use the function {\tt point\_edge}, with the
+notation {\tt p === g}, to express that
+point {\tt p} is included in the obstacle {\tt g}.
 
 When a point is valid for an edge, the vertical projection of that
 point on that edge exists.  It is computed by a function called
@@ -265,7 +299,7 @@ the projection happens, two points with the same second coordinate are
 projected to the same point, and the input point and its projection
 are vertically aligned.
 
-We define a relation between edges, noted {\tt <|} and called
+We define a relation between edges, denoted {\tt <|} and called
 {\tt edge\_below} which expresses
 that the first edge is below the second one.  Edge \(g_1\) is below Edge
 \(g_2\) if both extremities of \(g_1\) are in the half plane below
@@ -290,8 +324,8 @@ as they always contain the projections of some event on the low and high
 edge, which may be the same point.
 
 As an intermediate data structure, we use cells where the
-right-hand side is empty, called {\em open cells}  but in the code
-there is never an ambiguity as to whether some cell is open or closed.
+right-hand side is empty, called {\em open cells}, but in the code
+it is never ambiguous whether some cell is open or closed.
 
 The left points sequence of a cell is intended to contain
 points that are vertically aligned, the first point is on the high edge
@@ -312,11 +346,6 @@ strictly above the low edge and strictly below the high edge and
 different from the side points).  In what follows, the safe part of a cell
 is described by a predicate named {\tt safe\_part}.
 
-\begin{figure}
-\includegraphics[trim={0 18cm 0 4cm}, clip,scale=0.5]{one_closed_cell.pdf}
-\caption{A closed cell}
-\end{figure}
-
 
 \section{The scan state}
 
@@ -332,12 +361,12 @@ last open cell.
 The open cells are arranged in a vertically sorted sequence,
 decomposed into three parts.  The middle part is a cell that is singled
 out because it is the highest of the last created cells (in this
-paper, we shall call this the {\em last open cell}.  The other two
+paper, we shall call this the {\em last open cell}).  The other two
 parts are the prefix of the vertical sorted sequence before the last
 open cell and the suffix of that sequence.
 
 The closed cells are arranged in two parts, as the algorithm may need
-to modify the last generated closed cell in some case.
+to modify the last generated closed cell in some cases.
 
 \section{The phases of the algorithm}
 To organize the sweeping process, we work in two phases.
