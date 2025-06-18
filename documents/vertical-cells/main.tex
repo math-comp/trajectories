@@ -156,7 +156,7 @@ sweep line along several events.
 \caption{Sweeping through 4 events in a simple case.  For each event,
   the sweep line is shown as a vertical dash-dotted line,
   new open cells are shown with a striped pattern, new closed cells
-  are shown with a dotted pattern.}
+  are shown with a tiled pattern.}
 \label{fig:sweeping_steps}
 \end{figure}
 
@@ -187,7 +187,7 @@ obtain a list of cells that satisfy a few properties.  In particular,
 we define for each cell a safe part and an owned part.  For the safe part,
 it is composed of two subparts: the interior of the cell (which is included in
 the owned part) and the set of safe points on the lateral sides.  We
-prove several inclusion and disjointness properties for the obstacles, the
+prove several inclusion and disjointedness properties for the obstacles, the
 boundaries of cells and the interiors.  Altogether, we obtain a proof that
 what we name the safe part of cells is indeed safe.
 
@@ -231,10 +231,10 @@ the field of rational numbers is suitable for all computations
 performed in this development.
 
 Points are then described as pairs of numbers in {\tt R}, and edges
-are described as pairs of points.  These datatypes inherit the
+are described as pairs of points.  These data types inherit the
 equality tests and the polymorphic functions for list membership of
 the {\sc Mathematical Components} library can again be used for these
-datatypes.  One peculiarity of our development
+data types.  One peculiarity of our development
 is that we chose to describe the edges as pairs of points with an extra
 condition in our proofs: the first point has to have a first
 coordinate that is strictly smaller than the first coordinate of the
@@ -517,6 +517,7 @@ points of the first newly created open cell.
   cell left point sequence need to be added to the first newly created
   open cell (here noted as {\sf new open cell \# 1}.
   }
+\label{fig:third_case_degenerate}
 \end{figure}
 
 \subsection{Work performed for the fourth case}
@@ -607,7 +608,7 @@ right-hand side.
 
 To make sure that every cell contains at least a safe point, we
 actually need the property that every event has a list of outgoing
-edges without duplications.  Our code to generate the sequence of
+edges without duplication.  Our code to generate the sequence of
 events does not include steps to guarantee this, but we guarantee
 that it operates correctly if the input
 list of obstacles has no duplicates.
@@ -642,7 +643,7 @@ represents a universal quantification over all elements satisfying {\tt
   F}, {\tt \{in F \& G, forall x y, \dots\}} represents two
 quantifications over elements in {\tt F} (for {\tt x}) and {\tt G}
 (for {\tt y}), {\tt \{in F \&, forall x y, \dots\}} represents two
-quantifications both ranging voer elements in {\tt F}.
+quantifications both ranging over elements in {\tt F}.
 
 A more compact statement can be used if we consider the combination of the
 two phases, because the first phase guarantees the prerequisites on the
@@ -662,7 +663,7 @@ Lemma two_phase_safety bottom top (edges : seq edge) :
 \end{verbatim}
 This lemma only has 4 prerequisites: the bounding box given by the
 bottom and top edges must define a workable area of the plane, the sequence
-of input edges must have no duplications, considered edges may only
+of input edges must have no duplication, considered edges may only
 meet at endpoints, and all edges must be inside the bounding box.  With these
 four prerequisites, the algorithms of the first phase are able to produce
 a sequence of events satisfying the eight prerequisites of the second phase.
@@ -711,6 +712,7 @@ simply because they are generalized at the end of each section and can be
 re-instantiated at each usage.
 
 \subsection{Main organization of the proof}
+\label{sec:invariant_levels}
 The first part of the algorithm consists in preparing the list of
 events so that processing these events in the order given by the list
 simulates the intuitive behavior of moving a vertical line
@@ -871,7 +873,7 @@ aligned and the second event lies below the high edge of the last
 closed cell created when processing the first event, this last closed
 cell is modified and the new modified cell becomes the last closed
 cell after processing the second event.  We need to guarantee that
-the modification does not interfere with the disjointness property with
+the modification does not interfere with the disjointedness property with
 respect to the other cells.  We use the fact that
 points attached to the last closed are the same before and after the
 modification (which consists only in adding the second event to the
@@ -937,7 +939,7 @@ In the end, there are no more events left to process, so that all
 obstacles are covered by closed cells.  
 We can guarantee that points strictly inside these closed cells are not
 on obstacles by combining the edge covering property and the
-disjointness property.  If we name \(c_1\) a closed cell and \(p\) an
+disjointedness property.  If we name \(c_1\) a closed cell and \(p\) an
 point inside that cell, then \(p\) cannot be on the high edge of
 \(c_1\) by definition of ``strictly inside''.  If \(p\) is on an
 obstacle, this obstacle is covered by cells, so that there must be a
@@ -956,22 +958,26 @@ the current event in the left points, so that this event is not considered
 safe by these cells.
 
 In degenerate situations, it happens that some newly created
-open cell has a left side that covers the same left side as a previously
-existing open cell.  In that case, we do prove that the existing unsafe points
-from the previously existing cell are inherited by the newly
-created open cell.
+open cell has a left side that overlaps with a previously
+existing last open cell.  In that case, we do prove that the existing
+unsafe points from the previously existing cell are inherited by the newly
+created open cell.  This situation is depicted in
+Figure~\ref{fig:third_case_degenerate} (a few pages before).
 
 Proving that all cells have a safe right side follows a similar track.
 Apart from the last closed cell, we know that no closed cell is in contact
 with the currently processed event, either because the closed cell is
 further to the left of the sweeping line, or because the closed cell has
-a top-left corner that is strictly lower than the current event.
+a top-left corner that is strictly lower than the current event.  The
+latter property is part of the invariant at sixth level, as described
+in Section~\ref{sec:invariant_levels}.
 
 When creating new closed cells (in the first two cases and the fourth one),
 the proof proceeds by checking that the sequence of the right points
 for all newly created cells contains the currently processed event.
-In the fourth case, it happens that the cell that would have been
-the first newly created cell is discarded.  But we show that all points
+In the fourth case, it happens that the cell obtained by closing the
+first contact cell is discarded (because its left side and right side
+stand on the same first coordinate).  But we show that all points
 that would have been on its right side are already covered by existing closed
 cells.
 
@@ -988,6 +994,31 @@ the cell, so it is already equal to the projection of the previous event
 on that edge (because the processed event and the previous event are on
 the same vertical).
 
+\begin{figure}
+\begin{center}
+% trim left bottom right top
+\includegraphics[trim={0 23.2cm 0 2cm}, clip,scale=0.5]{sides_4th_degenerate.pdf}
+\end{center}
+\caption{Processing a degenerate case (fourth case):
+  in the figure on the left, the situation is not degenerate, the
+   processed event is the right extremity
+  of an edge, and further right than the top-right corner of the last
+  closed cell (square tile pattern).
+  A   thin closed cell is created below and to the left of the processed
+  event (dotted pattern) and another closed cell
+  is created above that edge (zigzag pattern).  If the processed event
+  is the top-right corner of the last closed cell, as in the figure on
+  the left, the first closed
+  cell vanishes.  The algorithm is designed in such a manner that the
+  unsafe points are recorded in the right sides of the various
+  preserved closed cell, and also in the left side of the newly
+  created open cell.
+  }
+\label{fig:third_case_degenerate}
+\end{figure}
+% 30.061 53.620 49.600 55.965
+% 51.153 39.
+% 133.639 39.166
 \section{Conclusion}
 In our development, the code of the algorithms is in a
 file named {\tt generic\_trajectories.v}.  This file does not only contain
@@ -1077,7 +1108,7 @@ actually be connected by such a trajectory.
 
 \subsection{Related and Future work}
 The literature of formal verification has few examples of verification for
-algorithms coming from computational algebra.  Pichardie and Bertot
+algorithms coming from computational geometry.  Pichardie and Bertot
 \cite{pichardie:hal-01702679} published
 formally verified proofs of convex hull algorithms in two dimensions.  They
 describe the determinant that can be used to know whether a point is on the
@@ -1090,6 +1121,21 @@ the use of a general data structure to describe sub-divisions of the plane,
 called hypermaps.  Our work makes no use of hypermaps.  Another formally
 verified work using convex hulls is the work of Immler on
 zonotopes \cite{ImmlerZonotopes15}.
+
+Geometry and convex hulls also play a significant role in two recent
+formalization efforts focused on mathematical riddles.  F.~Maric
+developed a formal proof of a conjecture of Erdös, that every set of
+points \(2 ^ {m - 2} +1\), with \(m \geq 3\) contains a convex polygon
+with \(m\) sides, but just for the value \(m = 6\).
+\cite{Maric2019} and B. Subercazeaux et al. developed a similar proof
+for the solution of a similar problem, where the convex polygon has to
+be empty, again for the value \(m = 6\)
+\cite{subercaseaux_et_al:LIPIcs.ITP.2024.35}.  Both developments are
+characteristic in the use human expertise to reduce the problem to a
+discretized problem that is then solved using an automatic SAT solver,
+thus relying on proofs that cannot be check by the human eye.  The
+reduction is formally verified using a interactive theorem prover, in
+the former case Isabelle/HOL and in the latter case Lean.
 
 Motion planning is an envisioned application domain for the work presented
 here.  Motion planning has also been studied formally, by Rizaldi and 

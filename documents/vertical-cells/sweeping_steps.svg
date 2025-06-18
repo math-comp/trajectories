@@ -37,951 +37,206 @@
      id="defs1">
     <pattern
        inkscape:collect="always"
-       xlink:href="#pattern139"
+       xlink:href="#pattern153"
        preserveAspectRatio="xMidYMid"
-       id="pattern140"
-       patternTransform="scale(1)"
+       id="pattern154"
+       patternTransform="matrix(0.07071068,0.07071068,-0.07071068,0.07071068,0,0)"
        x="0"
        y="0" />
     <pattern
        patternUnits="userSpaceOnUse"
-       width="10"
-       height="10"
-       patternTransform="translate(0,0) scale(10,10)"
+       width="20"
+       height="20"
        preserveAspectRatio="xMidYMid"
-       id="pattern139"
-       inkscape:stockid="Polka dots, large"
-       inkscape:label="Polka dots large"
+       id="pattern153"
+       x="0"
+       y="0"
+       style="fill:#000000"
+       inkscape:label="Regular grid"
        inkscape:collect="always"
        inkscape:isstock="true">
-      <circle
-         style="stroke:none"
-         cx="2.567"
-         cy="0.810"
-         r="0.45"
-         id="circle90" />
-      <circle
-         style="stroke:none"
-         cx="3.048"
-         cy="2.33"
-         r="0.45"
-         id="circle91" />
-      <circle
-         style="stroke:none"
-         cx="4.418"
-         cy="2.415"
-         r="0.45"
-         id="circle92" />
-      <circle
-         style="stroke:none"
-         cx="1.844"
-         cy="3.029"
-         r="0.45"
-         id="circle93" />
-      <circle
-         style="stroke:none"
-         cx="6.08"
-         cy="1.363"
-         r="0.45"
-         id="circle94" />
-      <circle
-         style="stroke:none"
-         cx="5.819"
-         cy="4.413"
-         r="0.45"
-         id="circle95" />
-      <circle
-         style="stroke:none"
-         cx="4.305"
-         cy="4.048"
-         r="0.45"
-         id="circle96" />
-      <circle
-         style="stroke:none"
-         cx="5.541"
-         cy="3.045"
-         r="0.45"
-         id="circle97" />
-      <circle
-         style="stroke:none"
-         cx="4.785"
-         cy="5.527"
-         r="0.45"
-         id="circle98" />
-      <circle
-         style="stroke:none"
-         cx="2.667"
-         cy="5.184"
-         r="0.45"
-         id="circle99" />
-      <circle
-         style="stroke:none"
-         cx="7.965"
-         cy="1.448"
-         r="0.45"
-         id="circle100" />
-      <circle
-         style="stroke:none"
-         cx="7.047"
-         cy="5.049"
-         r="0.45"
-         id="circle101" />
-      <circle
-         style="stroke:none"
-         cx="4.340"
-         cy="0.895"
-         r="0.45"
-         id="circle102" />
-      <circle
-         style="stroke:none"
-         cx="7.125"
-         cy="0.340"
-         r="0.45"
-         id="circle103" />
-      <circle
-         style="stroke:none"
-         cx="7.125"
-         cy="10.340"
-         r="0.45"
-         id="circle104" />
-      <circle
-         style="stroke:none"
-         cx="9.550"
-         cy="1.049"
-         r="0.45"
-         id="circle105" />
-      <circle
-         style="stroke:none"
-         cx="7.006"
-         cy="2.689"
-         r="0.45"
-         id="circle106" />
-      <circle
-         style="stroke:none"
-         cx="8.909"
-         cy="2.689"
-         r="0.45"
-         id="circle107" />
-      <circle
-         style="stroke:none"
-         cx="9.315"
-         cy="4.407"
-         r="0.45"
-         id="circle108" />
-      <circle
-         style="stroke:none"
-         cx="7.820"
-         cy="3.870"
-         r="0.45"
-         id="circle109" />
-      <circle
-         style="stroke:none"
-         cx="8.270"
-         cy="5.948"
-         r="0.45"
-         id="circle110" />
-      <circle
-         style="stroke:none"
-         cx="7.973"
-         cy="7.428"
-         r="0.45"
-         id="circle111" />
-      <circle
-         style="stroke:none"
-         cx="9.342"
-         cy="8.072"
-         r="0.45"
-         id="circle112" />
-      <circle
-         style="stroke:none"
-         cx="8.206"
-         cy="9.315"
-         r="0.45"
-         id="circle113" />
-      <circle
-         style="stroke:none"
-         cx="9.682"
-         cy="9.475"
-         r="0.45"
-         id="circle114" />
-      <circle
-         style="stroke:none"
-         cx="-0.318"
-         cy="9.475"
-         r="0.45"
-         id="circle115" />
-      <circle
-         style="stroke:none"
-         cx="9.688"
-         cy="6.186"
-         r="0.45"
-         id="circle116" />
-      <circle
-         style="stroke:none"
-         cx="-0.312"
-         cy="6.186"
-         r="0.45"
-         id="circle117" />
-      <circle
-         style="stroke:none"
-         cx="3.379"
-         cy="6.296"
-         r="0.45"
-         id="circle118" />
-      <circle
-         style="stroke:none"
-         cx="2.871"
-         cy="8.204"
-         r="0.45"
-         id="circle119" />
-      <circle
-         style="stroke:none"
-         cx="4.59"
-         cy="8.719"
-         r="0.45"
-         id="circle120" />
-      <circle
-         style="stroke:none"
-         cx="3.181"
-         cy="9.671"
-         r="0.45"
-         id="circle121" />
-      <circle
-         style="stroke:none"
-         cx="3.181"
-         cy="-0.329"
-         r="0.45"
-         id="circle122" />
-      <circle
-         style="stroke:none"
-         cx="5.734"
-         cy="7.315"
-         r="0.45"
-         id="circle123" />
-      <circle
-         style="stroke:none"
-         cx="6.707"
-         cy="6.513"
-         r="0.45"
-         id="circle124" />
-      <circle
-         style="stroke:none"
-         cx="5.730"
-         cy="9.670"
-         r="0.45"
-         id="circle125" />
-      <circle
-         style="stroke:none"
-         cx="5.730"
-         cy="-0.330"
-         r="0.45"
-         id="circle126" />
-      <circle
-         style="stroke:none"
-         cx="6.535"
-         cy="8.373"
-         r="0.45"
-         id="circle127" />
-      <circle
-         style="stroke:none"
-         cx="4.37"
-         cy="7.154"
-         r="0.45"
-         id="circle128" />
-      <circle
-         style="stroke:none"
-         cx="0.622"
-         cy="7.25"
-         r="0.45"
-         id="circle129" />
-      <circle
-         style="stroke:none"
-         cx="0.831"
-         cy="5.679"
-         r="0.45"
-         id="circle130" />
-      <circle
-         style="stroke:none"
-         cx="1.257"
-         cy="8.519"
-         r="0.45"
-         id="circle131" />
-      <circle
-         style="stroke:none"
-         cx="1.989"
-         cy="6.877"
-         r="0.45"
-         id="circle132" />
-      <circle
-         style="stroke:none"
-         cx="0.374"
-         cy="3.181"
-         r="0.45"
-         id="circle133" />
-      <circle
-         style="stroke:none"
-         cx="10.374"
-         cy="3.181"
-         r="0.45"
-         id="circle134" />
-      <circle
-         style="stroke:none"
-         cx="1.166"
-         cy="1.664"
-         r="0.45"
-         id="circle135" />
-      <circle
-         style="stroke:none"
-         cx="1.151"
-         cy="0.093"
-         r="0.45"
-         id="circle136" />
-      <circle
-         style="stroke:none"
-         cx="1.151"
-         cy="10.093"
-         r="0.45"
-         id="circle137" />
-      <circle
-         style="stroke:none"
-         cx="1.302"
-         cy="4.451"
-         r="0.45"
-         id="circle138" />
-      <circle
-         style="stroke:none"
-         cx="3.047"
-         cy="3.763"
-         r="0.45"
-         id="circle139" />
+      <g
+         id="g153">
+        <rect
+           style="fill-opacity:1;stroke:none;stroke-width:1;stroke-dasharray:none"
+           id="rect151"
+           width="1"
+           height="20"
+           x="9.5"
+           y="0" />
+        <rect
+           style="fill-opacity:1;stroke:none;stroke-width:1;stroke-dasharray:none"
+           id="rect153"
+           width="1"
+           height="20"
+           x="-10.5"
+           y="0"
+           transform="rotate(-90)" />
+      </g>
     </pattern>
     <pattern
        inkscape:collect="always"
-       xlink:href="#Polkadots-med"
+       xlink:href="#pattern142"
        preserveAspectRatio="xMidYMid"
-       id="pattern89"
-       patternTransform="scale(1)"
+       id="pattern149"
+       patternTransform="matrix(0.07071068,0.07071068,-0.07071068,0.07071068,0,0)"
        x="0"
        y="0" />
     <pattern
        inkscape:collect="always"
-       xlink:href="#Polkadots-med"
+       xlink:href="#pattern146"
        preserveAspectRatio="xMidYMid"
-       id="pattern88"
-       patternTransform="scale(1)"
+       id="pattern147"
+       patternTransform="scale(0.1)"
        x="0"
        y="0" />
     <pattern
        patternUnits="userSpaceOnUse"
-       width="10"
-       height="10"
-       patternTransform="translate(0,0) scale(10,10)"
+       width="20"
+       height="20"
        preserveAspectRatio="xMidYMid"
-       id="Polkadots-med"
-       inkscape:stockid="Polka dots, medium"
-       inkscape:label="Polka dots medium"
+       id="pattern146"
+       x="0"
+       y="0"
+       style="fill:#000000"
+       inkscape:label="Regular grid"
        inkscape:collect="always"
        inkscape:isstock="true">
-      <circle
-         style="stroke:none"
-         cx="2.567"
-         cy="0.810"
-         r="0.15"
-         id="circle406" />
-      <circle
-         style="stroke:none"
-         cx="3.048"
-         cy="2.33"
-         r="0.15"
-         id="circle408" />
-      <circle
-         style="stroke:none"
-         cx="4.418"
-         cy="2.415"
-         r="0.15"
-         id="circle410" />
-      <circle
-         style="stroke:none"
-         cx="1.844"
-         cy="3.029"
-         r="0.15"
-         id="circle412" />
-      <circle
-         style="stroke:none"
-         cx="6.08"
-         cy="1.363"
-         r="0.15"
-         id="circle414" />
-      <circle
-         style="stroke:none"
-         cx="5.819"
-         cy="4.413"
-         r="0.15"
-         id="circle416" />
-      <circle
-         style="stroke:none"
-         cx="4.305"
-         cy="4.048"
-         r="0.15"
-         id="circle418" />
-      <circle
-         style="stroke:none"
-         cx="5.541"
-         cy="3.045"
-         r="0.15"
-         id="circle420" />
-      <circle
-         style="stroke:none"
-         cx="4.785"
-         cy="5.527"
-         r="0.15"
-         id="circle422" />
-      <circle
-         style="stroke:none"
-         cx="2.667"
-         cy="5.184"
-         r="0.15"
-         id="circle424" />
-      <circle
-         style="stroke:none"
-         cx="7.965"
-         cy="1.448"
-         r="0.15"
-         id="circle426" />
-      <circle
-         style="stroke:none"
-         cx="7.047"
-         cy="5.049"
-         r="0.15"
-         id="circle428" />
-      <circle
-         style="stroke:none"
-         cx="4.340"
-         cy="0.895"
-         r="0.15"
-         id="circle430" />
-      <circle
-         style="stroke:none"
-         cx="7.125"
-         cy="0.340"
-         r="0.15"
-         id="circle432" />
-      <circle
-         style="stroke:none"
-         cx="9.550"
-         cy="1.049"
-         r="0.15"
-         id="circle434" />
-      <circle
-         style="stroke:none"
-         cx="7.006"
-         cy="2.689"
-         r="0.15"
-         id="circle436" />
-      <circle
-         style="stroke:none"
-         cx="8.909"
-         cy="2.689"
-         r="0.15"
-         id="circle438" />
-      <circle
-         style="stroke:none"
-         cx="9.315"
-         cy="4.407"
-         r="0.15"
-         id="circle440" />
-      <circle
-         style="stroke:none"
-         cx="7.820"
-         cy="3.870"
-         r="0.15"
-         id="circle442" />
-      <circle
-         style="stroke:none"
-         cx="8.270"
-         cy="5.948"
-         r="0.15"
-         id="circle444" />
-      <circle
-         style="stroke:none"
-         cx="7.973"
-         cy="7.428"
-         r="0.15"
-         id="circle446" />
-      <circle
-         style="stroke:none"
-         cx="9.342"
-         cy="8.072"
-         r="0.15"
-         id="circle448" />
-      <circle
-         style="stroke:none"
-         cx="8.206"
-         cy="9.315"
-         r="0.15"
-         id="circle450" />
-      <circle
-         style="stroke:none"
-         cx="9.682"
-         cy="9.475"
-         r="0.15"
-         id="circle452" />
-      <circle
-         style="stroke:none"
-         cx="9.688"
-         cy="6.186"
-         r="0.15"
-         id="circle454" />
-      <circle
-         style="stroke:none"
-         cx="3.379"
-         cy="6.296"
-         r="0.15"
-         id="circle456" />
-      <circle
-         style="stroke:none"
-         cx="2.871"
-         cy="8.204"
-         r="0.15"
-         id="circle458" />
-      <circle
-         style="stroke:none"
-         cx="4.59"
-         cy="8.719"
-         r="0.15"
-         id="circle460" />
-      <circle
-         style="stroke:none"
-         cx="3.181"
-         cy="9.671"
-         r="0.15"
-         id="circle462" />
-      <circle
-         style="stroke:none"
-         cx="5.734"
-         cy="7.315"
-         r="0.15"
-         id="circle464" />
-      <circle
-         style="stroke:none"
-         cx="6.707"
-         cy="6.513"
-         r="0.15"
-         id="circle466" />
-      <circle
-         style="stroke:none"
-         cx="5.730"
-         cy="9.670"
-         r="0.15"
-         id="circle468" />
-      <circle
-         style="stroke:none"
-         cx="6.535"
-         cy="8.373"
-         r="0.15"
-         id="circle470" />
-      <circle
-         style="stroke:none"
-         cx="4.37"
-         cy="7.154"
-         r="0.15"
-         id="circle472" />
-      <circle
-         style="stroke:none"
-         cx="0.622"
-         cy="7.25"
-         r="0.15"
-         id="circle474" />
-      <circle
-         style="stroke:none"
-         cx="0.831"
-         cy="5.679"
-         r="0.15"
-         id="circle476" />
-      <circle
-         style="stroke:none"
-         cx="1.257"
-         cy="8.519"
-         r="0.15"
-         id="circle478" />
-      <circle
-         style="stroke:none"
-         cx="1.989"
-         cy="6.877"
-         r="0.15"
-         id="circle480" />
-      <circle
-         style="stroke:none"
-         cx="0.374"
-         cy="3.181"
-         r="0.15"
-         id="circle482" />
-      <circle
-         style="stroke:none"
-         cx="1.166"
-         cy="1.664"
-         r="0.15"
-         id="circle484" />
-      <circle
-         style="stroke:none"
-         cx="1.151"
-         cy="0.093"
-         r="0.15"
-         id="circle486" />
-      <circle
-         style="stroke:none"
-         cx="1.151"
-         cy="10.093"
-         r="0.15"
-         id="circle488" />
-      <circle
-         style="stroke:none"
-         cx="1.302"
-         cy="4.451"
-         r="0.15"
-         id="circle490" />
-      <circle
-         style="stroke:none"
-         cx="3.047"
-         cy="3.763"
-         r="0.15"
-         id="circle492" />
+      <g
+         id="g146">
+        <rect
+           style="fill-opacity:1;stroke:none;stroke-width:1;stroke-dasharray:none"
+           id="rect145"
+           width="1"
+           height="20"
+           x="9.5"
+           y="0" />
+        <rect
+           style="fill-opacity:1;stroke:none;stroke-width:1;stroke-dasharray:none"
+           id="rect146"
+           width="1"
+           height="20"
+           x="-10.5"
+           y="0"
+           transform="rotate(-90)" />
+      </g>
     </pattern>
     <pattern
        inkscape:collect="always"
-       xlink:href="#Polkadots-large"
+       xlink:href="#pattern144"
        preserveAspectRatio="xMidYMid"
-       id="pattern86"
-       patternTransform="scale(1)"
-       x="0"
-       y="0" />
-    <pattern
-       inkscape:collect="always"
-       xlink:href="#Polkadots-large"
-       preserveAspectRatio="xMidYMid"
-       id="pattern85"
-       patternTransform="scale(1)"
-       x="0"
-       y="0" />
-    <pattern
-       inkscape:collect="always"
-       xlink:href="#Polkadots-large"
-       preserveAspectRatio="xMidYMid"
-       id="pattern84"
-       patternTransform="scale(1)"
+       id="pattern145"
+       patternTransform="scale(0.1)"
        x="0"
        y="0" />
     <pattern
        patternUnits="userSpaceOnUse"
-       width="10"
-       height="10"
-       patternTransform="translate(0,0) scale(10,10)"
+       width="20"
+       height="20"
        preserveAspectRatio="xMidYMid"
-       id="Polkadots-large"
-       inkscape:stockid="Polka dots, large"
-       inkscape:label="Polka dots large"
+       id="pattern144"
+       x="0"
+       y="0"
+       style="fill:#000000"
+       inkscape:label="Regular grid"
        inkscape:collect="always"
        inkscape:isstock="true">
-      <circle
-         style="stroke:none"
-         cx="2.567"
-         cy="0.810"
-         r="0.45"
-         id="circle584" />
-      <circle
-         style="stroke:none"
-         cx="3.048"
-         cy="2.33"
-         r="0.45"
-         id="circle586" />
-      <circle
-         style="stroke:none"
-         cx="4.418"
-         cy="2.415"
-         r="0.45"
-         id="circle588" />
-      <circle
-         style="stroke:none"
-         cx="1.844"
-         cy="3.029"
-         r="0.45"
-         id="circle590" />
-      <circle
-         style="stroke:none"
-         cx="6.08"
-         cy="1.363"
-         r="0.45"
-         id="circle592" />
-      <circle
-         style="stroke:none"
-         cx="5.819"
-         cy="4.413"
-         r="0.45"
-         id="circle594" />
-      <circle
-         style="stroke:none"
-         cx="4.305"
-         cy="4.048"
-         r="0.45"
-         id="circle596" />
-      <circle
-         style="stroke:none"
-         cx="5.541"
-         cy="3.045"
-         r="0.45"
-         id="circle598" />
-      <circle
-         style="stroke:none"
-         cx="4.785"
-         cy="5.527"
-         r="0.45"
-         id="circle600" />
-      <circle
-         style="stroke:none"
-         cx="2.667"
-         cy="5.184"
-         r="0.45"
-         id="circle602" />
-      <circle
-         style="stroke:none"
-         cx="7.965"
-         cy="1.448"
-         r="0.45"
-         id="circle604" />
-      <circle
-         style="stroke:none"
-         cx="7.047"
-         cy="5.049"
-         r="0.45"
-         id="circle606" />
-      <circle
-         style="stroke:none"
-         cx="4.340"
-         cy="0.895"
-         r="0.45"
-         id="circle608" />
-      <circle
-         style="stroke:none"
-         cx="7.125"
-         cy="0.340"
-         r="0.45"
-         id="circle610" />
-      <circle
-         style="stroke:none"
-         cx="7.125"
-         cy="10.340"
-         r="0.45"
-         id="circle612" />
-      <circle
-         style="stroke:none"
-         cx="9.550"
-         cy="1.049"
-         r="0.45"
-         id="circle614" />
-      <circle
-         style="stroke:none"
-         cx="7.006"
-         cy="2.689"
-         r="0.45"
-         id="circle616" />
-      <circle
-         style="stroke:none"
-         cx="8.909"
-         cy="2.689"
-         r="0.45"
-         id="circle618" />
-      <circle
-         style="stroke:none"
-         cx="9.315"
-         cy="4.407"
-         r="0.45"
-         id="circle620" />
-      <circle
-         style="stroke:none"
-         cx="7.820"
-         cy="3.870"
-         r="0.45"
-         id="circle622" />
-      <circle
-         style="stroke:none"
-         cx="8.270"
-         cy="5.948"
-         r="0.45"
-         id="circle624" />
-      <circle
-         style="stroke:none"
-         cx="7.973"
-         cy="7.428"
-         r="0.45"
-         id="circle626" />
-      <circle
-         style="stroke:none"
-         cx="9.342"
-         cy="8.072"
-         r="0.45"
-         id="circle628" />
-      <circle
-         style="stroke:none"
-         cx="8.206"
-         cy="9.315"
-         r="0.45"
-         id="circle630" />
-      <circle
-         style="stroke:none"
-         cx="9.682"
-         cy="9.475"
-         r="0.45"
-         id="circle632" />
-      <circle
-         style="stroke:none"
-         cx="-0.318"
-         cy="9.475"
-         r="0.45"
-         id="circle634" />
-      <circle
-         style="stroke:none"
-         cx="9.688"
-         cy="6.186"
-         r="0.45"
-         id="circle636" />
-      <circle
-         style="stroke:none"
-         cx="-0.312"
-         cy="6.186"
-         r="0.45"
-         id="circle638" />
-      <circle
-         style="stroke:none"
-         cx="3.379"
-         cy="6.296"
-         r="0.45"
-         id="circle640" />
-      <circle
-         style="stroke:none"
-         cx="2.871"
-         cy="8.204"
-         r="0.45"
-         id="circle642" />
-      <circle
-         style="stroke:none"
-         cx="4.59"
-         cy="8.719"
-         r="0.45"
-         id="circle644" />
-      <circle
-         style="stroke:none"
-         cx="3.181"
-         cy="9.671"
-         r="0.45"
-         id="circle646" />
-      <circle
-         style="stroke:none"
-         cx="3.181"
-         cy="-0.329"
-         r="0.45"
-         id="circle648" />
-      <circle
-         style="stroke:none"
-         cx="5.734"
-         cy="7.315"
-         r="0.45"
-         id="circle650" />
-      <circle
-         style="stroke:none"
-         cx="6.707"
-         cy="6.513"
-         r="0.45"
-         id="circle652" />
-      <circle
-         style="stroke:none"
-         cx="5.730"
-         cy="9.670"
-         r="0.45"
-         id="circle654" />
-      <circle
-         style="stroke:none"
-         cx="5.730"
-         cy="-0.330"
-         r="0.45"
-         id="circle656" />
-      <circle
-         style="stroke:none"
-         cx="6.535"
-         cy="8.373"
-         r="0.45"
-         id="circle658" />
-      <circle
-         style="stroke:none"
-         cx="4.37"
-         cy="7.154"
-         r="0.45"
-         id="circle660" />
-      <circle
-         style="stroke:none"
-         cx="0.622"
-         cy="7.25"
-         r="0.45"
-         id="circle662" />
-      <circle
-         style="stroke:none"
-         cx="0.831"
-         cy="5.679"
-         r="0.45"
-         id="circle664" />
-      <circle
-         style="stroke:none"
-         cx="1.257"
-         cy="8.519"
-         r="0.45"
-         id="circle666" />
-      <circle
-         style="stroke:none"
-         cx="1.989"
-         cy="6.877"
-         r="0.45"
-         id="circle668" />
-      <circle
-         style="stroke:none"
-         cx="0.374"
-         cy="3.181"
-         r="0.45"
-         id="circle670" />
-      <circle
-         style="stroke:none"
-         cx="10.374"
-         cy="3.181"
-         r="0.45"
-         id="circle672" />
-      <circle
-         style="stroke:none"
-         cx="1.166"
-         cy="1.664"
-         r="0.45"
-         id="circle674" />
-      <circle
-         style="stroke:none"
-         cx="1.151"
-         cy="0.093"
-         r="0.45"
-         id="circle676" />
-      <circle
-         style="stroke:none"
-         cx="1.151"
-         cy="10.093"
-         r="0.45"
-         id="circle678" />
-      <circle
-         style="stroke:none"
-         cx="1.302"
-         cy="4.451"
-         r="0.45"
-         id="circle680" />
-      <circle
-         style="stroke:none"
-         cx="3.047"
-         cy="3.763"
-         r="0.45"
-         id="circle682" />
+      <g
+         id="g144">
+        <rect
+           style="fill-opacity:1;stroke:none;stroke-width:1;stroke-dasharray:none"
+           id="rect143"
+           width="1"
+           height="20"
+           x="9.5"
+           y="0" />
+        <rect
+           style="fill-opacity:1;stroke:none;stroke-width:1;stroke-dasharray:none"
+           id="rect144"
+           width="1"
+           height="20"
+           x="-10.5"
+           y="0"
+           transform="rotate(-90)" />
+      </g>
+    </pattern>
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern142"
+       preserveAspectRatio="xMidYMid"
+       id="pattern143"
+       patternTransform="scale(0.1)"
+       x="0"
+       y="0" />
+    <pattern
+       patternUnits="userSpaceOnUse"
+       width="20"
+       height="20"
+       preserveAspectRatio="xMidYMid"
+       id="pattern142"
+       x="0"
+       y="0"
+       style="fill:#000000"
+       inkscape:label="Regular grid"
+       inkscape:collect="always"
+       inkscape:isstock="true">
+      <g
+         id="g142">
+        <rect
+           style="fill-opacity:1;stroke:none;stroke-width:1;stroke-dasharray:none"
+           id="rect141"
+           width="1"
+           height="20"
+           x="9.5"
+           y="0" />
+        <rect
+           style="fill-opacity:1;stroke:none;stroke-width:1;stroke-dasharray:none"
+           id="rect142"
+           width="1"
+           height="20"
+           x="-10.5"
+           y="0"
+           transform="rotate(-90)" />
+      </g>
+    </pattern>
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#Grid1"
+       preserveAspectRatio="xMidYMid"
+       id="pattern141"
+       patternTransform="scale(0.1)"
+       x="0"
+       y="0" />
+    <pattern
+       patternUnits="userSpaceOnUse"
+       width="20"
+       height="20"
+       preserveAspectRatio="xMidYMid"
+       id="Grid1"
+       x="0"
+       y="0"
+       style="fill:#000000"
+       inkscape:label="Regular grid"
+       inkscape:collect="always"
+       inkscape:isstock="true">
+      <g
+         id="g63950-5">
+        <rect
+           style="fill-opacity:1;stroke:none;stroke-width:1;stroke-dasharray:none"
+           id="rect62492-2"
+           width="1"
+           height="20"
+           x="9.5"
+           y="0" />
+        <rect
+           style="fill-opacity:1;stroke:none;stroke-width:1;stroke-dasharray:none"
+           id="rect63583-4"
+           width="1"
+           height="20"
+           x="-10.5"
+           y="0"
+           transform="rotate(-90)" />
+      </g>
     </pattern>
     <clipPath
        clipPathUnits="userSpaceOnUse"
@@ -1204,7 +459,7 @@
        d="m 119.07584,40.342767 12.56137,3.47577"
        id="path27" />
     <rect
-       style="fill:url(#pattern84);stroke:#000000;stroke-width:0.465;stroke-dasharray:0, 5.11500004;stroke-dashoffset:0;fill-opacity:1"
+       style="fill:url(#pattern141);stroke:#000000;stroke-width:0.465;stroke-dasharray:0, 5.11500004;stroke-dashoffset:0;fill-opacity:1"
        id="rect55"
        width="4.317533"
        height="20.448536"
@@ -1236,7 +491,7 @@
        id="path71"
        sodipodi:nodetypes="ccccc" />
     <path
-       style="fill:url(#pattern85);fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-dasharray:0, 2.91041291;stroke-dashoffset:0;fill-opacity:1"
+       style="fill:url(#pattern143);fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-dasharray:0, 2.91041291;stroke-dashoffset:0;fill-opacity:1"
        d="M 70.129547,41.199355 77.13913,36.611964 V 49.870822 H 70.260699 Z"
        id="path72" />
     <path
@@ -1245,12 +500,12 @@
        id="path73"
        sodipodi:nodetypes="cc" />
     <path
-       style="fill:url(#pattern88);fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:0, 2.915;stroke-dashoffset:0;stroke-opacity:1;fill-opacity:1"
+       style="fill:url(#pattern154);fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:0, 2.915;stroke-dashoffset:0;stroke-opacity:1;fill-opacity:1"
        d="m 119.08788,40.202821 1.2e-4,-3.522286 3.66441,-2.340189 -0.0966,6.904852 z"
        id="path74"
        sodipodi:nodetypes="ccccc" />
     <path
-       style="fill:url(#pattern86);fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:0, 2.91041;stroke-dashoffset:0;stroke-opacity:1;fill-opacity:1"
+       style="fill:url(#pattern145);fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:0, 2.91041;stroke-dashoffset:0;stroke-opacity:1;fill-opacity:1"
        d="m 111.77605,41.128998 -5e-5,-11.733703 10.96773,0.01376 -0.006,4.683485 z"
        id="path75"
        sodipodi:nodetypes="ccccc" />
@@ -1271,12 +526,12 @@
        x="173.77115"
        y="29.471771" />
     <path
-       style="fill:url(#pattern89);fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-dasharray:0, 2.91499984;stroke-dashoffset:0;fill-opacity:1"
+       style="fill:url(#pattern149);fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-dasharray:0, 2.91499984;stroke-dashoffset:0;fill-opacity:1"
        d="m 164.74248,41.141606 0,-11.820368 h 8.65474 v 14.36052 z"
        id="path78"
        sodipodi:nodetypes="ccccc" />
     <path
-       style="fill:url(#pattern140);fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-dasharray:0, 2.91041291;stroke-dashoffset:0;fill-opacity:1"
+       style="fill:url(#pattern147);fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-dasharray:0, 2.91041291;stroke-dashoffset:0;fill-opacity:1"
        d="m 161.21091,40.437688 v 9.404588 h 12.26429 v -5.942298 z"
        id="path79" />
   </g>
