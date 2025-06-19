@@ -157,7 +157,7 @@ Lemma update_open_cell_common_invariant
                    inside_box bottom top (right_pt g)} ->
   lstx = p_x (point ev) ->
   (point ev) <<< lsthe ->
-  common_non_gp_invariant bottom top s
+  last_open_cell_invariant bottom top s
      (Bscan fop lsto lop cls lstc lsthe lstx)
      all_e p_e (ev :: evs) ->
   common_invariant bottom top s
@@ -209,7 +209,7 @@ have ogsub : {subset (outgoing ev) <= [:: bottom, top & s]}.
 - have xev_ll : p_x (point ev) = left_limit lsto.
     by rewrite -at_lstx lstx_ll.
 case uocq : update_open_cell => [nos lno].
-have inv1' : inv1_seq bottom top evs
+have inv1' : open_cells_invariant bottom top evs
   ((fop ++ nos) ++ lno :: lop).
   have := step_keeps_invariant1 cls lstc (inbox_events comi) oute rfo cbtom adj
           sval
@@ -408,7 +408,7 @@ have all_events_break' : all_e = rcons p_e ev ++ evs.
 by constructor.
 Qed.
 
-Lemma update_open_cell_common_non_gp_invariant
+Lemma update_open_cell_last_open_cell_invariant
   bottom top s fop lsto lop cls lstc ev
   lsthe lstx all_e p_e evs :
   bottom <| top ->
@@ -417,10 +417,10 @@ Lemma update_open_cell_common_non_gp_invariant
                    inside_box bottom top (right_pt g)} ->
   lstx = p_x (point ev) ->
   (point ev) <<< lsthe ->
-  common_non_gp_invariant bottom top s
+  last_open_cell_invariant bottom top s
      (Bscan fop lsto lop cls lstc lsthe lstx)
      all_e p_e (ev :: evs) ->
-  common_non_gp_invariant bottom top s
+  last_open_cell_invariant bottom top s
      (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
     all_e (rcons p_e ev) evs.
 Proof.
@@ -501,7 +501,7 @@ have btm_lex : {in state_open_seq (step st ev), forall c,
 constructor=> //.
 Qed.
 
-Lemma update_open_cell_disjoint_non_gp_invariant
+Lemma update_open_cell_disjoint_invariant
   bottom top s fop lsto lop cls lstc ev
   lsthe lstx all_e p_e evs :
   bottom <| top ->
@@ -510,10 +510,10 @@ Lemma update_open_cell_disjoint_non_gp_invariant
                    inside_box bottom top (right_pt g)} ->
   lstx = p_x (point ev) ->
   (point ev) <<< lsthe ->
-  disjoint_non_gp_invariant bottom top s
+  disjoint_invariant bottom top s
      (Bscan fop lsto lop cls lstc lsthe lstx)
      all_e p_e (ev :: evs) ->
-  disjoint_non_gp_invariant bottom top s
+  disjoint_invariant bottom top s
      (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
     all_e (rcons p_e ev) evs.
 Proof.
@@ -590,7 +590,7 @@ constructor.
 - rewrite /state_open_seq/state_closed_seq/=.
   move=> c1 c2 c1in c2in; exact: (oc_disj _ _ c1in c2in).
   move=> c1 c2 c1in c2in; exact: (cc_disj _ _ c1in c2in).
-- have := update_open_cell_common_non_gp_invariant bxwf nocs' inbox_s at_lstx
+- have := update_open_cell_last_open_cell_invariant bxwf nocs' inbox_s at_lstx
    under_lsthe comng.
   by rewrite /step/same_x at_lstx eqxx /= underW under_lsthe //= uocq.
 - have := step_keeps_pw cls lstc (inbox_events comi) oute rfo cbtom adj sval
@@ -779,7 +779,7 @@ by rewrite gb left_on_edge.
 - suff lst_side_lt' :
   left_limit lno < Num.min (p_x (right_pt bottom)) (p_x (right_pt top)) by [].
   have comng' :=
-   update_open_cell_common_non_gp_invariant bxwf nocs' inbox_s at_lstx
+   update_open_cell_last_open_cell_invariant bxwf nocs' inbox_s at_lstx
    under_lsthe comng.
   have comi' := ngcomm comng'.
   have := sides_ok comi'.
@@ -794,7 +794,7 @@ by rewrite gb left_on_edge.
   by rewrite map_f // inE eqxx.
 Qed.
 
-Lemma update_open_cell_edge_covered_non_gp_invariant
+Lemma update_open_cell_edge_cover_invariant
   bottom top s fop lsto lop cls lstc past ev
   lsthe lstx all_e evs :
   bottom <| top ->
@@ -803,10 +803,10 @@ Lemma update_open_cell_edge_covered_non_gp_invariant
                    inside_box bottom top (right_pt g)} ->
   lstx = p_x (point ev) ->
   (point ev) <<< lsthe ->
-  edge_covered_non_gp_invariant bottom top s all_e past
+  edge_cover_invariant bottom top s all_e past
      (Bscan fop lsto lop cls lstc lsthe lstx)
      (ev :: evs) ->
-  edge_covered_non_gp_invariant bottom top s all_e (rcons past ev)
+  edge_cover_invariant bottom top s all_e (rcons past ev)
      (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
     evs.
 Proof.
@@ -929,11 +929,11 @@ have processed_covered' :
   case : right_pts => [ | a tl] //=.
   by rewrite !inE => /orP[] ->; rewrite ?orbT.
 have d_inv' :
-  disjoint_non_gp_invariant bottom top s
+  disjoint_invariant bottom top s
     (Bscan (fop ++ nos) lno lop cls
       (update_closed_cell lstc (point ev)) lsthe (p_x (point ev))) 
     all_e (rcons past ev) evs.
-  have := update_open_cell_disjoint_non_gp_invariant bxwf nocs' inbox_s
+  have := update_open_cell_disjoint_invariant bxwf nocs' inbox_s
     at_lstx under_lsthe disng.
     rewrite /step /same_x at_lstx eqxx /=.
     by rewrite underW ?under_lsthe //= uoc_eq.
@@ -1229,13 +1229,13 @@ have sll : (1 < size (left_pts lsto))%N.
 have oute : out_left_event ev.
   by apply: (out_events (ngcomm (common_non_gp_inv_dis d_inv))).
 
-have d_inv' : disjoint_non_gp_invariant bottom top s
+have d_inv' : disjoint_invariant bottom top s
   (step st ev) all_e (rcons past ev) evs.
-  by apply: update_open_cell_disjoint_non_gp_invariant.
-have ec_inv' : edge_covered_non_gp_invariant bottom top s 
+  by apply: update_open_cell_disjoint_invariant.
+have ec_inv' : edge_cover_invariant bottom top s 
   all_e (rcons past ev)
   (step st ev) evs.
-  by apply: update_open_cell_edge_covered_non_gp_invariant.
+  by apply: update_open_cell_edge_cover_invariant.
 
 have nth1eq : nth dummy_pt (left_pts (lst_open (step st ev))) 1 = point ev.
   rewrite /step /same_x /= at_lstx eqxx (underW under_lsthe) under_lsthe /=.

@@ -185,7 +185,7 @@ have noco : {in all_edges (fop ++ lsto :: lop) (ev :: evs) &,
 rewrite /simple_step/generic_trajectories.simple_step.
 rewrite -/(opening_cells_aux _ _ _ _).
 case oca_eq : (opening_cells_aux _ _ _ _) => [nos lno].
-have inv' : inv1_seq bottom top evs ((fc ++ nos) ++ lno :: lc).
+have inv' : open_cells_invariant bottom top evs ((fc ++ nos) ++ lno :: lc).
   have := invariant1_default_case inbox0 oute rfo cbtom adj sval cle clae
             noco lexev.
   by rewrite oe oca_eq.
@@ -281,7 +281,7 @@ have all_events_break' : all_e = rcons p_e ev ++ evs.
 by constructor.
 Qed.
 
-Lemma simple_step_common_non_gp_invariant
+Lemma simple_step_last_open_cell_invariant
   bottom top s fop lsto lop cls lstc ev lsthe lstx all_e p_e evs
   fc cc lcc lc le he:
   bottom <| top ->
@@ -291,10 +291,10 @@ Lemma simple_step_common_non_gp_invariant
   (lstx <> p_x (point ev) \/ (lstx = p_x (point ev) /\ point ev >>> lsthe)) ->
   open_cells_decomposition (fop ++ lsto :: lop) (point ev) =
     (fc, cc, lcc, lc, le, he) ->
-  common_non_gp_invariant bottom top s
+  last_open_cell_invariant bottom top s
      (Bscan fop lsto lop cls lstc lsthe lstx)
      all_e p_e (ev :: evs) ->
-  common_non_gp_invariant bottom top s
+  last_open_cell_invariant bottom top s
      (simple_step fc cc lc lcc le he cls lstc ev)
     all_e (rcons p_e ev) evs.
 Proof.
@@ -332,7 +332,7 @@ move:comi'; rewrite /simple_step/= oca_eq=> comi'.
 by constructor.
 Qed.
 
-Lemma simple_step_disjoint_non_gp_invariant
+Lemma simple_step_disjoint_invariant
   bottom top s fop lsto lop cls lstc ev lsthe lstx all_e p_e evs
   fc cc lcc lc le he:
   bottom <| top ->
@@ -342,10 +342,10 @@ Lemma simple_step_disjoint_non_gp_invariant
   (lstx <> p_x (point ev) \/ (lstx = p_x (point ev) /\ point ev >>> lsthe)) ->
   open_cells_decomposition (fop ++ lsto :: lop) (point ev) =
     (fc, cc, lcc, lc, le, he) ->
-  disjoint_non_gp_invariant bottom top s
+  disjoint_invariant bottom top s
      (Bscan fop lsto lop cls lstc lsthe lstx)
      all_e p_e (ev :: evs) ->
-  disjoint_non_gp_invariant bottom top s
+  disjoint_invariant bottom top s
      (simple_step fc cc lc lcc le he cls lstc ev)
     all_e (rcons p_e ev) evs.
 Proof.
@@ -427,12 +427,12 @@ have right_limit_closed' :
   have:= step_keeps_right_limit_better inbox_es cbtom adj
     sval cl_at_left'.
   by rewrite oe oca_eq /=.
-have cngi : common_non_gp_invariant bottom top s
+have cngi : last_open_cell_invariant bottom top s
               (Bscan (fc ++ nos) lno lc
                 (cls ++ (lstc :: closing_cells (point ev) cc))
                 (close_cell (point ev) lcc) he (p_x (point ev))) 
                 all_e (rcons p_e ev) evs.
-  have := simple_step_common_non_gp_invariant boxwf nocs' inbox_s
+  have := simple_step_last_open_cell_invariant boxwf nocs' inbox_s
     simple_cond oe comng.
   by rewrite /simple_step oca_eq.
 have midrlstc : (1 < size (right_pts (close_cell (point ev) lcc)))%N.
@@ -882,7 +882,7 @@ rewrite cats1.
 by constructor.
 Qed.
 
-Record edge_covered_non_gp_invariant (bottom top : edge)
+Record edge_cover_invariant (bottom top : edge)
  (edge_set : seq edge) (all_events processed_set : seq event)
  (s : scan_state) (events : seq event) :=
  { edge_covered_ec : {in processed_set, forall e,
@@ -891,7 +891,7 @@ Record edge_covered_non_gp_invariant (bottom top : edge)
    processed_covered : {in processed_set, forall e,
        exists2 c, c \in (state_closed_seq s) &
            point e \in (right_pts c : seq pt) /\ point e >>> low c}  ;
-   dis_inv_ec : disjoint_non_gp_invariant bottom top edge_set
+   dis_inv_ec : disjoint_invariant bottom top edge_set
      s all_events processed_set events;
    non_in_ec :
       {in edge_set & events, forall g e, non_inner g (point e)};
@@ -900,7 +900,7 @@ Record edge_covered_non_gp_invariant (bottom top : edge)
 
 (* TODO: this proof is simply duplicated from the general position,
   with a very minor change. *)
-Lemma simple_step_edge_covered_non_gp_invariant
+Lemma simple_step_edge_cover_invariant
   bottom top s cov_set fop lsto lop fc cc lcc lc le he cls lstc ev
   lsthe lstx all_e evs :
   bottom <| top ->
@@ -909,12 +909,12 @@ Lemma simple_step_edge_covered_non_gp_invariant
                    inside_box bottom top (right_pt g)} ->
   open_cells_decomposition (fop ++ lsto :: lop) (point ev) =
     (fc, cc, lcc, lc, le, he) ->
-  edge_covered_non_gp_invariant bottom top s
+  edge_cover_invariant bottom top s
    all_e cov_set (Bscan fop lsto lop cls lstc lsthe lstx)
    (ev :: evs) ->
   (lstx <> p_x (point ev) \/
         (lstx = p_x (point ev) /\ (point ev >>> lsthe))) ->
-  edge_covered_non_gp_invariant bottom top s all_e
+  edge_cover_invariant bottom top s all_e
     (rcons cov_set ev) (simple_step fc cc lc lcc le he cls lstc ev)
     evs.
 Proof.
@@ -938,7 +938,7 @@ case oca_eq :
   (opening_cells_aux (point ev) (sort edge_below (outgoing ev)) le he) =>
       [nos lno].
 have d_inv' :=
-  simple_step_disjoint_non_gp_invariant boxwf nocs' inbox_s simple_cond oe d_inv.
+  simple_step_disjoint_invariant boxwf nocs' inbox_s simple_cond oe d_inv.
 have btm_left_lex_e : {in (state_open_seq st), forall c,
                          lexPt (bottom_left_corner c) (point ev)}.
   by move=> c cin; apply: (bottom_left_opens d_inv); rewrite // inE eqxx.
@@ -1035,10 +1035,10 @@ Record safe_side_non_gp_invariant (bottom top : edge)
  (edge_set : seq edge) (all_events processed_set : seq event)
  (s : scan_state) (events : seq event) :=
  {disjoint_ss :
-    disjoint_non_gp_invariant bottom top edge_set s
+    disjoint_invariant bottom top edge_set s
       all_events processed_set events;
     covered_ss :
-     edge_covered_non_gp_invariant bottom top edge_set all_events
+     edge_cover_invariant bottom top edge_set all_events
        processed_set s events;
     left_proc : {in processed_set,
                    forall e1, lexePt (point e1)
@@ -1107,7 +1107,7 @@ by move=> /andP[] /allP /(_ _ (map_f _ ein)).
 Qed.
 
 Lemma disjoint_non_gp_left_side_le_lsto bottom top s all_e p_e events st:
-  disjoint_non_gp_invariant bottom top s st all_e p_e events ->
+  disjoint_invariant bottom top s st all_e p_e events ->
   {in state_open_seq st,
     forall c, left_limit c <= left_limit (lst_open st)}.
 Proof.
@@ -1117,7 +1117,7 @@ by apply: (left_opens dng).
 Qed.
 
 Lemma disjoint_non_gp_left_side_lsto bottom top s all_e p_e events st:
-  disjoint_non_gp_invariant bottom top s st all_e p_e events ->
+  disjoint_invariant bottom top s st all_e p_e events ->
   {in events,
     forall ev, left_limit (lst_open st) <= p_x (point ev)}.
 Proof.
@@ -1323,17 +1323,17 @@ have lexpt1hd : lexPt (nth dummy_pt (left_pts lsto) 1)
   case: (left_pts lsto) => [ | a [ | b tl]] //= _.
   by move=> /andP[] /eqP -> /andP[] /eqP -> _ /andP[] ->; rewrite ltxx eqxx.
 have d_inv':
-  disjoint_non_gp_invariant bottom top s rstate all_e
+  disjoint_invariant bottom top s rstate all_e
     (rcons previous_events ev) future_events.
   move: (d_inv); rewrite stq=> d_inv'.
-  have := simple_step_disjoint_non_gp_invariant boxwf nocs'
+  have := simple_step_disjoint_invariant boxwf nocs'
       inbox_s simple_cond oe d_inv'.
   rewrite /simple_step/generic_trajectories.simple_step/=.
   by rewrite -/(opening_cells_aux _ _ _ _) oca_eq.
-have e_inv' :edge_covered_non_gp_invariant bottom top s all_e
+have e_inv' :edge_cover_invariant bottom top s all_e
     (rcons previous_events ev) rstate future_events.
   move: e_inv; rewrite stq=> e_inv.
-  have := simple_step_edge_covered_non_gp_invariant boxwf nocs'
+  have := simple_step_edge_cover_invariant boxwf nocs'
       inbox_s oe e_inv simple_cond.
   rewrite /simple_step/generic_trajectories.simple_step/=.
   by rewrite oca_eq.

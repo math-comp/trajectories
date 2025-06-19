@@ -345,13 +345,13 @@ Hypotheses
   (ss_inv : safe_side_non_gp_invariant bottom top s all_e past
     (Bscan fop lsto lop cls lstc lsthe lstx) (ev :: evs)).
 
-Let d_inv : disjoint_non_gp_invariant bottom top s
+Let d_inv : disjoint_invariant bottom top s
     (Bscan fop lsto lop cls lstc lsthe lstx) all_e past (ev :: evs).
 Proof.
 apply: (disjoint_ss ss_inv).
 Qed.
 
-Let ec_inv : edge_covered_non_gp_invariant bottom top s
+Let ec_inv : edge_cover_invariant bottom top s
     all_e past (Bscan fop lsto lop cls lstc lsthe lstx) (ev :: evs).
 Proof. apply: (covered_ss ss_inv). Qed.
 
@@ -361,7 +361,7 @@ Let comi : common_invariant bottom top s
   (Bscan fop lsto lop cls lstc lsthe lstx) all_e past (ev :: evs).
 Proof. by exact: (ngcomm comng). Qed.
 
-Let tmp_inv : inv1_seq bottom top (ev :: evs) (fop ++ lsto :: lop).
+Let tmp_inv : open_cells_invariant bottom top (ev :: evs) (fop ++ lsto :: lop).
 Proof. by exact: (inv1 comi). Qed.
 
 Let oute : out_left_event ev.
@@ -675,7 +675,7 @@ Qed.
 #[local]
 Definition str := last_case fop lsto fc' cc lcc lc cls lstc he ev.
 
-Let inv1' : inv1_seq bottom top evs (state_open_seq str).
+Let inv1' : open_cells_invariant bottom top evs (state_open_seq str).
 Proof.
 have := (step_keeps_invariant1 cls lstc (inbox_events (ngcomm comng))
   oute rfo cbtom adj sval (closed_events comi) clae
@@ -849,7 +849,7 @@ by rewrite cat_rcons (all_events_break comi).
 Qed.
 
 Lemma last_case_common_invariant_pre :
-  common_non_gp_invariant bottom top s
+  last_open_cell_invariant bottom top s
      (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
     all_e (rcons past ev) evs.
 Proof.
@@ -868,7 +868,7 @@ rewrite strq in lst_side_lex'.
 by constructor.
 Qed.
 
-Let common_non_gp_inv_dis' : common_non_gp_invariant bottom top s str 
+Let common_non_gp_inv_dis' : last_open_cell_invariant bottom top s str 
   all_e (rcons past ev) evs.
 Proof.
 have := last_case_common_invariant_pre.
@@ -1113,7 +1113,7 @@ set new_cl := rcons _ (close_cell _ _).
 have -> /= : ~~ has (in_mem^~ (mem [seq cell_center c | c <- rcons cls lstc]))
   [seq cell_center c | c <- new_cl].
 (* TODO: duplication (from subproof ucc' in
-  Lemma simple_step_disjoint_non_gp_invariant)*)
+  Lemma simple_step_disjoint_invariant)*)
   rewrite /new_cl /closing_cells -map_rcons; apply/negP=> /hasP[p].
   move=> /mapP [c2 c2new pc2].
   move=> /mapP [c1 c1old pc1].
@@ -1481,7 +1481,7 @@ by apply: inside_box_lt_min_right.
 Qed.
 
 Lemma last_case_disjoint_invariant_pre :
-  disjoint_non_gp_invariant bottom top s
+  disjoint_invariant bottom top s
     (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
     all_e (rcons past ev) evs.
 Proof.
@@ -1589,7 +1589,7 @@ by rewrite /step/same_x at_lstx eqxx pu (negbTE pa) oe uoct_eq /=.
 Qed.
 
 Lemma last_case_edge_covered_invariant_pre :
-  edge_covered_non_gp_invariant bottom top s
+  edge_cover_invariant bottom top s
   all_e (rcons past ev)
   (step (Bscan fop lsto lop cls lstc lsthe lstx) ev) evs.
 Proof.

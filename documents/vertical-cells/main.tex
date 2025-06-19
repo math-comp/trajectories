@@ -729,8 +729,9 @@ We established six levels of invariants:
 \begin{enumerate}
 \item In the first level, we state properties that concern the
 sequence of open cells and the relations between their edges and the remaining
-events.
+events.  % open_cells_invariant
 \item In the second level, we add properties that fall in three categories:
+  % common_invariant
   \begin{enumerate}
     \item The cache consistency properties of
   the scan state: the scan state contains a last open cell, a last high edge,
@@ -751,21 +752,21 @@ events.
   open cells, and lexicographically smaller than the right extremity.
 \end{enumerate}
 \item In the third level, we add properties that are specific to the
-  last created open cell,
+  last created open cell, % last_open_cell_invariant
 \item In the fourth level, we add mainly the properties that concern
   the closed cells that were built so far and their interactions with
   the current open cells.  The main purpose of the properties
   available in this invariant is to contribute to the proof that
-  all closed cells are disjoint and non-empty.
+  all closed cells are disjoint and non-empty. % disjoint_invariant
 \item In the fifth level, we add mainly the properties that concern
   edges that were outgoing from events that have already been processed.
   In particular, we concentrate on properties that are useful to show that
   all these edges are covered by the top side of existing closed cells and
-  existing open cells.
+  existing open cells. % edge_cover_invariant
 \item In the sixth level, we add mainly the properties that concern
   the points recorded in cell sides.  The aim is to show that cell
   sides enumerate the points that are unsafe on the lateral
-  sides of cells.
+  sides of cells.  % cell_sides_invariant
 \end{enumerate}
 
 In the end, the safety property for the space inside a given cell is

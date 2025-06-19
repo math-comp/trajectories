@@ -749,14 +749,14 @@ Qed.
 Definition state_open_seq (s : scan_state) :=
   sc_open1 s ++ lst_open s :: sc_open2 s.
 
-Definition inv1_seq (s : seq cell) :=
+Definition open_cells_invariant (s : seq cell) :=
   close_alive_edges s future_events /\
   (future_events = [::] \/
     seq_valid s (point (head dummy_event future_events))) /\
   adjacent_cells s /\ cells_bottom_top s /\ s_right_form s.
 
 Definition invariant1 (s : scan_state) :=
-  inv1_seq (state_open_seq s).
+  open_cells_invariant (state_open_seq s).
 
 (* Let val_between g (h : valid_edge g (point e)) :=
   valid_between_events elexp plexfut h inbox_p. *)
@@ -807,7 +807,7 @@ Lemma invariant1_default_case :
     let '(nos, lno) :=
       opening_cells_aux (point e)
        (sort edge_below (outgoing e)) le he in
-  inv1_seq ((fc ++ nos) ++ lno :: lc).
+  open_cells_invariant ((fc ++ nos) ++ lno :: lc).
 Proof.
 case oe : (open_cells_decomposition open (point e)) =>
  [[[[[fc cc] lcc] lc] le] he].
@@ -968,11 +968,11 @@ rewrite hq => -[-> others]; split=> // x xin.
 by apply: others; rewrite mem_rcons inE xin orbT.
 Qed.
 
-Lemma inv1_seq_set_pts s1 s2 c1 lpts1 lpts2 :
-  inv1_seq (s1 ++ set_pts c1 lpts1 lpts2 :: s2) <->
-  inv1_seq (s1 ++ c1 :: s2).
+Lemma open_cells_invariant_set_pts s1 s2 c1 lpts1 lpts2 :
+  open_cells_invariant (s1 ++ set_pts c1 lpts1 lpts2 :: s2) <->
+  open_cells_invariant (s1 ++ c1 :: s2).
 Proof.
-rewrite /inv1_seq.
+rewrite /open_cells_invariant.
 have -> : close_alive_edges (s1 ++ set_pts c1 lpts1 lpts2 :: s2)
  future_events =
   close_alive_edges (s1 ++ c1 :: s2) future_events.
@@ -996,10 +996,10 @@ case: B; first by left.
 by rewrite /seq_valid !all_cat /=; right.
 Qed.
 
-Lemma inv1_seq_set_left_pts s1 s2 c1 lpts :
-  inv1_seq (s1 ++ set_left_pts c1 lpts :: s2) <->
-  inv1_seq (s1 ++ c1 :: s2).
-Proof. exact (inv1_seq_set_pts s1 s2 c1 lpts (right_pts c1)). Qed.
+Lemma open_cells_invariant_set_left_pts s1 s2 c1 lpts :
+  open_cells_invariant (s1 ++ set_left_pts c1 lpts :: s2) <->
+  open_cells_invariant (s1 ++ c1 :: s2).
+Proof. exact (open_cells_invariant_set_pts s1 s2 c1 lpts (right_pts c1)). Qed.
 
 #[clearbody]
 Let vlo : valid_edge (low lsto) (point e).
@@ -1083,7 +1083,7 @@ case: ifP=> [pxaway | /negbFE/eqP/[dup] pxhere /abovelstle palstol].
   rewrite /generic_trajectories.simple_step.
   rewrite -/(opening_cells_aux _ _ _ _).
   case oca_eq : (opening_cells_aux _ _ _ _) => [nos lno] def_case.
-  rewrite /inv1_seq /= in def_case.
+  rewrite /open_cells_invariant /= in def_case.
   move=> [] <- <- <- _ _ _ _.
   by apply: def_case.
 have infop : {subset fop <= open} by rewrite /open; subset_tac.
@@ -1144,7 +1144,7 @@ case: ifP => [ebelow_st {ebelow} | eonlsthe].
   rewrite /invariant1 /= /state_open_seq /= -catA -cat_rcons.
   move: uoceq; rewrite /update_open_cell/generic_trajectories.update_open_cell.
   case ogq : (outgoing e) => [ | fog ogs] /=.
-    move=> -[] <- <- /=; rewrite inv1_seq_set_left_pts.
+    move=> -[] <- <- /=; rewrite open_cells_invariant_set_left_pts.
     have := invariant1_default_case.
     rewrite open_cells_decomposition_single=> //; last by rewrite -lstheq.
     rewrite ogq /=.
@@ -1164,7 +1164,7 @@ case: ifP => [ebelow_st {ebelow} | eonlsthe].
       rewrite pt_eqE /= eqxx /=.
       by move: palstol; rewrite under_pvert_y // le_eqVlt negb_or=> /andP[].
     set w := [:: _ ; _; _].
-    by rewrite (inv1_seq_set_pts fop lop lsto w nil).
+    by rewrite (open_cells_invariant_set_pts fop lop lsto w nil).
   have := invariant1_default_case.
   rewrite open_cells_decomposition_single=> //; last by rewrite -lstheq.
   rewrite -/(opening_cells_aux _ _ _ _).
@@ -1172,7 +1172,7 @@ case: ifP => [ebelow_st {ebelow} | eonlsthe].
     have ognn : (outgoing e) != [::] by rewrite ogq.
     have := opening_cells_aux_absurd_case vlo vho ognn oute.
     by rewrite ogq oca_eq.
-  by move => + [] <- <- /=; rewrite inv1_seq_set_left_pts cat_rcons -!catA /=.
+  by move => + [] <- <- /=; rewrite open_cells_invariant_set_left_pts cat_rcons -!catA /=.
 have lsto_ctn : contains_point'(point e) lsto.
   rewrite /contains_point'.
   by rewrite -lstheq (negbFE ebelow) abovelstle.
@@ -1198,7 +1198,7 @@ case o_eq : (outgoing e) => [ | g l]; rewrite -?o_eq; last first.
     by rewrite !cats0 -!catA.
   move=> + <-; rewrite /invariant1 /state_open_seq /=.
   rewrite -!catA /= => it.
-  by rewrite (catA fop) inv1_seq_set_left_pts -catA.
+  by rewrite (catA fop) open_cells_invariant_set_left_pts -catA.
 move=> [] <- <- <- _ _ _ _ /=.
 have subf : {subset (fop ++ fc') <= open} by rewrite /open ocd; subset_tac.
 have adjf : adjacent_cells (fop ++ fc').
@@ -1278,7 +1278,7 @@ have clael' : close_alive_edges lc future_events.
     by apply/negP; rewrite contains_pointE negb_and negbK (below_l _ cin).
   apply/allP=> x xin.
   by apply: (allP (head_not_end clael l_not_end)).
-rewrite cats0 /invariant1 /state_open_seq /=; set open' := (X in inv1_seq X).
+rewrite cats0 /invariant1 /state_open_seq /=; set open' := (X in open_cells_invariant X).
 have clae_part : close_alive_edges open' future_events.
   rewrite /close_alive_edges all_cat [all _ (fop ++ fc')]claef' /=.
   rewrite [all _ lc]clael' andbT.
@@ -1901,7 +1901,7 @@ Lemma step_keeps_open_disjoint :
   {in state_open_seq (step (Bscan fop lsto lop cls lstc lsthe lstx) e) &,
      disjoint_open_cells R}.
 Proof.
-have := step_keeps_invariant1; rewrite /invariant1/inv1_seq.
+have := step_keeps_invariant1; rewrite /invariant1/open_cells_invariant.
 set s' := (state_open_seq _) => -[clae' [sval' [adj' [cbtom' srf']]]].
 have := step_keeps_pw; rewrite -/s' => /= /andP[] _ pw'.
 have := step_keeps_open_side_limit; rewrite -/s'=> ok'.
@@ -4938,7 +4938,7 @@ Proof. by []. Qed.
 
 Record common_invariant bottom top edge_set s
   (all_events processed_events events : seq event) :=
-  { inv1 : inv1_seq bottom top events (state_open_seq s);
+  { inv1 : open_cells_invariant bottom top events (state_open_seq s);
    lstx_eq : lst_x _ _ s = left_limit (lst_open s);
    high_lsto_eq : high (lst_open s) = lst_high _ _ s;
    edges_sub : {subset all_edges (state_open_seq s) events <=
@@ -4963,7 +4963,7 @@ Record common_invariant bottom top edge_set s
      lexePt (point (head dummy_event events)) (right_pt g)}
 }.
 
-Record common_non_gp_invariant bottom top edge_set s
+Record last_open_cell_invariant bottom top edge_set s
   (all_events processed_events events : seq event) :=
   { ngcomm : common_invariant bottom top edge_set s all_events
     processed_events events;
@@ -4973,7 +4973,7 @@ Record common_non_gp_invariant bottom top edge_set s
          [seq point e | e <- events];
  }.
 
-Record disjoint_non_gp_invariant (bottom top : edge)
+Record disjoint_invariant (bottom top : edge)
   (edge_set : seq edge)(s : scan_state)
   (all_events processed_events events : seq event) :=
   {op_cl_dis_non_gp :
@@ -4981,7 +4981,7 @@ Record disjoint_non_gp_invariant (bottom top : edge)
        disjoint_open_closed_cells R};
     cl_dis_non_gp : {in state_closed_seq s &, disjoint_closed_cells R};
     common_non_gp_inv_dis :
-    common_non_gp_invariant bottom top
+    last_open_cell_invariant bottom top
        edge_set s all_events processed_events events;
     pairwise_open_non_gp : pairwise edge_below
      (bottom :: [seq high c | c <- state_open_seq s]);
@@ -5008,7 +5008,7 @@ Record disjoint_non_gp_invariant (bottom top : edge)
       Num.min (p_x (right_pt bottom)) (p_x (right_pt top))}.
 
 Lemma cl_low_high bottom top edge_set s all_e p_e events :
-  disjoint_non_gp_invariant bottom top edge_set s all_e p_e events ->
+  disjoint_invariant bottom top edge_set s all_e p_e events ->
   {subset cell_edges (state_closed_seq s) <= [:: bottom, top & edge_set]} ->
   {in [:: bottom, top & edge_set] &, forall g1 g2, inter_at_ext g1 g2} ->
   {in state_closed_seq s, forall c, (low c <| high c) && (low c != high c)}.
@@ -5052,7 +5052,7 @@ by move: ca; rewrite abs (underW cu).
 Qed.
 
 Lemma low_diff_high_open bottom top edge_set s all_e p_e events :
-  disjoint_non_gp_invariant bottom top edge_set s all_e p_e events ->
+  disjoint_invariant bottom top edge_set s all_e p_e events ->
   {in state_open_seq s, forall c : cell, low c != high c}.
 Proof.
 move=> d_inv c cin.
@@ -5076,7 +5076,7 @@ by rewrite inE negb_or -lq => /andP[] + _.
 Qed.
 
 Lemma cl_at_lstx bottom top edge_set s all_e p_e events :
-  disjoint_non_gp_invariant bottom top edge_set s all_e p_e events ->
+  disjoint_invariant bottom top edge_set s all_e p_e events ->
   right_limit (lst_closed s) = (lst_x _ _ s).
 Proof.
 move=> d_inv.
@@ -5096,7 +5096,7 @@ by rewrite (lstx_eq (ngcomm (common_non_gp_inv_dis d_inv))).
 Qed.
 
 Lemma cl_large bottom top edge_set s all_e p_e events :
-  disjoint_non_gp_invariant bottom top edge_set s all_e p_e events ->
+  disjoint_invariant bottom top edge_set s all_e p_e events ->
   {in state_closed_seq s, forall c, left_limit c < right_limit c}.
 Proof.
 move=> d_inv c cin.
@@ -5105,7 +5105,7 @@ by apply: lt_trans lb rb.
 Qed.
 
 Lemma left_opens bottom top edge_set s all_e p_e events :
-  disjoint_non_gp_invariant bottom top edge_set s all_e p_e events ->
+  disjoint_invariant bottom top edge_set s all_e p_e events ->
   {in state_open_seq s, forall c, left_limit c <= lst_x _ _ s}.
 Proof.
 move=> d_inv c cin.
@@ -5130,13 +5130,13 @@ move=> /orP[/ltW | /andP[] + _]; first by [].
 by rewrite le_eqVlt => ->.
 Qed.
 
-Lemma disjoint_non_gp_invariant_trans (bottom top : edge)
+Lemma disjoint_invariant_trans (bottom top : edge)
   edge_set1 edge_set2 st all_e p_e events :
   {subset edge_set1 <= edge_set2} ->
   {subset all_edges (state_open_seq st) events <=
     [:: bottom, top & edge_set1]} ->
-  disjoint_non_gp_invariant bottom top edge_set2 st all_e p_e events ->
-  disjoint_non_gp_invariant bottom top edge_set1 st all_e p_e events.
+  disjoint_invariant bottom top edge_set2 st all_e p_e events ->
+  disjoint_invariant bottom top edge_set1 st all_e p_e events.
 Proof.
 move=> ss1 es [] h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15.
 constructor=> //.
@@ -5147,7 +5147,7 @@ by constructor.
 Qed.
 
 Lemma lexev_right_cls bottom top edge_set s all_e p_e events :
-  disjoint_non_gp_invariant bottom top edge_set s all_e p_e events -> 
+  disjoint_invariant bottom top edge_set s all_e p_e events -> 
   path (@lexPt R)
      (nth dummy_pt (right_pts (lst_closed s)) 1) [seq point x | x <- events].
 Proof.
@@ -5157,7 +5157,7 @@ by rewrite (nth1_eq d_inv).
 Qed.
 
 Lemma closed_at_left_non_gp_compat bottom top edge_set s all_e p_e events :
-  disjoint_non_gp_invariant bottom top edge_set s all_e p_e events ->
+  disjoint_invariant bottom top edge_set s all_e p_e events ->
   {in state_closed_seq s & events, forall c e,
     right_limit c <= p_x (point e)}.
 Proof.
@@ -5177,7 +5177,7 @@ by rewrite le_eqVlt => ->.
 Qed.
 
 Lemma dif_low_high bottom top edge_set s all_e p_e events :
-  disjoint_non_gp_invariant bottom top edge_set s all_e p_e events ->
+  disjoint_invariant bottom top edge_set s all_e p_e events ->
   {in state_open_seq s, forall c, low c != high c}.
 Proof.
 move=> d_inv c cin.
@@ -5265,7 +5265,7 @@ Qed.
 Lemma same_x_point_above_low_lsto bottom top s fop lsto lop cls lstc
   ev lsthe lstx all_e p_e evs :
   lstx = p_x (point ev) ->
-  common_non_gp_invariant bottom top s
+  last_open_cell_invariant bottom top s
     (Bscan fop lsto lop cls lstc lsthe lstx) all_e p_e (ev :: evs) ->
   point ev >>> low lsto.
 Proof.

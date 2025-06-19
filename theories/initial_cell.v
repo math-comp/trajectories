@@ -383,7 +383,7 @@ have all_events_break0 : ev :: future_events =
 by constructor.
 Qed.
 
-Lemma initial_common_non_gp_invariant bottom top s events:
+Lemma initial_last_open_cell_invariant bottom top s events:
   bottom <| top ->
   (* TODO: rephrase this statement in a statement that easier to understand. *)
   open_cell_side_limit_ok (start_open_cell bottom top) ->
@@ -395,7 +395,7 @@ Lemma initial_common_non_gp_invariant bottom top s events:
   {in events, forall ev, uniq (outgoing ev)} ->
   close_edges_from_events events ->
   events != [::] ->
-  common_non_gp_invariant bottom top s
+  last_open_cell_invariant bottom top s
     (initial_state bottom top events) 
     events (take 1 events) (behead events).
 Proof.
@@ -444,7 +444,7 @@ Lemma start_comm (bottom top : edge) (s : seq edge) events :
   sorted (@lexPtEv _) events ->
   {subset flatten [seq outgoing e | e <- events] <= s} ->
   events != [::] ->
-  inv1_seq bottom top events [:: start_open_cell bottom top].
+  open_cells_invariant bottom top events [:: start_open_cell bottom top].
 Proof.
 move=> boxwf startok (*nocs'*) evin lexev evsub (*out_evs uniqout cle*)  evn0.
 have [ev1 [evs evsq]] : exists ev1 evs, events = ev1 :: evs.
@@ -479,7 +479,7 @@ move: pa; rewrite under_onVstrict; last by apply: vbt; rewrite inE eqxx.
 by rewrite abs pu orbT.
 Qed.
 
-Lemma initial_disjoint_non_gp_invariant bottom top s events:
+Lemma initial_disjoint_invariant bottom top s events:
   bottom <| top ->
   (* TODO: rephrase this statement in a statement that easier to understand. *)
   open_cell_side_limit_ok (start_open_cell bottom top) ->
@@ -491,12 +491,12 @@ Lemma initial_disjoint_non_gp_invariant bottom top s events:
   {in events, forall ev, uniq (outgoing ev)} ->
   close_edges_from_events events ->
   events != [::] ->
-  disjoint_non_gp_invariant bottom top s
+  disjoint_invariant bottom top s
     (initial_state bottom top events) 
     events (take 1 events) (behead events).
 Proof.
 move=> boxwf startok nocs' evin lexev evsub out_evs uniqout cle evsn0.
-have icomng := initial_common_non_gp_invariant boxwf startok nocs' evin lexev
+have icomng := initial_last_open_cell_invariant boxwf startok nocs' evin lexev
     evsub out_evs uniqout cle evsn0.
 have [ev1 [evs evsq]] : exists ev1 evs, events = ev1 :: evs.
   by case evsq :  events evsn0 => [ | ev1 evs] //= _; exists ev1, evs.
@@ -668,7 +668,7 @@ Qed.
 Lemma take0s [A : Type] (s : seq A) : take 0 s = [::].
 Proof.  by case s => [ | e s']. Qed.
 
-Lemma initial_edge_covered_non_gp_invariant bottom top events s:
+Lemma initial_edge_cover_invariant bottom top events s:
   bottom <| top ->
   open_cell_side_limit_ok (start_open_cell bottom top) ->
   {in [:: bottom, top & s] &, forall g1 g2, inter_at_ext g1 g2} ->
@@ -681,13 +681,13 @@ Lemma initial_edge_covered_non_gp_invariant bottom top events s:
   events != [::] ->
   {in s & events,
     forall g e, non_inner g (point e)} ->
-  edge_covered_non_gp_invariant bottom top
+  edge_cover_invariant bottom top
    s events (take 1 events)
    (initial_state bottom top events) (behead events).
 Proof.
 move=> boxwf startok nocs' inbox_es lexev sub_edges out_es uniqout cle evsn0.
 move=> nonin.
-have := initial_disjoint_non_gp_invariant boxwf startok nocs' inbox_es lexev
+have := initial_disjoint_invariant boxwf startok nocs' inbox_es lexev
   sub_edges out_es uniqout cle evsn0.
 case evsq : events evsn0 => [ | ev evs] //= _ => d_inv.
 have evin : ev \in events by rewrite evsq inE eqxx.
@@ -747,7 +747,7 @@ have egc : {in [:: ev], forall e,
   have ocin' : oc \in nos' ++ [:: lno'] by tauto.
   by rewrite /= inE ocin' orbT.
 have d_inv' :
-    disjoint_non_gp_invariant bottom top
+    disjoint_invariant bottom top
       s
       (Bscan nos lno [::] [::] (close_cell (point ev)
         (start_open_cell bottom top)) top (p_x (point ev))) 
@@ -810,9 +810,9 @@ Lemma initial_safe_side_non_gp_invariant (bottom top : edge) s events:
 Proof.
 move=> boxwf startok nocs sub_evs inbox_es lexev.
 move=> out_es uniqout cle evn0 nin.
-have d_inv := initial_disjoint_non_gp_invariant boxwf startok nocs inbox_es
+have d_inv := initial_disjoint_invariant boxwf startok nocs inbox_es
   lexev sub_evs out_es uniqout cle evn0.
-have ec_inv := initial_edge_covered_non_gp_invariant boxwf startok nocs
+have ec_inv := initial_edge_cover_invariant boxwf startok nocs
   inbox_es lexev sub_evs out_es uniqout cle evn0 nin.
 case evsq : events evn0 => [ | ev evs] //= _.
 rewrite take0.
@@ -829,11 +829,11 @@ have vb : valid_edge bottom (point ev).
 have vt : valid_edge top (point ev).
   by rewrite /valid_edge; move: vt'=> /andP[] /ltW -> /ltW ->.
 have [sl nt1_eq]:= opening_cells_aux_event vb vt evab evuh oute' oca_eq.
-have d_inv' : disjoint_non_gp_invariant bottom top s
+have d_inv' : disjoint_invariant bottom top s
   (Bscan nos lno [::] [::] (close_cell (point ev) (start_open_cell bottom top))
     top (p_x (point ev))) (ev :: evs) [:: ev] evs.
   by move: d_inv; rewrite evsq /= oca_eq take0.
-have ec_inv' : edge_covered_non_gp_invariant bottom top s
+have ec_inv' : edge_cover_invariant bottom top s
    (ev :: evs) [:: ev] (Bscan nos lno [::] [::] (close_cell (point ev)
    (start_open_cell bottom top))
    top (p_x (point ev))) evs.
