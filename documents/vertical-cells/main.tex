@@ -729,9 +729,9 @@ We established six levels of invariants:
 \begin{enumerate}
 \item In the first level, we state properties that concern the
 sequence of open cells and the relations between their edges and the remaining
-events.  % open_cells_invariant
+events (in the formal development this invariant is named
+{\tt open\_cells\_invariant}).
 \item In the second level, we add properties that fall in three categories:
-  % common_invariant
   \begin{enumerate}
     \item The cache consistency properties of
   the scan state: the scan state contains a last open cell, a last high edge,
@@ -751,22 +751,24 @@ events.  % open_cells_invariant
   lexicographically larger than the left extremity of all edges of
   open cells, and lexicographically smaller than the right extremity.
 \end{enumerate}
+This is {\tt common\_invariant}.
 \item In the third level, we add properties that are specific to the
-  last created open cell, % last_open_cell_invariant
+  last created open cell. This is {\tt last\_open\_cell\_invariant}.
 \item In the fourth level, we add mainly the properties that concern
   the closed cells that were built so far and their interactions with
   the current open cells.  The main purpose of the properties
   available in this invariant is to contribute to the proof that
-  all closed cells are disjoint and non-empty. % disjoint_invariant
+  all closed cells are disjoint and non-empty. This is
+{\tt disjoint\_invariant}.
 \item In the fifth level, we add mainly the properties that concern
   edges that were outgoing from events that have already been processed.
   In particular, we concentrate on properties that are useful to show that
   all these edges are covered by the top side of existing closed cells and
-  existing open cells. % edge_cover_invariant
+  existing open cells.  This is {\tt edge\_cover\_invariant}.
 \item In the sixth level, we add mainly the properties that concern
   the points recorded in cell sides.  The aim is to show that cell
   sides enumerate the points that are unsafe on the lateral
-  sides of cells.  % cell_sides_invariant
+  sides of cells.  This is {\tt cell\_sides\_invariant}.
 \end{enumerate}
 
 In the end, the safety property for the space inside a given cell is
@@ -1024,20 +1026,16 @@ the same vertical).
 In our development, the code of the algorithms is in a
 file named {\tt generic\_trajectories.v}.  This file does not only contain
 the vertical cell decomposition algorithm, but also some more code to compute
-trajectories based on the cells that are obtained, with the aim of building
-a piece of software used in outreach activities.
-
-The part that is concerned with only computing the vertical cell decomposition
-culminates with Function {\tt edges\_to\_cells}, defined at line 507.
-This prefix actually contains 381 lines of algorithm description, the
-rest being blank or comment lines.
+trajectories.  The part that is concerned with only computing the vertical
+cell decomposition culminates with Function {\tt edges\_to\_cells}, defined
+at line 507.
 
 The proofs span 12 files, visible in the supplementary material \cite{suppl_material}.
 There are almost 15000 lines of proof.  The supplementary material also
 contains a demonstration tool, where users can give obstacles one by one
 and see the decomposition in vertical cells being computed after each
-interaction.  The demonstration tool also computes trajectories, but the
-algorithm to compute these trajectories is outside the scope of this paper.
+interaction.  The demonstration tool also computes trajectories, but that
+is outside the scope of this paper.
 
 It is often advocated that one should have a complete proof
 infrastructure before starting a formal proof.  This is not the
@@ -1045,23 +1043,13 @@ approach that was followed here.  We took an algorithm from a book
 description, a junior member of the team implemented it in the
 functional programming language of the calculus of inductive
 constructions, and we started to prove simple invariants about this
-algorithm, as this was also understood as an opportunity for the junior
-member of the development team to train on formal verification.
+algorithm, this task being used as training ground.
 
 During the same period, we had discussions and reflections on the way to
 state and verify a reasonable safety specification.  Thus, we came up with the
 crucial invariant that two distinct cells had disjoint owned parts.  We then
 started proving that invariant under the strong assumption that there
 were no degenerate cases (events are never vertically aligned).
-
-This proof was done in a progressive manner: every time we came
-across the need for a property that seemed reasonable, we would add it to
-a large collection of invariants as an assumption and finish the needing proof.
-Later, we would attempt to prove all the invariants, thus requiring possibly
-more.  This trial-and-error approach may seem clumsy, but it also illustrates
-that the formal verification process can help the proof designers organize
-their thoughts.  The main remnant of that period is Section~{\tt step} in
-file {\tt cells\_alg.v}.
 
 When the proof under the strong assumption was complete, we wrapped up the
 results in files {\tt general\_position.v} and {\tt safe\_cells.v}.

@@ -206,8 +206,8 @@ Lemma step_safe_side_invariant bottom top all_e past st s ev events :
   close_edges_from_events (ev :: events) ->
   {in s & (ev :: events), forall g e, non_inner g (point e)} ->
   {subset events_to_edges (ev :: events) <= s} ->
-  safe_side_non_gp_invariant bottom top s all_e past st (ev :: events) ->
-  safe_side_non_gp_invariant bottom top s all_e (rcons past ev)
+  cell_sides_invariant bottom top s all_e past st (ev :: events) ->
+  cell_sides_invariant bottom top s all_e (rcons past ev)
    (step st ev) events.
 Proof.
 move=> boxwf nocs' inbox_es inbox_edges lexev out_events uniqout cle n_in
@@ -229,7 +229,7 @@ case: ifP=> [difx | ]; last (move=> /negbT; rewrite negbK=> /eqP at_lstx).
     lstx = p_x (point ev) /\ point ev >>> lsthe.
       by left; apply/eqP; rewrite eq_sym.
 
-  by have := simple_step_safe_side_non_gp_invariant boxwf nocs' inbox_edges
+  by have := simple_step_cell_sides_invariant boxwf nocs' inbox_edges
     inbox_es lexev sub_evs out_events cle n_in uniqout oe simple_cond
     ss_inv.
 case: ifP=> [pah | puh'].
@@ -256,12 +256,12 @@ case: ifP=> [pah | puh'].
   have := open_cells_decomposition_cat adj rfo sval exc2 pal.
   rewrite /= oe' -[(fop ++ (lsto :: fc')%SEQ)%list]/(fop ++ (lsto :: fc')).
   rewrite cat_rcons=> oe.
-  have := simple_step_safe_side_non_gp_invariant boxwf nocs' inbox_edges
+  have := simple_step_cell_sides_invariant boxwf nocs' inbox_edges
     inbox_es lexev sub_evs out_events cle n_in uniqout oe simple_cond
     ss_inv.
   by rewrite cat_rcons.
 case: ifP=> [pah | ponh'].
-  have := update_open_cell_safe_side_non_gp_invariant boxwf nocs'
+  have := update_open_cell_cell_sides_invariant boxwf nocs'
     inbox_edges (esym at_lstx) pah ss_inv.
   by rewrite /step/same_x at_lstx puh' pah eqxx /=.
 have puh : point ev <<= lsthe.
@@ -649,15 +649,15 @@ case evsq : evs => [ | ev future_events]; first by  move=> [] <- <-.
 have evsn0 : evs != [::] by rewrite evsq.
 case oca_eq : opening_cells_aux => [nos lno].
 set istate := Bscan _ _ _ _ _ _ _.
-have : safe_side_non_gp_invariant bottom top s (ev :: future_events) [:: ev]
+have : cell_sides_invariant bottom top s (ev :: future_events) [:: ev]
   istate future_events.
-  have := initial_safe_side_non_gp_invariant boxwf startok nocs' evsub
+  have := initial_cell_sides_invariant boxwf startok nocs' evsub
     evin lexev out_evs uniq_edges cle evsn0 n_inner.
   have -> : take 1 evs = [:: ev] by rewrite evsq; case: (future_events).
   by rewrite /initial_state /istate evsq oca_eq.
 move=> invss req.
 suff to_prove_inductively: forall events op cl st all_e processed_set,
-  safe_side_non_gp_invariant bottom top s all_e processed_set st events ->
+  cell_sides_invariant bottom top s all_e processed_set st events ->
   close_edges_from_events all_e ->
   {in all_e, forall e, out_left_event e} ->
   all (inside_box bottom top) [seq point e | e <- all_e] ->
@@ -923,7 +923,7 @@ have sub_edges_evs : {subset events_to_edges (ev :: future_events) <= s}.
   have : left_pt g = point e.
     by apply/eqP/(out_evs); rewrite ?inE ?eqxx.
   by move: gbot=> /orP[] /eqP -> <- ->.
-have ss_inv' : safe_side_non_gp_invariant bottom top s all_e (rcons p_set ev)
+have ss_inv' : cell_sides_invariant bottom top s all_e (rcons p_set ev)
   (step st ev) future_events.
   by apply: step_safe_side_invariant.
 rewrite -[scan _ _]/(scan future_events (step st ev)) -cat_rcons.

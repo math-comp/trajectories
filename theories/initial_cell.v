@@ -790,7 +790,7 @@ have btm_left_lex :
 by constructor.
 Qed.
 
-Lemma initial_safe_side_non_gp_invariant (bottom top : edge) s events:
+Lemma initial_cell_sides_invariant (bottom top : edge) s events:
   bottom <| top ->
   (* TODO: rephrase this statement in a statement that easier to understand. *)
   open_cell_side_limit_ok (start_open_cell bottom top) ->
@@ -804,7 +804,7 @@ Lemma initial_safe_side_non_gp_invariant (bottom top : edge) s events:
   close_edges_from_events events ->
   events != [::] ->
   {in s & events, forall g e, non_inner g (point e)} ->
-  safe_side_non_gp_invariant bottom top
+  cell_sides_invariant bottom top
     s  events (take 1 events)
     (initial_state bottom top events) (behead events).
 Proof.

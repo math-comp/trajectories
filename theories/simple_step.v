@@ -1031,7 +1031,7 @@ have p_cov' : {in rcons cov_set ev, forall e, exists2 c,
 by constructor.
 Qed.
 
-Record safe_side_non_gp_invariant (bottom top : edge)
+Record cell_sides_invariant (bottom top : edge)
  (edge_set : seq edge) (all_events processed_set : seq event)
  (s : scan_state) (events : seq event) :=
  {disjoint_ss :
@@ -1070,7 +1070,7 @@ Record safe_side_non_gp_invariant (bottom top : edge)
 Lemma rf_closed bottom top edge_set processed_set s 
   all_e events:
   {in [:: bottom, top & edge_set] &, forall g1 g2, inter_at_ext g1 g2} ->
-  safe_side_non_gp_invariant bottom top edge_set all_e 
+  cell_sides_invariant bottom top edge_set all_e 
     processed_set s events ->
   {in state_closed_seq s, forall c, low c <| high c}.
 Proof.
@@ -1079,7 +1079,7 @@ by have /andP[]:= cl_low_high (disjoint_ss s_inv) (sub_closed s_inv) nocs' cin.
 Qed.
 
 Lemma left_proc_compat bottom top edge_set all_e processed_set s events :
-  safe_side_non_gp_invariant bottom top edge_set 
+  cell_sides_invariant bottom top edge_set 
   all_e processed_set s events ->
     {in processed_set & events, forall e1 e2, lexPtEv e1 e2}.
 Proof.
@@ -1094,7 +1094,7 @@ Qed.
 
 Lemma cl_at_left_ss_compat bottom top edge_set all_e processed_set
   s events :
-  safe_side_non_gp_invariant bottom top edge_set all_e
+  cell_sides_invariant bottom top edge_set all_e
     processed_set s events ->
   {in sc_closed s & events,
     forall c e, lexPt (head dummy_pt (right_pts c)) (point e)}.
@@ -1139,7 +1139,7 @@ rewrite -px1; move: lx=> /orP[/ltW // | /andP[] + _].
 by rewrite le_eqVlt => ->.
 Qed.
 
-Lemma simple_step_safe_side_non_gp_invariant bottom top
+Lemma simple_step_cell_sides_invariant bottom top
   s all_e previous_events ev future_events
   fop lsto lop cls lstc lsthe lstx fc cc lcc lc le he:
   bottom <| top ->
@@ -1157,9 +1157,9 @@ Lemma simple_step_safe_side_non_gp_invariant bottom top
     (fc, cc, lcc, lc, le, he) ->
 (lstx <> p_x (point ev) \/
         (lstx = p_x (point ev) /\ (point ev >>> lsthe))) ->
-safe_side_non_gp_invariant bottom top s all_e previous_events
+cell_sides_invariant bottom top s all_e previous_events
   (Bscan fop lsto lop cls lstc lsthe lstx) (ev :: future_events) ->
-safe_side_non_gp_invariant bottom top s all_e (rcons previous_events ev)
+cell_sides_invariant bottom top s all_e (rcons previous_events ev)
   (simple_step fc cc lc lcc le he cls lstc ev) future_events.
 Proof.
 move=> boxwf nocs' inbox_s evin lexev evsub out_evs cle

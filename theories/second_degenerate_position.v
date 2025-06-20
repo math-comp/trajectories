@@ -342,7 +342,7 @@ Hypotheses
   (at_lstx : lstx = p_x (point ev))
   (pu : point ev <<= lsthe)
   (pa : point ev >>= lsthe)
-  (ss_inv : safe_side_non_gp_invariant bottom top s all_e past
+  (ss_inv : cell_sides_invariant bottom top s all_e past
     (Bscan fop lsto lop cls lstc lsthe lstx) (ev :: evs)).
 
 Let d_inv : disjoint_invariant bottom top s
@@ -2448,7 +2448,7 @@ by rewrite (ltW puhc) in palc.
 Qed.
 
 Lemma last_case_safe_side_invariant_pre :
-  safe_side_non_gp_invariant bottom top s all_e (rcons past ev)
+  cell_sides_invariant bottom top s all_e (rcons past ev)
     (step (Bscan fop lsto lop cls lstc lsthe lstx) ev) evs.
 Proof.
 move: last_case_disjoint_invariant_pre last_case_edge_covered_invariant_pre.
@@ -2470,10 +2470,10 @@ Lemma last_case_safe_side_invariant bottom top s fop lsto lop cls lstc past ev
   lstx = p_x (point ev) ->
   point ev <<= lsthe ->
   point ev >>= lsthe ->
-  safe_side_non_gp_invariant bottom top s all_e past
+  cell_sides_invariant bottom top s all_e past
     (Bscan fop lsto lop cls lstc lsthe lstx)
     (ev :: evs) ->
-  safe_side_non_gp_invariant bottom top s all_e (rcons past ev)
+  cell_sides_invariant bottom top s all_e (rcons past ev)
     (step (Bscan fop lsto lop cls lstc lsthe lstx) ev) evs.
 Proof.
 move=> nocs at_lstx pu pa s_inv.

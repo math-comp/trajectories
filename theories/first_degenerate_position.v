@@ -1172,7 +1172,7 @@ have oute2 : {in s :: l, forall g, left_pt g == point ev}.
 by have := Ih s oute2 nos2 lno2 oca_eq c cin spc.
 Qed.
 
-Lemma update_open_cell_safe_side_non_gp_invariant
+Lemma update_open_cell_cell_sides_invariant
   bottom top s fop lsto lop cls lstc all_e past ev
   lsthe lstx evs :
   bottom <| top ->
@@ -1181,10 +1181,10 @@ Lemma update_open_cell_safe_side_non_gp_invariant
                    inside_box bottom top (right_pt g)} ->
   lstx = p_x (point ev) ->
   (point ev) <<< lsthe ->
-  safe_side_non_gp_invariant bottom top s all_e past
+  cell_sides_invariant bottom top s all_e past
      (Bscan fop lsto lop cls lstc lsthe lstx)
      (ev :: evs) ->
-  safe_side_non_gp_invariant bottom top s all_e (rcons past ev)
+  cell_sides_invariant bottom top s all_e (rcons past ev)
      (step (Bscan fop lsto lop cls lstc lsthe lstx) ev)
     evs.
 Proof.
