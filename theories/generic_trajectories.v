@@ -312,6 +312,31 @@ Definition set_left_pts (c : cell) (l : seq pt) :=
 Definition set_pts (c : cell) (l1 l2 : seq pt) :=
   {| left_pts := l1; right_pts := l2; low := low c; high := high c |}.
 
+Fixpoint insert_edge_or_discard (g : edge) (gs : seq edge) : seq edge :=
+  match gs with
+  | [::] => [:: g]
+  | g1 :: tl =>
+      if negb (point_under_edge (right_pt g) g1) then
+        g1 :: insert_edge_or_discard g tl
+      else
+        if negb (point_under_edge (right_pt g1) g) then
+          g :: g1 :: tl
+        else
+          if p_x (right_pt g) < p_x (right_pt g1) then
+            g1 :: tl
+          else
+            g :: tl
+  end.
+
+Fixpoint sort_outgoing (gs : seq edge) : seq edge :=
+  match gs with
+  | [::] => [::]
+  | g :: gs => insert_edge_or_discard g (sort_outgoing gs)
+  end.
+
+Definition sorted_outgoing (e : event) :=
+  sort_outgoing (outgoing e).
+
 (* This function is to be called only when the event is in the middle
   of the last opened cell.  The point e needs to be added to the left
   points of one of the newly created open cells, but the one that receives
@@ -323,7 +348,7 @@ Definition update_open_cell (c : cell) (e : event) : seq cell * cell :=
     ([::], set_left_pts c [:: head dummy_pt ps, point e & behead ps])
   else
     match
-    opening_cells_aux (point e) (sort edge_below (outgoing e))
+    opening_cells_aux (point e) (sorted_outgoing e)
         (low c) (high c) with
     | ([::], c') => (* this is an absurd case. *)
       ([::], c)
@@ -339,7 +364,7 @@ Definition update_open_cell_top (c : cell) (new_high : edge) (e : event) :=
           left_pts c] in
       ([::], Bcell newptseq (right_pts c) (low c) new_high)
   else
-    match opening_cells_aux (point e) (sort edge_below (outgoing e))
+    match opening_cells_aux (point e) (sorted_outgoing e)
         (low c) new_high with
     | ([::], lc) => (* this is not supposed to happen *) ([::], lc)
     | (f :: q, lc) =>
@@ -352,8 +377,69 @@ Definition simple_step (fc cc lc : seq cell) (lcc : cell) (le he : edge)
   let last_new_closed := close_cell (point ev) lcc in
   let closed_cells' := closed_cells ++ last_closed :: new_closed in
   let (nos, lno) :=
-    opening_cells_aux (point ev) (sort edge_below (outgoing ev)) le he in
+    opening_cells_aux (point ev) (sorted_outgoing ev) le he in
     Bscan (fc ++ nos) lno lc closed_cells' last_new_closed he (p_x (point ev)).
+
+Definition new_neighbor_pairs (le he : edge) (edges : seq edge)
+  : seq (edge * edge) :=
+  (le, head he edges) ::
+  if edges is [::] then [::] else (seq.last le edges, he) :: [::].
+
+Definition detect_intersection (low high : edge) :=
+  if R_ltb (p_x (right_pt low)) (p_x (right_pt high)) then
+     negb (point_strictly_under_edge (right_pt low) high)
+  else if R_ltb (p_x (right_pt high)) (p_x (right_pt low)) then
+     point_under_edge (right_pt high) low
+  else R_ltb (p_y (right_pt high)) (p_y (right_pt low)).
+
+(* this function assumes the two edge directions cross and the first edge
+  is not vertical. *)
+Definition cross_first_coordinate (e1 e2 : edge) :=
+  let yl2 := p_y (left_pt e2) in
+  let xl2 := p_x (left_pt e2) in
+  let yl1 := p_y (left_pt e1) in
+  let xl1 := p_x (left_pt e1) in
+  let yr2 := p_y (right_pt e2) in
+  let xr2 := p_x (right_pt e2) in
+  let yr1 := p_y (right_pt e1) in
+  let xr1 := p_x (right_pt e1) in
+  let x1 := xr1 - xl1 in
+  let x2 := xr2 - xl2 in
+  let y1 := yr1 - yl1 in
+  let y2 := yr2 - yl2 in
+  (
+  (yl2 * x1 * x2 - yl1 * x1 * x2 - x1 * xl2 * y2 + xl1 * y1 * x2) /
+    (y1 * x2 - x1 * y2)).
+
+(* this function assumes the two edge directions cross and the
+   first edge is not vertical. *)
+Definition pre_cross_second_coordinate (e1 : edge) (cross_coordinate : R) :=
+  (p_y (left_pt e1) +
+ (p_y (right_pt e1) - p_y (left_pt e1)) /
+  (p_x (right_pt e1) - p_x (left_pt e1)) *
+ (cross_coordinate - p_x (left_pt e1))).
+
+(* This function computes the second coordinate of the intersection between the two
+  edges, without assuming that none of them is vertical (but it assumes they cross). *)
+ Definition cross_second_coordinate (e1 e2 : edge) :=
+  if R_eqb (p_x (left_pt e1)) (p_x (right_pt e1)) then
+     pre_cross_second_coordinate e2 (cross_first_coordinate e1 e2)
+  else
+     pre_cross_second_coordinate e1 (cross_first_coordinate e1 e2).
+
+Definition intersection_point (g1 g2 : edge) :=
+  Bpt (cross_first_coordinate g1 g2) (cross_second_coordinate g1 g2).
+
+Definition create_intersection_event (p : edge * edge) (evs : seq event) :
+  seq event :=
+(* p is assumed to contain a pair of edges such that
+   the intersection with the vertical line at x for the first edge
+   is below the intersectin for the second edge *)
+   if detect_intersection (fst p) (snd p) then
+   add_event (intersection_point (fst p) (snd p)) (fst p) false
+     (add_event (intersection_point (fst p) (snd p)) (snd p) false evs)
+   else
+     evs.
 
 Definition step (st : scan_state) (e : event) : scan_state :=
    let p := point e in
@@ -442,7 +528,7 @@ Definition start (first_event : event) (bottom : edge) (top : edge) :
   scan_state :=
   let (newcells, lastopen) :=
   opening_cells_aux (point first_event)
-      (path.sort edge_below (outgoing first_event)) bottom top in
+      (sorted_outgoing first_event) bottom top in
       (Bscan newcells lastopen [::] [::]
          (close_cell (point first_event) (start_open_cell bottom top))
          top (p_x (point first_event))).
