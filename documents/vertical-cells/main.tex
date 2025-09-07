@@ -28,6 +28,10 @@
 
 \keywords{Formal Verification, Motion planning, algorithmic geometry}
 
+\supplement{}
+
+\supplementdetails[subcategory={}, cite={}, swhid={}]{Software}{https://github.com/math-comp/trajectories/tree/vertical-cells-paper}
+
 
 
 %Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -949,7 +953,8 @@ obstacle, this obstacle is covered by cells, so that there must be a
 cell \(c_2\) such that \(c_2\) contains \(p\) and \(p\) is on the high
 edge of \(c_2\).  Because \(p\) is not on the high edge of \(c_1\),
 \(c_1\) and \(c_2\) must be distinct, but by the definition of
-owned points, \(p\) must be attached to both \(c_1\) and \(c_2\).
+owned points, \(p\) must be attached to both \(c_1\) and \(c_2\).  This
+is a contradiction and thus \(p\) cannot be on an obstacle.
 \subsection{Safety for points on the lateral boundaries}
 For points on the lateral sides, we first concentrate on the left side.
 When an event is processed, closed cells have a left limit that is
@@ -995,7 +1000,7 @@ sequence of right points of the previous last closed cell, because it
 was already present in that sequence: this event is on the high edge of
 the cell, so it is already equal to the projection of the previous event
 on that edge (because the processed event and the previous event are on
-the same vertical).
+the same vertical).  This is illustrated in Figure~\ref{fig:fourth_case_degenerate}.
 
 \begin{figure}
 \begin{center}
@@ -1017,7 +1022,7 @@ the same vertical).
   preserved closed cells, and also in the left side of the newly
   created open cell.
   }
-\label{fig:third_case_degenerate}
+\label{fig:fourth_case_degenerate}
 \end{figure}
 % 30.061 53.620 49.600 55.965
 % 51.153 39.
