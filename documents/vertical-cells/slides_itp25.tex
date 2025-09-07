@@ -83,9 +83,9 @@ Thomas Portet}
 \begin{columns}
 \begin{column}{0.3\textwidth}
 %trim parameters left bottom right top
-\includegraphics[trim={0 0 0 \topcrop}, clip, width=0.9\textwidth]{partial_spiral.pdf}
+\includegraphics[trim={0 0 0 \topcrop}, clip, width=\textwidth]{partial_spiral.pdf}
 %trim parameters left bottom right top
-\includegraphics[trim={0 0 0 \topcrop}, clip, width=0.9\textwidth]{partial_spiral2.pdf}
+\includegraphics[trim={0 0 0 \topcrop}, clip, width=\textwidth]{partial_spiral2.pdf}
 \end{column}
 \begin{column}{0.7\textwidth}
 \begin{itemize}
@@ -104,7 +104,7 @@ obtain a dark red cell in the middle
 \begin{itemize}
 \item  Width of closed cells : horizontal distance between events
 \begin{itemize}
-\item Vertically aligned segments yield empty cells, if handled naively
+\item Vertically aligned events yield empty cells, if handled naively
 \end{itemize}
 \item Empty cells are a nuisance
 \item Solution: special treatment
@@ -128,7 +128,7 @@ obtain a dark red cell in the middle
 \begin{frame}
 \frametitle{Above or under}
 \begin{itemize}
-\item Assume an edge with extremities \(l\) and \(r\) and an arbitrary point
+\item Edge with extremities \(l\) and \(r\) and an arbitrary point \(p\)
 \item \(\begin{array}{|ccc|}
 1 & {\tt l}_x & {\tt l}_y\\
 1 & {\tt r}_x & {\tt r}_y\\
@@ -137,8 +137,10 @@ obtain a dark red cell in the middle
 \quad if \(p\) is in the half plane above the edge.
 \item edge \(g_1\) is below \(g_2\) if both extremities of \(g_2\) are above
 \(g_1\) or both extremities of \(g_1\) are under \(g_2\)
-\item Transitivity: if \(p_1\) and \(p_2\) are vertically aligned \(p_2\) is
-above \(p_1\), if \(p_1\) is above an edge, then so is \(p_2\)
+\item Transitivity: two points and one edge, or one point and two edges
+\begin{itemize}
+\item With vertical constraints
+\end{itemize}
 \item No transitivity for {\em edge below}
 \end{itemize}
 \end{frame}
@@ -176,7 +178,8 @@ safe by going through the cell center
 \begin{columns}
 \begin{column}{0.3\textwidth}
 %trim parameters left bottom right top
-\framebox{\includegraphics[trim={5cm 20cm 6cm 0}, clip, width=0.9\textwidth]{simple_case1.pdf}}
+%\framebox
+{\includegraphics[trim={5cm 20cm 8cm 0}, clip, width=\textwidth]{simple_case1.pdf}}
 \end{column}
 \begin{column}{0.7\textwidth}
 \begin{itemize}
@@ -197,7 +200,8 @@ the sweep line
 \begin{columns}
 \begin{column}{0.3\textwidth}
 %trim parameters left bottom right top
-\framebox{\includegraphics[trim={5cm 20cm 6cm 0}, clip, width=0.9\textwidth]{simple_case2.pdf}}
+%\framebox
+{\includegraphics[trim={5cm 20cm 8cm 0}, clip, width=\textwidth]{simple_case2.pdf}}
 \end{column}
 \begin{column}{0.7\textwidth}
 \begin{itemize}
@@ -212,7 +216,8 @@ the sweep line
 \begin{columns}
 \begin{column}{0.3\textwidth}
 %trim parameters left bottom right top
-\framebox{\includegraphics[trim={5cm 20cm 6cm 0}, clip, width=0.9\textwidth]{simple_case3.pdf}}
+%\framebox
+{\includegraphics[trim={5cm 20cm 8cm 0}, clip, width=\textwidth]{simple_case3.pdf}}
 \end{column}
 \begin{column}{0.7\textwidth}
 \begin{itemize}
@@ -227,15 +232,100 @@ the sweep line
 \begin{columns}
 \begin{column}{0.3\textwidth}
 %trim parameters left bottom right top
-\framebox{\includegraphics[trim={5cm 20cm 6cm 0}, clip, width=0.9\textwidth]{bad_case1.pdf}}
+%\framebox
+{\includegraphics[trim={5cm 20cm 8cm 0}, clip, width=\textwidth]{bad_case1.pdf}}
 \end{column}
 \begin{column}{0.7\textwidth}
 \begin{itemize}
 \item Cell \(c_5\) is closed when processing \(e'\)
-\item \(e'\) is safe for \(c_3\)
+\item There is no need for \(c_5\)
+\item \(e'\) must be recorded as unsafe in \(c_3\)
+\item Other unsafe points on the left side of \(c_5\) must be recorded as unsafe for \(c_6\)
 \end{itemize}
 \end{column}
 \end{columns}
+\end{frame}
+\begin{frame}
+\frametitle{Proof structure}
+\begin{itemize}
+\item Assumption concerning the sequence of events
+\item Properties of cell sequence decomposition
+\item Logical invariants for the main processing loop
+\item Main property as a consequence of the invariant
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Properties for sequence of events}
+\begin{columns}
+\begin{column}{0.2\textwidth}
+%trim parameters left bottom right top
+%\framebox
+{\includegraphics[trim={2cm 24cm 8cm 1cm}, clip, width=\textwidth]{event_order.pdf}}
+\end{column}
+\begin{column}{0.8\textwidth}
+\begin{itemize}
+\item The sequence is sorted lexicographically
+\item Outgoing edges have the left point at the event
+\item Edges have their right point in the sequence
+\item Proofs for producing code
+\item Proofs for consuming code: maintaining invariant
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+\begin{frame}[fragile]
+\frametitle{The scan state}
+\begin{columns}
+\begin{column}{0.2\textwidth}
+%trim parameters left bottom right top
+%\framebox
+{\includegraphics[trim={5cm 20cm 8cm 0}, clip, width=\textwidth]{simple_case2.pdf}}
+\end{column}
+\begin{column}{0.8\textwidth}
+\begin{itemize}
+\item a record with 7 fields
+\item 3 fields compose open cells
+\begin{itemize}
+\item Direct link to the last created open cell (\(c_5\))
+\item Two other fields for prefix and suffix 
+\end{itemize}
+\item 2 fields for the closed cells
+\begin{itemize}
+\item Direct access to the last closed cell (\(c_3\))
+\item Another field for the rest
+\end{itemize}
+\item One field for the last high edge (top of \(c_3\), \(c_5\))
+\item One field for the last location of the sweeping line
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+\begin{frame}
+\frametitle{Invariants of open cell sequences}
+\begin{itemize}
+\item Each cell has a low edge below the high edge
+\item Each cell's high edge is the next cell's low edge
+\item Each cell's left side is left of the sweep line
+\item Each cell has a well-formed left-side
+\begin{itemize}
+\item vertically aligned points,
+\item extremities on low and high edges
+\item sorted in height
+\end{itemize}
+\item All edges have their right point in the remaining events
+\item Each high edge is lower than the higher of all following cells
+\begin{itemize}
+\item Important because {\tt edge\_below} is not transitive
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Main proved property}
+\begin{itemize}
+\item interior of cells is disjoint from input segments
+\item points on sides distinct from left and right points are also disjoint from
+ input segments
+\end{itemize}
 \end{frame}
 \end{document}
 
