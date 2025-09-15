@@ -267,8 +267,8 @@ the sweep line
 \item The sequence is sorted lexicographically
 \item Outgoing edges have the left point at the event
 \item Edges have their right point in the sequence
-\item Proofs for producing code
-\item Proofs for consuming code: maintaining invariant
+\item Producer code must guarantee this
+\item Consuming code maintains it easily
 \end{itemize}
 \end{column}
 \end{columns}
@@ -325,6 +325,30 @@ the sweep line
 \item interior of cells is disjoint from input segments
 \item points on sides distinct from left and right points are also disjoint from
  input segments
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Key insights}
+\begin{itemize}
+\item Open cells are disjoint
+\item Open cells are disjoint from closed cells
+\item Closed cells are disjoint
+\item Obstacles are progressively included in the top of all cells
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Future improvements}
+\begin{itemize}
+\item Remove constraints of edges not crossing
+\begin{itemize}
+\item Revisit the proof to remove uses of {\tt edge\_below}
+\item Detect edge crossings incrementally
+\end{itemize}
+\item Add a field to cells to point to the neighbors
+\item Understand where efficient numbers can be used
+\begin{itemize}
+\item For now rational numbers, hope to use floating point numbers
+\end{itemize}
 \end{itemize}
 \end{frame}
 \end{document}
