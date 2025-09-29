@@ -4,16 +4,18 @@
 setfont
 
 gsave
+% red in the middle of the 3rd column
 newpath
 160 470 moveto
 160 330 lineto
 230 260 lineto
 230 470 lineto
 closepath
-0.7 0.3 0.3 setrgbcolor
+0.2 0.5 0.0 setrgbcolor
 fill
 stroke
 
+%green in the bottom of 2nd and 3rd columns
 90 120 moveto
 230 120 lineto
 230 260 lineto
@@ -23,6 +25,7 @@ closepath
 fill
 stroke
 
+% blue in the middle of the 2nd column
 90 400 moveto
 160 330 lineto
 160 470 lineto
@@ -31,15 +34,18 @@ closepath
 fill
 stroke
 
+%grey on top of the 3rd column
 160 470 moveto
 230 470 lineto
 230 540 lineto
 160  540 lineto
 closepath
 0.6 1 0.6 setrgbcolor
+0.8 setgray
 fill
 stroke
 
+% red on top of the 2nd column
 newpath
 160 470 moveto
 160 540 lineto
@@ -50,6 +56,7 @@ closepath
 fill
 stroke
 
+%blue in the 1st column
 20 120 moveto
 90 120 lineto
 90 540 lineto
@@ -59,39 +66,57 @@ closepath
 fill
 stroke
 
+% green in bottom of 4th column
 230 260 moveto
 230 120 lineto
-300 120 lineto
-300 190 lineto
+280 120 lineto
+ 285 125 285 130 280 135 curveto 275 140 275 145 280 150 curveto
+ 285 155 285 160 280 165 curveto 275 170 275 175 280 180 curveto
+ 285 185 285 190 280 195 curveto 275 200 275 205 280 210 curveto
 closepath
 0.6 1 0.6 setrgbcolor
 fill
 stroke
 
+% green on top of the 4th column
 230 470 moveto
-300 470 lineto
-300 540 lineto
+260 470 lineto
+ 265 475 265 480 260 485 curveto 255 490 255 495 260 500 curveto
+ 265 505 265 510 260 515 curveto 255 520 255 525 260 530 curveto
+ 260 540 lineto
 230 540 lineto
 closepath
 0.6 1 0.6 setrgbcolor
+0.8 setgray
 fill
 stroke
 
+% purple, 2nd from bottom in 4th column
 230 260 moveto
-300 190 lineto
-300 330 lineto
+290 200 lineto
+ 295 205 295 210 290 215 curveto 285 220 285 225 290 230 curveto
+ 295 235 295 240 290 245 curveto 285 250 285 255 290 260 curveto
+ 295 265 295 270 290 275 curveto 285 280 285 285 290 290 curveto
+ 295 295 295 300 290 305 curveto 285 310 285 315 290 320 curveto
+ 290 340 lineto
+
 230 400 lineto
 closepath
-1 1 0.6 setrgbcolor
+0.8 0.67 1 setrgbcolor
 fill
 stroke
 
+% yellow, 3rd from the bottom in the 4th column
 230 400 moveto
-300 330 lineto
-300 470 lineto
+280 350 lineto
+ 285 355 285 360 280 365 curveto 275 370 275 375 280 380 curveto
+ 285 385 285 390 280 395 curveto 275 400 275 405 280 410 curveto
+ 285 415 285 420 280 425 curveto 275 430 275 435 280 440 curveto
+ 285 445 285 450 280 455 curveto 275 460 275 465 280 470 curveto
+ 280 470 lineto
 230 470 lineto
 closepath
-0.6 1 1 setrgbcolor
+1 0.87 0.6 setrgbcolor
 fill
 stroke
 

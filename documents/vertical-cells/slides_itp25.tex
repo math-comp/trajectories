@@ -46,11 +46,11 @@ Thomas Portet}
 \frametitle{Vertical cell decomposition}
 \begin{itemize}
 \item Use a vertical sweep line moving left to right
-\item Stop each time one meets an edge tip (an event)
-\item maintain a vertically ordered sequence of open cells
+\item Stop each time one meets an event (e.g. an edge tip)
+\item maintain a vertically ordered sequence of incomplete cells
 \begin{itemize}
-\item close all open cells in contact with the event
-\item open new cells forall edges starting at this event
+\item Complete all incomplete cells in contact with the event
+\item Create new incomplete cells forall edges starting at this event
 \end{itemize}
 \item Simplifying assumptions
 \begin{itemize}
@@ -72,10 +72,13 @@ Thomas Portet}
 \begin{frame}
 \frametitle{Naive approach to cell generation}
 \begin{itemize}
-\item Maintain a sequence of ``open cells''
-\item Compute cells in contact with the current event
-\item Close cells in contact
-\item Create new cells starting at the current event
+\item Maintain a sequence of incomplete cells
+\begin{itemize}
+\item In code and the article, they are called ``open cells''
+\end{itemize}
+\item Compute incomplete cells in contact with the current event
+\item Complete these cells
+\item Create new incomplete cells starting at the current event
 \end{itemize}
 \end{frame}
 \begin{frame}
@@ -89,12 +92,12 @@ Thomas Portet}
 \end{column}
 \begin{column}{0.7\textwidth}
 \begin{itemize}
-\item event in the middle of the pink area
-\item open cells are pink, green, pink
-\item contact cell: the pink cell
-\item new closed cell: close the pink cell at the event,
-obtain a dark red cell in the middle
-\item new open cells: light blue and yellow
+\item Event in the middle of the pink area
+\item Incomplete cells are green, pink, grey (ascending order)
+\item Contact cell: the pink cell
+\item New complete cell: complete the pink cell at the event,
+obtain a dark green cell in the middle
+\item New incomplete cells: light purple and yellow
 \end{itemize}
 \end{column}
 \end{columns}
@@ -102,46 +105,16 @@ obtain a dark red cell in the middle
 \begin{frame}
 \frametitle{Difficulty with vertically aligned events}
 \begin{itemize}
-\item  Width of closed cells : horizontal distance between events
+\item  Width of complete cells : horizontal distance between events
 \begin{itemize}
 \item Vertically aligned events yield empty cells, if handled naively
 \end{itemize}
 \item Empty cells are a nuisance
 \item Solution: special treatment
 \begin{itemize}
-\item Keep track of last open and closed cell
+\item Keep track of last created incomplete and complete cells
 \item Update these cells instead of creating new ones
 \end{itemize}
-\end{itemize}
-\end{frame}
-\begin{frame}
-\frametitle{Basic concepts}
-\begin{itemize}
-\item Edges: pairs of points with strict order on first coordinate
-\item Points above, under, or on edges
-\item Valid edges for a point
-\item Edges below edges
-\item Well-formed cells
-\item Adjacent cells
-\end{itemize}
-\end{frame}
-\begin{frame}
-\frametitle{Above or under}
-\begin{itemize}
-\item Edge with extremities \(l\) and \(r\) and an arbitrary point \(p\)
-\item \(\begin{array}{|ccc|}
-1 & {\tt l}_x & {\tt l}_y\\
-1 & {\tt r}_x & {\tt r}_y\\
-1 & {\tt p}_x & {\tt p}_y\\
-\end{array} > 0 \)
-\quad if \(p\) is in the half plane above the edge.
-\item edge \(g_1\) is below \(g_2\) if both extremities of \(g_2\) are above
-\(g_1\) or both extremities of \(g_1\) are under \(g_2\)
-\item Transitivity: two points and one edge, or one point and two edges
-\begin{itemize}
-\item With vertical constraints
-\end{itemize}
-\item No transitivity for {\em edge below}
 \end{itemize}
 \end{frame}
 \begin{frame}
@@ -150,10 +123,10 @@ obtain a dark red cell in the middle
 \includegraphics[trim={0 19cm 0 4cm}, clip, width=\textwidth]{one_closed_cell.pdf}
 
 \begin{itemize}
-\item Open cells have no right points
+\item All cells have a high, a low edge, and a left point sequence
+\item Incomplete cells have no right points
 \item Point sequences go from the high edge to the low edge
-\item successive points on the point sequences describe safe doors
-\item Open cells may be degenerate
+\item Intervals between successive points in sequences describe safe doors
 \end{itemize}
 \end{frame}
 \begin{frame}
@@ -188,7 +161,7 @@ safe by going through the cell center
 \item All other contact cells have a pointy shape
 \item The event may have outgoing edges
 \item Before processing event \(e\), cells \(c_1\), \(c_2\), and \(c_3\) are
-{\em open}
+{\em incomplete}
 \item When processing event \(e\), these cells receive a right side at
 the sweep line
 \end{itemize}
@@ -196,7 +169,7 @@ the sweep line
 \end{columns}
 \end{frame}
 \begin{frame}
-\frametitle{Non-vertically aligned events: new open cells}
+\frametitle{Non-vertically aligned events: new incomplete cells}
 \begin{columns}
 \begin{column}{0.3\textwidth}
 %trim parameters left bottom right top
@@ -205,7 +178,7 @@ the sweep line
 \end{column}
 \begin{column}{0.7\textwidth}
 \begin{itemize}
-\item Two new open cells are created (in this case)
+\item Two new incomplete cells are created (in this case)
 \item Their left side is at the sweep line
 \end{itemize}
 \end{column}
@@ -221,7 +194,7 @@ the sweep line
 \end{column}
 \begin{column}{0.7\textwidth}
 \begin{itemize}
-\item Cell \(c_5\) is closed when processing \(e'\)
+\item Cell \(c_5\) is completed when processing \(e'\)
 \item \(e'\) is safe for \(c_3\)
 \end{itemize}
 \end{column}
@@ -237,13 +210,43 @@ the sweep line
 \end{column}
 \begin{column}{0.7\textwidth}
 \begin{itemize}
-\item Cell \(c_5\) is closed when processing \(e'\)
+\item Cell \(c_5\) is completed when processing \(e'\)
 \item There is no need for \(c_5\)
 \item \(e'\) must be recorded as unsafe in \(c_3\)
 \item Other unsafe points on the left side of \(c_5\) must be recorded as unsafe for \(c_6\)
 \end{itemize}
 \end{column}
 \end{columns}
+\end{frame}
+\begin{frame}
+\frametitle{Basic concepts}
+\begin{itemize}
+\item Edges: pairs of points with strict order on first coordinate
+\item Points above, under, or on edges
+\item Valid edges for a point
+\item Edges below edges
+\item Well-formed cells
+\item Adjacent cells
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Above or under}
+\begin{itemize}
+\item Edge with extremities \(l\) and \(r\) and an arbitrary point \(p\)
+\item \(\begin{array}{|ccc|}
+1 & {\tt l}_x & {\tt l}_y\\
+1 & {\tt r}_x & {\tt r}_y\\
+1 & {\tt p}_x & {\tt p}_y\\
+\end{array} > 0 \)
+\quad if \(p\) is in the half plane above the edge.
+\item edge \(g_1\) is below \(g_2\) if both extremities of \(g_2\) are above
+\(g_1\) or both extremities of \(g_1\) are under \(g_2\)
+\item Transitivity: two points and one edge, or one point and two edges
+\begin{itemize}
+\item With vertical constraints
+\end{itemize}
+\item No transitivity for {\em edge below}
+\end{itemize}
 \end{frame}
 \begin{frame}
 \frametitle{Proof structure}
@@ -284,14 +287,14 @@ the sweep line
 \begin{column}{0.8\textwidth}
 \begin{itemize}
 \item a record with 7 fields
-\item 3 fields compose open cells
+\item 3 fields compose the sequence of incomplete cells
 \begin{itemize}
-\item Direct link to the last created open cell (\(c_5\))
+\item Direct link to the last created incomplete cell (\(c_5\))
 \item Two other fields for prefix and suffix 
 \end{itemize}
-\item 2 fields for the closed cells
+\item 2 fields for the set of complete cells
 \begin{itemize}
-\item Direct access to the last closed cell (\(c_3\))
+\item Direct access to the last created complete cell (\(c_3\))
 \item Another field for the rest
 \end{itemize}
 \item One field for the last high edge (top of \(c_3\), \(c_5\))
@@ -301,7 +304,7 @@ the sweep line
 \end{columns}
 \end{frame}
 \begin{frame}
-\frametitle{Invariants of open cell sequences}
+\frametitle{Invariants of incomplete cell sequences}
 \begin{itemize}
 \item Each cell has a low edge below the high edge
 \item Each cell's high edge is the next cell's low edge
@@ -330,9 +333,9 @@ the sweep line
 \begin{frame}
 \frametitle{Key insights}
 \begin{itemize}
-\item Open cells are disjoint
-\item Open cells are disjoint from closed cells
-\item Closed cells are disjoint
+\item Incomplete cells are disjoint
+\item Incomplete cells are disjoint from complete cells
+\item complete cells are disjoint
 \item Obstacles are progressively included in the top of all cells
 \end{itemize}
 \end{frame}
