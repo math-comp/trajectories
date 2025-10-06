@@ -120,6 +120,11 @@ Fixpoint add_event (p : pt) (e : edge) (inc : bool) (evs : seq event) :
     ev1 :: add_event p e inc evs'
   end.
 
+Definition add_inter_event (p : pt) (e : edge) (evs : seq event) :
+  seq event :=
+  if pt_eqb (right_pt e) p then evs else
+    add_event p e false evs.
+
 Fixpoint edges_to_events (s : seq edge) : seq event :=
   match s with
   | nil => nil
@@ -423,7 +428,7 @@ Definition pre_cross_second_coordinate (e1 : edge) (cross_coordinate : R) :=
   edges, without assuming that none of them is vertical (but it assumes they cross). *)
  Definition cross_second_coordinate (e1 e2 : edge) :=
   if R_eqb (p_x (left_pt e1)) (p_x (right_pt e1)) then
-     pre_cross_second_coordinate e2 (cross_first_coordinate e1 e2)
+     pre_cross_second_coordinate e2 (cross_first_coordinate e2 e1)
   else
      pre_cross_second_coordinate e1 (cross_first_coordinate e1 e2).
 
@@ -436,8 +441,8 @@ Definition create_intersection_event (p : edge * edge) (evs : seq event) :
    the intersection with the vertical line at x for the first edge
    is below the intersectin for the second edge *)
    if detect_intersection (fst p) (snd p) then
-   add_event (intersection_point (fst p) (snd p)) (fst p) false
-     (add_event (intersection_point (fst p) (snd p)) (snd p) false evs)
+   add_inter_event (intersection_point (fst p) (snd p)) (fst p)
+     (add__inter_event (intersection_point (fst p) (snd p)) (snd p) evs)
    else
      evs.
 
