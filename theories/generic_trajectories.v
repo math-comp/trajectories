@@ -327,7 +327,7 @@ Fixpoint insert_edge_or_discard (g : edge) (gs : seq edge) : seq edge :=
         if negb (point_under_edge (right_pt g1) g) then
           g :: g1 :: tl
         else
-          if p_x (right_pt g) < p_x (right_pt g1) then
+          if R_ltb (p_x (right_pt g)) (p_x (right_pt g1)) then
             g1 :: tl
           else
             g :: tl
@@ -347,43 +347,36 @@ Definition sorted_outgoing (e : event) :=
   points of one of the newly created open cells, but the one that receives
   the first segment of the last opening cells should keep its existing
   left points.*)
-Definition update_open_cell (c : cell) (e : event) : seq cell * cell :=
+Definition update_open_cell (c : cell) (e : event) : seq edge * seq cell * cell :=
   let ps := left_pts c in
+  let so := sorted_outgoing e in
   if outgoing e is [::] then
-    ([::], set_left_pts c [:: head dummy_pt ps, point e & behead ps])
+    ([::], [::], set_left_pts c [:: head dummy_pt ps, point e & behead ps])
   else
     match
-    opening_cells_aux (point e) (sorted_outgoing e)
+    opening_cells_aux (point e) so
         (low c) (high c) with
     | ([::], c') => (* this is an absurd case. *)
-      ([::], c)
+      (so, [::], c)
     | (c'::tlc', lc') =>
-      (set_left_pts c' (point e :: behead ps) :: tlc', lc')
+      (so, set_left_pts c' (point e :: behead ps) :: tlc', lc')
     end.
 
-Definition update_open_cell_top (c : cell) (new_high : edge) (e : event) :=
+Definition update_open_cell_top (c : cell) (new_high : edge) (e : event) :
+  seq edge * seq cell * cell :=
   if outgoing e is [::] then
     let newptseq :=
-(* when function is called, (point e) should alread be in the left points. *)
+(* (point e) should alread be in the left points. *)
       [:: Bpt (p_x (point e)) (pvert_y (point e) new_high) &
           left_pts c] in
-      ([::], Bcell newptseq (right_pts c) (low c) new_high)
+      ([::], [::], Bcell newptseq (right_pts c) (low c) new_high)
   else
-    match opening_cells_aux (point e) (sorted_outgoing e)
-        (low c) new_high with
-    | ([::], lc) => (* this is not supposed to happen *) ([::], lc)
+    let so := sorted_outgoing e in
+    match opening_cells_aux (point e) so (low c) new_high with
+    | ([::], lc) => (* this is not supposed to happen *) (so, [::], lc)
     | (f :: q, lc) =>
-      (set_left_pts f (point e :: behead (left_pts c)) :: q, lc)
+      (so, set_left_pts f (point e :: behead (left_pts c)) :: q, lc)
     end.
-
-Definition simple_step (fc cc lc : seq cell) (lcc : cell) (le he : edge)
-   (closed_cells : seq cell) (last_closed : cell) ev :=
-  let new_closed := closing_cells (point ev) cc in
-  let last_new_closed := close_cell (point ev) lcc in
-  let closed_cells' := closed_cells ++ last_closed :: new_closed in
-  let (nos, lno) :=
-    opening_cells_aux (point ev) (sorted_outgoing ev) le he in
-    Bscan (fc ++ nos) lno lc closed_cells' last_new_closed he (p_x (point ev)).
 
 Definition new_neighbor_pairs (le he : edge) (edges : seq edge)
   : seq (edge * edge) :=
@@ -435,18 +428,34 @@ Definition pre_cross_second_coordinate (e1 : edge) (cross_coordinate : R) :=
 Definition intersection_point (g1 g2 : edge) :=
   Bpt (cross_first_coordinate g1 g2) (cross_second_coordinate g1 g2).
 
-Definition create_intersection_event (p : edge * edge) (evs : seq event) :
+Definition create_intersection_event (evs : seq event) (p : edge * edge) :
   seq event :=
 (* p is assumed to contain a pair of edges such that
    the intersection with the vertical line at x for the first edge
-   is below the intersectin for the second edge *)
+   is below the intersection for the second edge *)
    if detect_intersection (fst p) (snd p) then
    add_inter_event (intersection_point (fst p) (snd p)) (fst p)
-     (add__inter_event (intersection_point (fst p) (snd p)) (snd p) evs)
+     (add_inter_event (intersection_point (fst p) (snd p)) (snd p) evs)
    else
      evs.
 
-Definition step (st : scan_state) (e : event) : scan_state :=
+Definition add_intersection_events le he gs (evs : seq event): seq event :=
+  let nps := new_neighbor_pairs le he gs in
+    foldl create_intersection_event evs nps.
+
+Definition simple_step (fc cc lc : seq cell) (lcc : cell) (le he : edge)
+   (closed_cells : seq cell) (last_closed : cell) ev evs
+    : seq event * scan_state :=
+  let new_closed := closing_cells (point ev) cc in
+  let last_new_closed := close_cell (point ev) lcc in
+  let closed_cells' := closed_cells ++ last_closed :: new_closed in
+  let so := sorted_outgoing ev in
+  let (nos, lno) :=
+    opening_cells_aux (point ev) so le he in
+    (add_intersection_events le he so evs,
+    Bscan (fc ++ nos) lno lc closed_cells' last_new_closed he (p_x (point ev))).
+
+Definition step (st : scan_state) (e : event) (evs : seq event): seq event * scan_state :=
    let p := point e in
    let '(Bscan op1 lsto op2 cls cl lhigh lx) := st in
    if negb (same_x p lx) then
@@ -454,18 +463,19 @@ Definition step (st : scan_state) (e : event) : scan_state :=
            lower_edge, higher_edge) :=
        open_cells_decomposition (op1 ++ lsto :: op2) p in
      simple_step first_cells contact_cells last_cells last_contact
-       lower_edge higher_edge cls cl e
+       lower_edge higher_edge cls cl e evs
    else if p >>> lhigh then
      let '(fc', contact_cells, last_contact, last_cells,
            low_edge, higher_edge) :=
        open_cells_decomposition op2 p in
      let first_cells := op1 ++ lsto :: fc' in
      simple_step first_cells contact_cells last_cells last_contact
-       low_edge higher_edge cls cl e
+       low_edge higher_edge cls cl e evs
    else if p <<< lhigh then
      let new_closed := update_closed_cell cl (point e) in
-     let (new_opens, new_lopen) := update_open_cell lsto e in
-     Bscan (op1 ++ new_opens) new_lopen op2 cls new_closed lhigh lx
+     let '(so, new_opens, new_lopen) := update_open_cell lsto e in
+     (add_intersection_events (low lsto) lhigh so evs,
+     Bscan (op1 ++ new_opens) new_lopen op2 cls new_closed lhigh lx)
    else (* here p === lhigh *)
      let '(fc', contact_cells, last_contact, last_cells, lower_edge,
                 higher_edge) :=
@@ -478,9 +488,10 @@ Definition step (st : scan_state) (e : event) : scan_state :=
          disregarded. *)
      let closed := closing_cells p (seq.behead contact_cells) in
      let last_closed := close_cell p last_contact in
-     let (new_opens, new_lopen) := update_open_cell_top lsto higher_edge e in
-     Bscan (op1 ++ fc' ++ new_opens) new_lopen last_cells
-          (closed ++ cl :: cls) last_closed higher_edge lx.
+     let '(so, new_opens, new_lopen) := update_open_cell_top lsto higher_edge e in
+     (add_intersection_events lower_edge higher_edge so evs,
+        Bscan (op1 ++ fc' ++ new_opens) new_lopen last_cells
+          (closed ++ cl :: cls) last_closed higher_edge lx).
 
 Definition leftmost_points (bottom top : edge) :=
   if R_ltb (p_x (left_pt bottom)) (p_x (left_pt top)) then
@@ -515,7 +526,7 @@ Definition complete_last_open (c : cell) :=
 Definition midpoint (p1 p2 : pt) : pt :=
   {| p_x := R_div (R_add (p_x p1) (p_x p2)) R2;
      p_y := R_div (R_add (p_y p1) (p_y p2)) R2|}.
- 
+
  (* The center of the cell is computed using the middle of the high edge
     the middle of the low edge, and their middle. *)
 
@@ -566,7 +577,7 @@ Definition bare_closed_cell_side_limit_ok c :=
     (R_eqb (area3 (head dummy_pt (right_pts c))
         (left_pt (high c)) (right_pt (high c))) R0 &&
       valid_edge (high c) (head dummy_pt (right_pts c))) &
-    (R_eqb (area3 (seq.last dummy_pt (right_pts c)) (left_pt (low c)) 
+    (R_eqb (area3 (seq.last dummy_pt (right_pts c)) (left_pt (low c))
       (right_pt (low c)))
       R0 && valid_edge (low c) (seq.last dummy_pt (right_pts c)))].
 
@@ -576,25 +587,41 @@ Definition check_bounding_box (bottom top : edge) :=
   R_ltb (left_limit cc) (right_limit cc) &&
   bare_closed_cell_side_limit_ok cc &&
   strict_inside_closed (cell_center cc) cc.
-         
-Definition complete_process (bottom top : edge) (events : seq event) : seq cell :=
+
+Fixpoint fold_step (state : scan_state) (evs : seq event) (fuel : nat) : option scan_state :=
+  match fuel with
+  | O => None
+  | S p =>
+    match evs with
+      [::] => Some state
+    | ev :: evs =>
+    let (new_evs, new_state) := step state ev evs in
+      fold_step new_state new_evs p
+    end
+  end.
+
+Definition complete_process (bottom top : edge) (events : seq event) fuel : seq cell :=
   match events with
-  | [::] => 
+  | [::] =>
     if check_bounding_box bottom top then
-      [:: complete_last_open (start_open_cell bottom top)]
+      ([:: complete_last_open (start_open_cell bottom top)])
     else
       [::]
   | ev0 :: events =>
     let start_scan := start ev0 bottom top in
-    let final_scan := foldl step start_scan events in
+    match fold_step start_scan events fuel with
+    | None => [::]
+    | Some final_scan =>
       map complete_last_open
       (sc_open1 final_scan ++ lst_open final_scan :: sc_open2 final_scan) ++
       lst_closed final_scan :: sc_closed final_scan
+    end
   end.
 
 (* This is the main function of vertical cell decomposition. *)
-Definition edges_to_cells bottom top edges :=
-  complete_process bottom top (edges_to_events edges).
+Definition edges_to_cells bottom top edges : seq cell :=
+  complete_process bottom top (edges_to_events edges)
+    (seq.size edges * (seq.size edges + 2)).
 
 (* SECOND PART : computing a path in the cell graph *)
 (* To compute a path that has reasonable optimzation, we compute a shortest *)
