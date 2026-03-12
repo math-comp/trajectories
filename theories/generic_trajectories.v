@@ -1134,4 +1134,32 @@ Definition smooth_point_to_point (bottom top : edge) (obstacles : seq edge)
   let cells := edges_to_cells bottom top obstacles in
   smooth_from_cells cells initial final.
 
+Definition inside_cell (c : cell) (p : pt) :=
+  contains_point p c &&
+  R_leb (left_limit c) (p_x p) &&
+  R_leb (p_x p) (right_limit c).
+
+Definition cross_vertical(e : edge) (bottom_pt top_pt : pt) :=
+  valid_edge e bottom_pt && point_under_edge bottom_pt e &&
+  negb (point_strictly_under_edge top_pt e).
+
+
+(* This function tests if a given edge contains a point inside the rectangle
+  whose bottom left corner and top right corners are given.  The respective
+  positions of the two points is assumed to be correct. *)
+Definition has_intersection_with_rectangle (e : edge)
+  (bottom_left top_right : pt) :=
+  let top_left := Bpt (p_x bottom_left) (p_y top_right) in
+  let bottom_right := Bpt (p_x top_right) (p_y bottom_left) in
+  let top_edge := Bedge top_left top_right in
+  let bottom_edge := Bedge bottom_left bottom_right in
+  let the_cell := Bcell (top_left :: bottom_left :: nil)
+  (top_right :: bottom_right :: nil) bottom_edge top_edge in
+    inside_cell the_cell (left_pt e) ||
+    inside_cell the_cell (right_pt e) ||
+    negb (edge_below e top_edge || edge_below top_edge e)  ||
+    negb (edge_below e bottom_edge || edge_below bottom_edge e) ||
+    cross_vertical e bottom_left top_left ||
+    cross_vertical e bottom_right top_right.
+
 End generic_implementation.
