@@ -1,6 +1,6 @@
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect all_algebra.
-Require Export Field.
+From mathcomp Require Import all_boot all_order all_algebra.
+From Stdlib Require Export Field.
 Require Import math_comp_complements.
 Require Import generic_trajectories.
 
@@ -8,7 +8,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Require Import NArithRing.
+From Stdlib Require Import NArithRing.
 Import Order.TTheory GRing.Theory Num.Theory Num.ExtraDef Num.
 
 Open Scope ring_scope.
@@ -2359,8 +2359,9 @@ move: (ve2) => /andP[] + _; rewrite le_eqVlt => /orP [/eqP l2p | l2ltp].
     by rewrite !eqxx.
   have/contact_left_slope[_ eq3] : left_pt e2 === e1 by rewrite p2l.
   move: on1=>/andP[] /eqP + _; rewrite -p2l => eq4.
-  rewrite /W' eq3 lt_neqAle -cmp_slopesNC eq_sym oppr_eq0 -Weq difslope andTb.
-  rewrite strictE.
+(* In LHS added to circumvent a regression that appears in rocq 9.1. *)
+  rewrite /W' eq3 [in LHS]lt_neqAle -cmp_slopesNC eq_sym oppr_eq0.
+  rewrite -Weq difslope andTb strictE.
   by rewrite -leNgt eq4 lexx -ltNge oppr_lt0.
 have xpp1 : p.x = p1.x by rewrite p1q.
 move: on2 l2ltp re2; rewrite -pp xpp1 => on2 l2ltp re2.
@@ -2445,7 +2446,9 @@ move: (ve2) => /andP[] _; rewrite le_eqVlt => /orP [/eqP r2p | pltr2].
     by rewrite !eqxx.
   have/contact_right_slope[_ eq3] : right_pt e2 === e1 by rewrite p2r.
   move: on1=>/andP[] /eqP + _; rewrite -p2r => eq4.
-  rewrite /W' eq3 lt_neqAle -cmp_slopesNC oppr_eq0 -Weq difslope andTb.
+  (* in LHS added to circumvent a regression that appeared in rocq 9.1 *)
+  rewrite /W' eq3 [in LHS]lt_neqAle -cmp_slopesNC oppr_eq0.
+  rewrite -Weq difslope andTb.
   by rewrite /W' strictE
       eq4 ltxx andbT -ltNge oppr_gt0.
 have xpp1 : p.x = p1.x by rewrite p1q.

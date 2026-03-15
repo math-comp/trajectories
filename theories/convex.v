@@ -1,5 +1,5 @@
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect all_algebra lra.
+From mathcomp Require Import all_boot all_order all_algebra lra.
 From mathcomp Require Import mathcomp_extra boolp Rstruct classical_sets.
 From mathcomp Require Import reals ereal interval_inference.
 From infotheo Require Import realType_ext fdist convex.

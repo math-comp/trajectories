@@ -1,5 +1,5 @@
-From mathcomp Require Import all_ssreflect.
-Require Import ZArith (* List *) String OrderedType OrderedTypeEx FMapAVL.
+From mathcomp Require Import all_boot.
+From Stdlib Require Import ZArith (* List *) String OrderedType OrderedTypeEx FMapAVL.
 Require Import shortest_path.
 
 Notation head := seq.head.

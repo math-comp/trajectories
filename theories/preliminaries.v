@@ -15,7 +15,7 @@ Elpi Query lp:{{
 }}.
 
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect all_algebra.
+From mathcomp Require Import all_boot all_order all_algebra.
 From mathcomp Require Import classical_sets reals Rstruct.
 From infotheo Require Import convex.
 

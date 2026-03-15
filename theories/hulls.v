@@ -1,5 +1,5 @@
 Require Export encompass conv.
-From mathcomp Require Import all_ssreflect all_algebra vector reals normedtype.
+From mathcomp Require Import all_boot all_order all_algebra vector reals normedtype.
 From mathcomp Require Import classical_sets boolp mathcomp_extra.
 Require Import counterclockwise.
 

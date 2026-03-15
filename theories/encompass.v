@@ -1,4 +1,4 @@
-From mathcomp Require Import all_ssreflect all_algebra.
+From mathcomp Require Import all_boot all_order all_algebra.
 From mathcomp Require Import reals ereal classical_sets.
 Require Export preliminaries preliminaries_hull axiomsKnuth.
 

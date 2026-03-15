@@ -1,5 +1,5 @@
-From mathcomp Require Import all_ssreflect all_algebra.
-Require Export Field.
+From mathcomp Require Import all_boot all_order all_algebra.
+From Stdlib Require Export Field.
 Require Import generic_trajectories.
 Require Import math_comp_complements points_and_edges events cells.
 Require Import opening_cells cells_alg initial_cell simple_step
@@ -9,7 +9,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Require Import NArithRing.
+From Stdlib Require Import NArithRing.
 Import Order.TTheory GRing.Theory Num.Theory Num.ExtraDef Num.
 
 Open Scope ring_scope.

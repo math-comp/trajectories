@@ -1,5 +1,5 @@
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect all_algebra all_real_closed archimedean reals.
+From mathcomp Require Import all_boot all_order all_algebra all_real_closed archimedean reals.
 From mathcomp.algebra_tactics Require Import ring lra.
 Require Import casteljau convex counterclockwise intersection.
 

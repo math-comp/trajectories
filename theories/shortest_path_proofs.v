@@ -1,4 +1,4 @@
-From mathcomp Require Import all_ssreflect all_algebra.
+From mathcomp Require Import all_boot all_order all_algebra.
 Require Import ZArith String OrderedType OrderedTypeEx FMapAVL.
 Require Import shortest_path.
 

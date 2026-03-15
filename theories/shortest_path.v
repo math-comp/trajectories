@@ -1,5 +1,5 @@
-From mathcomp Require Import all_ssreflect all_algebra.
-Require Import ZArith String OrderedType OrderedTypeEx FMapAVL.
+From mathcomp Require Import all_boot all_order all_algebra.
+From Stdlib Require Import ZArith String OrderedType OrderedTypeEx FMapAVL.
 
 Notation head := seq.head.
 Notation seq := seq.seq.

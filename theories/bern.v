@@ -1,4 +1,4 @@
-From mathcomp Require Import all_ssreflect all_algebra archimedean.
+From mathcomp Require Import all_boot all_order all_algebra archimedean.
 (*Require Import QArith ZArith Zwf Omega.
 From mathcomp Require Import ssreflect eqtype ssrbool ssrnat div fintype seq ssrfun order.
 From mathcomp Require Import bigop fingroup choice binomial poly.
