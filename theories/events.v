@@ -1,6 +1,6 @@
 From HB Require Import structures.
 From mathcomp Require Import all_boot all_order all_algebra.
-Require Export Field.
+
 Require Import math_comp_complements.
 Require Import generic_trajectories points_and_edges.
 

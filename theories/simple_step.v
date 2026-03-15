@@ -1,5 +1,5 @@
 From mathcomp Require Import all_boot all_order all_algebra.
-Require Export Field.
+
 Require Import generic_trajectories.
 Require Import math_comp_complements points_and_edges events cells.
 Require Import opening_cells cells_alg.

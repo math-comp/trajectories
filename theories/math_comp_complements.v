@@ -1,5 +1,5 @@
 From mathcomp Require Import all_boot all_order all_algebra.
-From Stdlib Require Export Field.
+
 
 Set Implicit Arguments.
 Unset Strict Implicit.
